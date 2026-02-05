@@ -91,8 +91,8 @@ async def calculate(request: ReactionRequest):
             request.nombre, 
             request.paciente_id, 
             json.dumps(request.sintomas), 
-            resultado["nfass"], 
-            resultado["ofass_grade"],
+            float(resultado["nfass"]),  # <--- AÑADE float() AQUÍ
+            int(resultado["ofass_grade"]), # <--- AÑADE int() AQUÍ por seguridad
             resultado["ofass_category"],
             resultado["risk_level"]
         ))
