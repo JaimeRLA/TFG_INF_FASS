@@ -18,7 +18,7 @@ DB_PATH = os.path.join(BASE_DIR, "fass_database.db")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://tfg-inf-fass.onrender.com",
+        "https://tfg-inf-fass-1.onrender.com",
         "http://localhost:5173" 
     ],
     allow_credentials=True,
