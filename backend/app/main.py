@@ -15,8 +15,7 @@ app.add_middleware(
     CORSMiddleware,
     # Aquí debes poner la URL de tu frontend (la que abres para ver la web)
     allow_origins=[
-        "https://tfg-inf-fass.onrender.com", 
-        "http://localhost:5173" 
+        "https://tfg-inf-fass-1.onrender.com" 
     ],
     allow_credentials=True,
     allow_methods=["*"],
