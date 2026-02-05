@@ -75,10 +75,19 @@ const App = () => {
       titulo: "4. Sistémico (CV / NS / Resp)",
       grupos: [
         { label: "Bronquios", id_base: "bronchi", options: [{ id: "wheezing_exp", text: "Sibilancia Esp. (λ: 0.06)" }, { id: "wheezing_severe", text: "Insp/Esp. (λ: 0.07)" }, { id: "wheezing_audible", text: "Audible (λ: 0.08)" }] },
-        { label: "Laringe", id_base: "laryngeal", options: [{ id: "laryngeal_stridor", text: "Estridor (λ: 0.08)" }, { id: "laryngeal_frequent_cough", text: "Tos/Ronquera (λ: 0.07)" }] },
+        { 
+          label: "Laringe", 
+          id_base: "laryngeal", 
+          options: [
+            { id: "laryngeal_throat", text: "Picor/Opresión garganta (λ: 0.05)" },
+            { id: "laryngeal_more_3", text: "Tos persistente (>3) (λ: 0.05)" },
+            { id: "laryngeal_frequent_cough", text: "Ronquera/Tos frecuente (λ: 0.07)" },
+            { id: "laryngeal_stridor", text: "Estridor laríngeo (λ: 0.08)" }
+          ] 
+        },        
         { label: "Cardio (CV)", id_base: "cv", options: [{ id: "cv_tachycardia", text: "Tachycardia (λ: 0.05)" },{ id: "cv_bp_drop", text: "Baja TA > 20% (λ: 0.07)" }, { id: "cv_collapse", text: "Colapso CV (λ: 0.08)" }] },
         { label: "Nervioso (NS)", id_base: "ns", options: [{ id: "ns_dizzy", text: "Mareo (λ: 0.05)" },{ id: "ns_significant_change", text: "Cambio Consciencia (λ: 0.07)" }, { id: "ns_loss_consciousness", text: "Pérdida conciencia (λ: 0.08)" }] }
-      ]
+              ]
     }
   ];
 
