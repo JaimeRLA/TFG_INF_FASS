@@ -59,7 +59,7 @@ const App = () => {
       return;
     }
     try {
-      const res = await axios.post('https://tfg-backend.onrender.com/calculate', {
+      const res = await axios.post('https://tu-backend-tfg.onrender.com/calculate', {
         nombre: paciente.nombre,
         paciente_id: paciente.id,
         sintomas: listaIds

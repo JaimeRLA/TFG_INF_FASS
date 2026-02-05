@@ -13,7 +13,12 @@ DB_PATH = os.path.join(BASE_DIR, "fass_database.db")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # Aquí debes poner la URL de tu frontend (la que abres para ver la web)
+    allow_origins=[
+        "https://tfg-inf-fass-1.onrender.com/", 
+        "http://localhost:5173" 
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
