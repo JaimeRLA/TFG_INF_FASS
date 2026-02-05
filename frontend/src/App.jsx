@@ -59,7 +59,7 @@ const App = () => {
       return;
     }
     try {
-      const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
+      const res = await axios.post('https://tfg-inf-fass.onrender.com', {
         nombre: paciente.nombre,
         paciente_id: paciente.id,
         sintomas: listaIds
