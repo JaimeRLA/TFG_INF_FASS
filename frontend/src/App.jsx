@@ -26,7 +26,8 @@ const App = () => {
       grupos: [
         { label: "Prurito (Rascado)", id_base: "skin_pruritus", options: [{ id: "pruritus_os", text: "Ocasional (λ: 0.01)" }, { id: "pruritus_os_2", text: "Continuo (λ: 0.02)" }, { id: "pruritus_os_hard", text: "Intenso (λ: 0.05)" }] },
         { label: "Rash / Eritema", id_base: "skin_rash", options: [{ id: "rash_few", text: "Faint (λ: 0.05)" }, { id: "rash_less_50", text: "≤ 50% (λ: 0.07)" }, { id: "rash_3_10", text: "> 50% (λ: 0.08)" }] },
-        { label: "Urticaria / Edema", id_base: "skin_urticaria", options: [{ id: "urticaria_gen", text: "Urticaria Gen. (λ: 0.08)" }, { id: "angioedema_significant", text: "Edema facial (λ: 0.07)" }, { id: "angioedema_generalized", text: "Edema Gen. (λ: 0.08)" }] }
+        { label: "Urticaria / Edema", id_base: "skin_urticaria", options: [{ id: "urticaria_gen", text: "Urticaria Gen. (λ: 0.08)" }, { id: "angioedema_significant", text: "Edema facial (λ: 0.07)" }, { id: "angioedema_generalized", text: "Edema Gen. (λ: 0.08)" }] },
+        {label: "Urticaria / Edema",id_base: "skin_urticaria",options: [{ id: "urticaria_gen", text: "Urticaria Gen. (λ: 0.08)" }, { id: "angioedema_mild", text: "Edema Leve (λ: 0.05)" },{ id: "angioedema_significant", text: "Edema facial (λ: 0.07)" }, { id: "angioedema_generalized", text: "Edema Gen. (λ: 0.08)" }] }
       ]
     },
     {
