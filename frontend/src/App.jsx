@@ -1,0 +1,185 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import { HeartPulse, ClipboardList, User, ShieldCheck, AlertTriangle, Info } from 'lucide-react';
+
+const App = () => {
+  const [paciente, setPaciente] = useState({ nombre: '', id: '' });
+  const [seleccionados, setSeleccionados] = useState({});
+  const [resultado, setResultado] = useState(null);
+
+  // Mantenemos tu lógica de secciones [cite: 1, 2, 12]
+  const SECCIONES_SINTOMAS = [
+    {
+      titulo: "1. Oral y Gastrointestinal",
+      grupos: [
+        { label: "Cavidad Oral", id_base: "oral", options: [{ id: "itchy_mouth", text: "Picor oral/garganta (λ: 0.05)" }] },
+        { label: "Dolor / Náuseas", id_base: "gi_pain", options: [
+          { id: "nausea_pain", text: "Leve (λ: 0.03)" },
+          { id: "frequent_nausea_pain", text: "Frecuente (λ: 0.04)" },
+          { id: "frequent_nausea_pain_dec", text: "Distrés/Actividad baja (λ: 0.08)" }
+        ]},
+        { label: "Vómitos", id_base: "gi_emesis", options: [{ id: "emesis_1", text: "1 episodio (λ: 0.05)" }, { id: "emesis_multiple", text: "> 1 episodio (λ: 0.08)" }] },
+        { label: "Diarrea", id_base: "gi_diarrhoea", options: [{ id: "diarrhoea", text: "1 episodio (λ: 0.05)" }, { id: "diarrhoea_multiple", text: "> 1 episodio (λ: 0.08)" }] }
+      ]
+    },
+    {
+      titulo: "2. Piel y Mucosas",
+      grupos: [
+        { label: "Prurito (Rascado)", id_base: "skin_pruritus", options: [{ id: "pruritus_os", text: "Ocasional (λ: 0.01)" }, { id: "pruritus_os_2", text: "Continuo (λ: 0.02)" }, { id: "pruritus_os_hard", text: "Intenso (λ: 0.05)" }] },
+        { label: "Rash / Eritema", id_base: "skin_rash", options: [{ id: "rash_few", text: "Faint (λ: 0.05)" }, { id: "rash_less_50", text: "≤ 50% (λ: 0.07)" }, { id: "rash_3_10", text: "> 50% (λ: 0.08)" }] },
+        { label: "Urticaria / Edema", id_base: "skin_urticaria", options: [{ id: "urticaria_gen", text: "Urticaria Gen. (λ: 0.08)" }, { id: "angioedema_significant", text: "Edema facial (λ: 0.07)" }, { id: "angioedema_generalized", text: "Edema Gen. (λ: 0.08)" }] }
+      ]
+    },
+    {
+      titulo: "3. Ocular y Nasal",
+      grupos: [
+        { label: "Rinitis", id_base: "rhinitis", options: [{ id: "rhinitis_rare", text: "Ocasional (λ: 0.01)" }, { id: "rhinitis_less_10", text: "Frecuente (λ: 0.05)" }, { id: "rhinitis_long", text: "Persistente (λ: 0.08)" }] },
+        { label: "Conjuntivitis", id_base: "eyes", options: [{ id: "eyes_rare", text: "Intermitente (λ: 0.05)" }, { id: "eyes_continuos", text: "Continuo (λ: 0.08)" }] }
+      ]
+    },
+    {
+      titulo: "4. Sistémico (CV / NS / Resp)",
+      grupos: [
+        { label: "Bronquios", id_base: "bronchi", options: [{ id: "wheezing_exp", text: "Sibilancia Esp. (λ: 0.06)" }, { id: "wheezing_severe", text: "Insp/Esp. (λ: 0.07)" }, { id: "wheezing_audible", text: "Audible (λ: 0.08)" }] },
+        { label: "Laringe", id_base: "laryngeal", options: [{ id: "laryngeal_stridor", text: "Estridor (λ: 0.08)" }, { id: "laryngeal_frequent_cough", text: "Tos/Ronquera (λ: 0.07)" }] },
+        { label: "Cardio (CV)", id_base: "cv", options: [{ id: "cv_bp_drop", text: "Baja TA > 20% (λ: 0.07)" }, { id: "cv_collapse", text: "Colapso CV (λ: 0.08)" }] },
+        { label: "Nervioso (NS)", id_base: "ns", options: [{ id: "ns_dizzy", text: "Mareo (λ: 0.05)" }, { id: "ns_loss_consciousness", text: "Pérdida conciencia (λ: 0.08)" }] }
+      ]
+    }
+  ];
+
+  const handleSelectChange = (grupoId, valor) => {
+    setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
+  };
+
+  const enviarEvaluacion = async () => {
+    const listaIds = Object.values(seleccionados).filter(id => id !== "");
+    if (!paciente.nombre || !paciente.id || listaIds.length === 0) {
+      alert("Por favor, complete los datos obligatorios.");
+      return;
+    }
+    try {
+      const res = await axios.post('http://127.0.0.1:8000/calculate', {
+        nombre: paciente.nombre,
+        paciente_id: paciente.id,
+        sintomas: listaIds
+      });
+      setResultado(res.data);
+    } catch (err) { console.error("Error:", err); }
+  };
+
+  return (
+    <div style={{ 
+      width: '100vw', 
+      minHeight: '100vh', 
+      backgroundColor: '#f1f5f9', 
+      margin: 0, 
+      padding: '20px', 
+      boxSizing: 'border-box',
+      fontFamily: '"Inter", sans-serif'
+    }}>
+      
+      {/* HEADER FULL WIDTH */}
+      <header style={{ width: '100%', textAlign: 'center', marginBottom: '30px' }}>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', color: '#2563eb', fontWeight: '800', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
+          <HeartPulse size={40} /> FASS Severity Calculator
+        </h1>
+        <p style={{ color: '#64748b' }}>Basado en el sistema nFASS/oFASS [cite: 1, 5]</p>
+      </header>
+
+      {/* GRID QUE SE ESTIRA A TODO EL ANCHO DISPONIBLE */}
+      <main style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '1fr 450px', // El formulario ocupa todo el espacio restante (1fr), el indicador es fijo
+        gap: '30px',
+        width: '100%',
+        maxWidth: '100%', // Eliminamos el límite de píxeles
+        alignItems: 'start'
+      }}>
+        
+        {/* COLUMNA IZQUIERDA: FORMULARIO */}
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          <div style={cardStyle}>
+            <h3 style={cardTitleStyle}><User size={18} color="#2563eb"/> Identificación del Paciente</h3>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <input placeholder="Nombre Completo" style={inputStyle} onChange={e => setPaciente({...paciente, nombre: e.target.value})} />
+              <input placeholder="ID Historia Clínica" style={inputStyle} onChange={e => setPaciente({...paciente, id: e.target.value})} />
+            </div>
+          </div>
+
+          <div style={cardStyle}>
+            <h3 style={cardTitleStyle}><ClipboardList size={18} color="#2563eb"/> Evaluación de Síntomas</h3>
+            {SECCIONES_SINTOMAS.map(sec => (
+              <div key={sec.titulo} style={{ marginBottom: '30px' }}>
+                <h4 style={sectionHeaderStyle}>{sec.titulo}</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                  {sec.grupos.map(grupo => (
+                    <div key={grupo.label}>
+                      <label style={labelStyle}>{grupo.label}</label>
+                      <select style={selectStyle} onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}>
+                        <option value="">-- No presenta --</option>
+                        {grupo.options.map(opt => <option key={opt.id} value={opt.id}>{opt.text}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <button onClick={enviarEvaluacion} style={buttonStyle}>Calcular Gravedad nFASS</button>
+          </div>
+        </section>
+
+        {/* COLUMNA DERECHA: INDICADOR FIJO AL BORDE */}
+        <aside style={{ position: 'sticky', top: '20px' }}>
+          {resultado ? (
+            <div style={{ 
+              backgroundColor: resultado.risk_level === 'High' ? '#fff1f2' : '#f0fdf4', 
+              padding: '50px 30px', 
+              borderRadius: '24px', 
+              border: `3px solid ${resultado.risk_level === 'High' ? '#fecdd3' : '#bbf7d0'}`,
+              textAlign: 'center',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+            }}>
+              <p style={{ textTransform: 'uppercase', fontWeight: '800', letterSpacing: '0.1em', color: resultado.risk_level === 'High' ? '#be123c' : '#16a34a', fontSize: '0.9rem' }}>
+                Resultado oFASS-5 [cite: 26]
+              </p>
+              <h2 style={{ fontSize: '8rem', margin: '15px 0', fontWeight: '900', lineHeight: 1, color: '#0f172a' }}>{resultado.ofass_grade}</h2>
+              <p style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '30px', color: resultado.risk_level === 'High' ? '#be123c' : '#166534' }}>{resultado.ofass_category}</p>
+              
+              <div style={{ backgroundColor: 'rgba(255,255,255,0.8)', padding: '25px', borderRadius: '16px', border: '1px solid #fff' }}>
+                <p style={{ margin: 0, fontSize: '1.1rem', color: '#475569' }}>Índice nFASS:</p>
+                <strong style={{ fontSize: '2.5rem', color: '#1e293b' }}>{resultado.nfass}</strong>
+              </div>
+
+              {resultado.risk_level === 'High' && (
+                <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#be123c', color: '#fff', borderRadius: '16px', display: 'flex', gap: '15px', alignItems: 'center', textAlign: 'left' }}>
+                  <AlertTriangle size={48} />
+                  <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', lineHeight: 1.4 }}>
+                    <strong>ALERTA MÉDICA:</strong> Riesgo de anafilaxia elevado. Siga protocolos EuroPrevall[cite: 39].
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ padding: '80px 40px', textAlign: 'center', backgroundColor: '#fff', borderRadius: '28px', border: '3px dashed #cbd5e1', color: '#94a3b8' }}>
+              <Info size={60} style={{ margin: '0 auto 20px auto', display: 'block' }} />
+              <p style={{ fontWeight: '600', fontSize: '1.2rem' }}>Seleccione síntomas para iniciar la evaluación clínica.</p>
+            </div>
+          )}
+        </aside>
+      </main>
+    </div>
+  );
+};
+
+// ESTILOS DE OBJETOS REUTILIZABLES
+const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' };
+const cardTitleStyle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '700' };
+const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800' };
+const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '8px' };
+const inputStyle = { width: '100%', padding: '14px 18px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none', backgroundColor: '#f8fafc', color: '#000' };
+const selectStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.95rem', cursor: 'pointer', outline: 'none', color: '#000' };
+const buttonStyle = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', marginTop: '10px', boxShadow: '0 8px 15px rgba(37, 99, 235, 0.3)' };
+
+export default App;
