@@ -183,42 +183,64 @@ const App = () => {
         </section>
 
         <aside style={{ position: 'sticky', top: '20px' }}>
-          {resultado ? (
-            <div style={{ 
-              backgroundColor: resultado.risk_level === 'High' ? '#fff1f2' : '#f0fdf4', 
-              padding: '50px 30px', 
-              borderRadius: '24px', 
-              border: `3px solid ${resultado.risk_level === 'High' ? '#fecdd3' : '#bbf7d0'}`,
-              textAlign: 'center',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
-            }}>
-              <p style={{ textTransform: 'uppercase', fontWeight: '800', letterSpacing: '0.1em', color: resultado.risk_level === 'High' ? '#be123c' : '#16a34a', fontSize: '0.9rem' }}>
-                Resultado oFASS-5
-              </p>
-              <h2 style={{ fontSize: '8rem', margin: '15px 0', fontWeight: '900', lineHeight: 1, color: '#0f172a' }}>{resultado.ofass_grade}</h2>
-              <p style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '30px', color: resultado.risk_level === 'High' ? '#be123c' : '#166534' }}>{resultado.ofass_category}</p>
-              
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.8)', padding: '25px', borderRadius: '16px', border: '1px solid #fff' }}>
-                <p style={{ margin: 0, fontSize: '1.1rem', color: '#475569' }}>Índice nFASS:</p>
-                <strong style={{ fontSize: '2.5rem', color: '#1e293b' }}>{resultado.nfass}</strong>
-              </div>
+  {resultado ? (
+    <div style={{ 
+      backgroundColor: resultado.risk_level === 'High' ? '#fff1f2' : '#f0fdf4', 
+      padding: '40px 25px', 
+      borderRadius: '24px', 
+      border: `3px solid ${resultado.risk_level === 'High' ? '#fecdd3' : '#bbf7d0'}`,
+      textAlign: 'center',
+      boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+    }}>
+      {/* Encabezado del Sistema */}
+      <p style={{ textTransform: 'uppercase', fontWeight: '800', letterSpacing: '0.1em', color: resultado.risk_level === 'High' ? '#be123c' : '#16a34a', fontSize: '0.8rem', marginBottom: '10px' }}>
+        Sistema oFASS-5
+      </p>
 
-              {resultado.risk_level === 'High' && (
-                <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#be123c', color: '#fff', borderRadius: '16px', display: 'flex', gap: '15px', alignItems: 'center', textAlign: 'left' }}>
-                  <AlertTriangle size={48} />
-                  <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', lineHeight: 1.4 }}>
-                    <strong>ALERTA MÉDICA:</strong> Riesgo de anafilaxia elevado. Siga protocolos EuroPrevall.
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ padding: '80px 40px', textAlign: 'center', backgroundColor: '#fff', borderRadius: '28px', border: '3px dashed #cbd5e1', color: '#94a3b8' }}>
-              <Info size={60} style={{ margin: '0 auto 20px auto', display: 'block' }} />
-              <p style={{ fontWeight: '600', fontSize: '1.2rem' }}>Seleccione síntomas para iniciar la evaluación clínica.</p>
-            </div>
-          )}
-        </aside>
+      {/* Grado Principal */}
+      <h2 style={{ fontSize: '7rem', margin: '10px 0', fontWeight: '900', lineHeight: 1, color: '#0f172a' }}>{resultado.ofass_grade}</h2>
+      <p style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '20px', color: resultado.risk_level === 'High' ? '#be123c' : '#166534' }}>{resultado.ofass_category}</p>
+      
+      {/* Índice nFASS */}
+      <div style={{ backgroundColor: 'rgba(255,255,255,0.8)', padding: '20px', borderRadius: '16px', border: '1px solid #fff', marginBottom: '20px' }}>
+        <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569', fontWeight: '600' }}>Índice nFASS:</p>
+        <strong style={{ fontSize: '2.2rem', color: '#1e293b' }}>{resultado.nfass}</strong>
+      </div>
+
+      {/* NUEVO: Información de Validación Clínica (Tabla 4) */}
+      <div style={{ textAlign: 'left', backgroundColor: '#fff', padding: '15px', borderRadius: '12px', fontSize: '0.85rem', color: '#334155', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#2563eb', fontWeight: '700' }}>
+          <ShieldCheck size={16} /> Validación EuroPrevall
+        </div>
+        <ul style={{ paddingLeft: '20px', margin: 0 }}>
+          <li style={{ marginBottom: '5px' }}>
+            {resultado.ofass_grade >= 4 
+              ? "Riesgo crítico: Alta probabilidad de requerir Adrenalina (OR > 25.7)." 
+              : "Probabilidad moderada/baja de intervención con Adrenalina."}
+          </li>
+          <li>
+            Precisión del modelo (ROC-AUC): 0.88 para casos severos.
+          </li>
+        </ul>
+      </div>
+
+      {/* Alerta Médica Dinámica */}
+      {resultado.risk_level === 'High' && (
+        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#be123c', color: '#fff', borderRadius: '16px', display: 'flex', gap: '12px', alignItems: 'center', textAlign: 'left' }}>
+          <AlertTriangle size={32} />
+          <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: '600', lineHeight: 1.3 }}>
+            <strong>URGENCIA:</strong> Alta correlación con necesidad de cuidados de emergencia (OR 292.0).
+          </p>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div style={{ padding: '80px 40px', textAlign: 'center', backgroundColor: '#fff', borderRadius: '28px', border: '3px dashed #cbd5e1', color: '#94a3b8' }}>
+      <Info size={60} style={{ margin: '0 auto 20px auto', display: 'block' }} />
+      <p style={{ fontWeight: '600', fontSize: '1.2rem' }}>Seleccione síntomas para iniciar la evaluación clínica.</p>
+    </div>
+  )}
+</aside>
       </main>
     </div>
   );
