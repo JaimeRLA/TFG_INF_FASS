@@ -12,7 +12,7 @@ def calcular_nfass_ofass(sintomas_ids):
         'itchy_mouth':      {'sys': 'Oral',    'lambda': 0.05, 'epsilon': -1},
         'nausea_pain':      {'sys': 'GI',      'lambda': 0.03, 'epsilon': 0},
         'frequent_nausea_pain':      {'sys': 'GI',      'lambda': 0.04, 'epsilon': 0},
-        'frequent_nausea_pain_dec':      {'sys': 'GI',      'lambda': 0.08, 'epsilon': 0},
+        'frequent_nausea_pain_dec':      {'sys': 'GI',      'lambda': 0.05, 'epsilon': 0},
         'emesis_1':         {'sys': 'GI',      'lambda': 0.05, 'epsilon': 0},
         'emesis_multiple':  {'sys': 'GI',      'lambda': 0.08, 'epsilon': 0},
         'diarrhoea':         {'sys': 'GI',      'lambda': 0.05, 'epsilon': 0},
