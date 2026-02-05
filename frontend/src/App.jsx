@@ -7,7 +7,6 @@ const App = () => {
   const [seleccionados, setSeleccionados] = useState({});
   const [resultado, setResultado] = useState(null);
 
-  // Mantenemos tu lógica de secciones [cite: 1, 2, 12]
   const SECCIONES_SINTOMAS = [
     {
       titulo: "1. Oral y Gastrointestinal",
@@ -79,25 +78,34 @@ const App = () => {
       fontFamily: '"Inter", sans-serif'
     }}>
       
-      {/* HEADER FULL WIDTH */}
-      <header style={{ width: '100%', textAlign: 'center', marginBottom: '30px' }}>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', color: '#2563eb', fontWeight: '800', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
+      {/* HEADER ALINEADO A LA IZQUIERDA */}
+      <header style={{ width: '100%', textAlign: 'left', marginBottom: '30px', paddingLeft: '5px' }}>
+        <h1 style={{ 
+          fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', 
+          color: '#2563eb', 
+          fontWeight: '800', 
+          display: 'flex', 
+          justifyContent: 'flex-start', // Alineación al inicio (izquierda)
+          alignItems: 'center', 
+          gap: '15px',
+          margin: '0 0 5px 0'
+        }}>
           <HeartPulse size={40} /> FASS Severity Calculator
         </h1>
-        <p style={{ color: '#64748b' }}>Basado en el sistema nFASS/oFASS [cite: 1, 5]</p>
+        <p style={{ color: '#64748b', fontSize: '1.1rem', margin: 0 }}>
+          Basado en el sistema nFASS/oFASS
+        </p>
       </header>
 
-      {/* GRID QUE SE ESTIRA A TODO EL ANCHO DISPONIBLE */}
       <main style={{ 
         display: 'grid', 
-        gridTemplateColumns: '1fr 450px', // El formulario ocupa todo el espacio restante (1fr), el indicador es fijo
+        gridTemplateColumns: '1fr 450px', 
         gap: '30px',
         width: '100%',
-        maxWidth: '100%', // Eliminamos el límite de píxeles
+        maxWidth: '100%', 
         alignItems: 'start'
       }}>
         
-        {/* COLUMNA IZQUIERDA: FORMULARIO */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           <div style={cardStyle}>
@@ -130,7 +138,6 @@ const App = () => {
           </div>
         </section>
 
-        {/* COLUMNA DERECHA: INDICADOR FIJO AL BORDE */}
         <aside style={{ position: 'sticky', top: '20px' }}>
           {resultado ? (
             <div style={{ 
@@ -142,7 +149,7 @@ const App = () => {
               boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
             }}>
               <p style={{ textTransform: 'uppercase', fontWeight: '800', letterSpacing: '0.1em', color: resultado.risk_level === 'High' ? '#be123c' : '#16a34a', fontSize: '0.9rem' }}>
-                Resultado oFASS-5 [cite: 26]
+                Resultado oFASS-5
               </p>
               <h2 style={{ fontSize: '8rem', margin: '15px 0', fontWeight: '900', lineHeight: 1, color: '#0f172a' }}>{resultado.ofass_grade}</h2>
               <p style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '30px', color: resultado.risk_level === 'High' ? '#be123c' : '#166534' }}>{resultado.ofass_category}</p>
@@ -156,7 +163,7 @@ const App = () => {
                 <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#be123c', color: '#fff', borderRadius: '16px', display: 'flex', gap: '15px', alignItems: 'center', textAlign: 'left' }}>
                   <AlertTriangle size={48} />
                   <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', lineHeight: 1.4 }}>
-                    <strong>ALERTA MÉDICA:</strong> Riesgo de anafilaxia elevado. Siga protocolos EuroPrevall[cite: 39].
+                    <strong>ALERTA MÉDICA:</strong> Riesgo de anafilaxia elevado. Siga protocolos EuroPrevall.
                   </p>
                 </div>
               )}
@@ -173,13 +180,12 @@ const App = () => {
   );
 };
 
-// ESTILOS DE OBJETOS REUTILIZABLES
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' };
-const cardTitleStyle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '700' };
-const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800' };
-const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '8px' };
-const inputStyle = { width: '100%', padding: '14px 18px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none', backgroundColor: '#f8fafc', color: '#000' };
-const selectStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.95rem', cursor: 'pointer', outline: 'none', color: '#000' };
+const cardTitleStyle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '700', textAlign: 'left' };
+const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800', textAlign: 'left' };
+const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '8px', textAlign: 'left' };
+const inputStyle = { width: '100%', padding: '14px 18px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none', backgroundColor: '#f8fafc', color: '#000', textAlign: 'left' };
+const selectStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.95rem', cursor: 'pointer', outline: 'none', color: '#000', textAlign: 'left' };
 const buttonStyle = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', marginTop: '10px', boxShadow: '0 8px 15px rgba(37, 99, 235, 0.3)' };
 
 export default App;
