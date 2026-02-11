@@ -138,7 +138,7 @@ async def chat_asistente(user_message: str = Query(...)):
         client = Groq(api_key=key)
         
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "Responde brevemente."},
                 {"role": "user", "content": user_message}
@@ -152,7 +152,7 @@ async def chat_asistente(user_message: str = Query(...)):
         print(f"Error detallado en Groq: {str(e)}")
         return {"response": f"Error interno del servidor: {str(e)}"}
     
-    
+
 @app.get("/history")
 async def get_history():
     conn = get_connection()
