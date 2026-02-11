@@ -103,19 +103,20 @@ const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por 
       setCargandoChat(true);
 
       try {
-        // EL ERROR ESTABA AQUÍ: Debe ser /chat, NO /calculate
-        // Además, usamos el parámetro 'user_message' como definimos en el backend
-        // Asegúrate de que usas ?user_message= y no solo ?mensaje=
-        const res = await axios.post(`https://tfg-inf-fass.onrender.com/chat?user_message=${encodeURIComponent(chatInput)}`);
-        
-        setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);
-      } catch (err) {
+      // Cambiamos axios.post por axios.get
+      const res = await axios.get(`https://tfg-inf-fass.onrender.com/chat?user_message=${encodeURIComponent(chatInput)}`);
+      
+      setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);
+    } catch (err) {
         console.error("Error en chat:", err);
         setMensajes(prev => [...prev, { rol: 'bot', texto: 'Error de conexión con Llama 3.' }]);
       } finally {
         setCargandoChat(false);
       }
 };
+
+
+
 
   const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");

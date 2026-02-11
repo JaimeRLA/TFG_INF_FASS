@@ -100,7 +100,7 @@ def get_groq_client():
         return None
     return Groq(api_key=api_key)
 
-@app.post("/chat")
+@app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
     client = get_groq_client()
     if not client:
