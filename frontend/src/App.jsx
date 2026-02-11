@@ -105,6 +105,7 @@ const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por 
       try {
         // EL ERROR ESTABA AQUÍ: Debe ser /chat, NO /calculate
         // Además, usamos el parámetro 'user_message' como definimos en el backend
+        // Asegúrate de que usas ?user_message= y no solo ?mensaje=
         const res = await axios.post(`https://tfg-inf-fass.onrender.com/chat?user_message=${encodeURIComponent(chatInput)}`);
         
         setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);

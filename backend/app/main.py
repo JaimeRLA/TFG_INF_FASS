@@ -1,18 +1,16 @@
 import sqlite3
 import os
 import json
-import psycopg2  # Necesario para conectar con PostgreSQL en Render
-from fastapi import FastAPI, HTTPException
+import psycopg2 
+from fastapi import FastAPI, HTTPException, Query  # Importamos Query
 from fastapi.middleware.cors import CORSMiddleware
 from .data_models import ReactionRequest
 from .logic import calcular_nfass_ofass
 from groq import Groq
 
-
 app = FastAPI()
 
 # --- CONFIGURACIÓN DE CONEXIÓN DINÁMICA ---
-# Render inyecta automáticamente DATABASE_URL si lo configuras en Environment
 DATABASE_URL = os.getenv("DATABASE_URL")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "fass_database.db")
@@ -29,19 +27,14 @@ app.add_middleware(
 )
 
 def get_connection():
-    """Retorna conexión a PostgreSQL en Render o SQLite en local"""
     if DATABASE_URL:
-        # Usamos PostgreSQL (Render)
         return psycopg2.connect(DATABASE_URL)
     else:
-        # Usamos SQLite (Local)
         return sqlite3.connect(DB_PATH)
 
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
-    
-    # Query compatible con PostgreSQL (usando SERIAL) y SQLite (ajustado abajo)
     create_table_query = '''
         CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
@@ -55,11 +48,8 @@ def init_db():
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     '''
-    
-    # Ajuste manual para SQLite si estamos en local
     if not DATABASE_URL:
         create_table_query = create_table_query.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
-
     cursor.execute(create_table_query)
     conn.commit()
     conn.close()
@@ -70,17 +60,11 @@ init_db()
 async def calculate(request: ReactionRequest):
     if not request.sintomas:
         raise HTTPException(status_code=400, detail="No se enviaron síntomas")
-
-    # Ejecutar lógica basada en Tabla S1 y S12
     resultado = calcular_nfass_ofass(request.sintomas)
-    
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        
-        # Marcadores de posición: %s para PostgreSQL, ? para SQLite
         placeholder = "%s" if DATABASE_URL else "?"
-        
         query = f'''
             INSERT INTO registros (
                 nombre, paciente_id, sintomas, nfass, 
@@ -88,37 +72,33 @@ async def calculate(request: ReactionRequest):
             )
             VALUES ({', '.join([placeholder]*7)})
         '''
-        
         cursor.execute(query, (
             request.nombre, 
             request.paciente_id, 
             json.dumps(request.sintomas), 
-            float(resultado["nfass"]),  # <--- AÑADE float() AQUÍ
-            int(resultado["ofass_grade"]), # <--- AÑADE int() AQUÍ por seguridad
+            float(resultado["nfass"]),
+            int(resultado["ofass_grade"]),
             resultado["ofass_category"],
             resultado["risk_level"]
         ))
         conn.commit()
-        print(f"EXITO: Guardado nFASS {resultado['nfass']} para {request.nombre}")
     except Exception as e:
         print(f"ERROR CRITICO BBDD: {e}")
         raise HTTPException(status_code=500, detail="Error interno al guardar en base de datos")
     finally:
         conn.close()
-    
     return resultado
 
-
-# Configura tu API Key de Groq (Obtenla en console.groq.com)
+# --- CHATBOT LLAMA-3 ---
+# Inicializamos el cliente. os.getenv evita que GitHub bloquee tu push por seguridad.
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 @app.post("/chat")
-async def chat_asistente(user_message: str):
-    # Verifica que la clave exista antes de llamar a Groq
+async def chat_asistente(user_message: str = Query(...)): # Query(...) permite leer desde la URL
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="Falta la configuración de GROQ_API_KEY")
-    # Este es el "Cerebro" que entrena a Llama sobre tu App
+        raise HTTPException(status_code=500, detail="Falta la configuración de GROQ_API_KEY en Render")
+    
     system_prompt = """
     Eres el asistente técnico de 'FASS Severity Calculator'. Tu misión es guiar al clínico.
     CONOCIMIENTO TÉCNICO:
@@ -145,13 +125,13 @@ async def chat_asistente(user_message: str):
         )
         return {"response": completion.choices[0].message.content}
     except Exception as e:
+        # Si hay un error de autenticación o cuota con Groq, se captura aquí
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/history")
 async def get_history():
     conn = get_connection()
     try:
-        # Para SQLite usamos Row para facilitar el diccionario
         if not DATABASE_URL:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -159,7 +139,6 @@ async def get_history():
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
         else:
-            # Para PostgreSQL mapeamos manualmente a diccionario
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
             columns = [desc[0] for desc in cursor.description]
