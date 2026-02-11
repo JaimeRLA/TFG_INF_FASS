@@ -131,22 +131,28 @@ async def calculate(request: ReactionRequest):
 async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")
     if not key:
-        raise HTTPException(status_code=500, detail="Falta GROQ_API_KEY en Render")
+        return {"response": "Error: No configuraste la variable GROQ_API_KEY en Render."}
     
     try:
-        # Inicializamos el cliente DENTRO de la función para que no rompa el arranque
+        # Forzamos la inicialización aquí para capturar el error exacto
         client = Groq(api_key=key)
+        
         completion = client.chat.completions.create(
             model="llama3-8b-8192",
             messages=[
-                {"role": "system", "content": "Eres un asistente médico experto en FASS. Guía al clínico."},
+                {"role": "system", "content": "Responde brevemente."},
                 {"role": "user", "content": user_message}
-            ]
+            ],
+            timeout=20.0 # Añadimos un tiempo de espera para evitar que Render corte la conexión
         )
         return {"response": completion.choices[0].message.content}
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+        # Esto nos dirá en el chat exactamente qué está fallando (si es la clave, el modelo o la red)
+        print(f"Error detallado en Groq: {str(e)}")
+        return {"response": f"Error interno del servidor: {str(e)}"}
+    
+    
 @app.get("/history")
 async def get_history():
     conn = get_connection()
