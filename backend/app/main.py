@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .data_models import ReactionRequest
 from .logic import calcular_nfass_ofass
+from groq import Groq
+
 
 app = FastAPI()
 
@@ -106,13 +108,16 @@ async def calculate(request: ReactionRequest):
     
     return resultado
 
-from groq import Groq
 
 # Configura tu API Key de Groq (Obtenla en console.groq.com)
-client = Groq(api_key="TU_API_KEY_AQUI")
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 @app.post("/chat")
 async def chat_asistente(user_message: str):
+    # Verifica que la clave exista antes de llamar a Groq
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Falta la configuración de GROQ_API_KEY")
     # Este es el "Cerebro" que entrena a Llama sobre tu App
     system_prompt = """
     Eres el asistente técnico de 'FASS Severity Calculator'. Tu misión es guiar al clínico.

@@ -96,21 +96,25 @@ const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por 
 
   // --- LÓGICA DE ENVÍO DE IA (LLAMA) ---
   const handleChat = async () => {
-    if (!chatInput.trim()) return;
-    const userMsg = { rol: 'user', texto: chatInput };
-    setMensajes(prev => [...prev, userMsg]);
-    setChatInput("");
-    setCargandoChat(true);
+      if (!chatInput.trim()) return;
+      const userMsg = { rol: 'user', texto: chatInput };
+      setMensajes(prev => [...prev, userMsg]);
+      setChatInput("");
+      setCargandoChat(true);
 
-    try {
-      const res = await axios.post(`https://tfg-inf-fass.onrender.com/calculate`);
-      setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);
-    } catch (err) {
-      setMensajes(prev => [...prev, { rol: 'bot', texto: 'Lo siento, ha habido un error en la conexión con el asistente.' }]);
-    } finally {
-      setCargandoChat(false);
-    }
-  };
+      try {
+        // EL ERROR ESTABA AQUÍ: Debe ser /chat, NO /calculate
+        // Además, usamos el parámetro 'user_message' como definimos en el backend
+        const res = await axios.post(`https://tfg-inf-fass.onrender.com/chat?user_message=${encodeURIComponent(chatInput)}`);
+        
+        setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);
+      } catch (err) {
+        console.error("Error en chat:", err);
+        setMensajes(prev => [...prev, { rol: 'bot', texto: 'Error de conexión con Llama 3.' }]);
+      } finally {
+        setCargandoChat(false);
+      }
+};
 
   const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
