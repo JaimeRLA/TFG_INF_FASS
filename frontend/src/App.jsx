@@ -16,7 +16,7 @@ const App = () => {
           label: "Dolor / Náuseas", id_base: "gi_pain", options: [
             { id: "nausea_pain", text: "Leve (λ: 0.03)" },
             { id: "frequent_nausea_pain", text: "Frecuente (λ: 0.04)" },
-            { id: "frequent_nausea_pain_dec", text: "Distrés/Actividad baja (λ: 0.08)" }
+            { id: "frequent_nausea_pain_dec", text: "Distrés/Actividad baja (λ: 0.05)" }
           ]
         },
         { label: "Vómitos", id_base: "gi_emesis", options: [{ id: "emesis_1", text: "1 episodio (λ: 0.05)" }, { id: "emesis_multiple", text: "> 1 episodio (λ: 0.08)" }] },
