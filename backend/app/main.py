@@ -106,6 +106,42 @@ async def calculate(request: ReactionRequest):
     
     return resultado
 
+from groq import Groq
+
+# Configura tu API Key de Groq (Obtenla en console.groq.com)
+client = Groq(api_key="TU_API_KEY_AQUI")
+
+@app.post("/chat")
+async def chat_asistente(user_message: str):
+    # Este es el "Cerebro" que entrena a Llama sobre tu App
+    system_prompt = """
+    Eres el asistente técnico de 'FASS Severity Calculator'. Tu misión es guiar al clínico.
+    CONOCIMIENTO TÉCNICO:
+    1. Usas la fórmula nFASS: log2(sum(2^epsilon * (1+lambda))) + 2.
+    2. Los síntomas se dividen en 4 secciones: Oral/GI, Piel, Ocular/Nasal y Sistémico.
+    3. Conoces IDs críticos: 'laryngeal_stridor' (epsilon 2), 'cv_collapse' (epsilon 4), 'angioedema_generalized' (lambda 0.08).
+    
+    EVIDENCIA CLÍNICA (EuroPrevall):
+    - Un Grado 5 (Severe) tiene un Odds Ratio de 188.9 para adrenalina.
+    - La precisión del modelo ROC-AUC es de 0.88 para casos severos.
+    
+    INSTRUCCIONES:
+    - Si el usuario describe síntomas, indícale qué opción marcar en la web.
+    - Sé breve, técnico y profesional.
+    """
+    
+    try:
+        completion = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        return {"response": completion.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/history")
 async def get_history():
     conn = get_connection()
