@@ -103,7 +103,7 @@ const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por 
     setCargandoChat(true);
 
     try {
-      const res = await axios.post(`https://tfg-inf-fass.onrender.com/chat?user_message=${chatInput}`);
+      const res = await axios.post(`https://tfg-inf-fass.onrender.com/calculate`);
       setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);
     } catch (err) {
       setMensajes(prev => [...prev, { rol: 'bot', texto: 'Lo siento, ha habido un error en la conexión con el asistente.' }]);
