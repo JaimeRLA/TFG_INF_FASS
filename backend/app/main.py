@@ -93,12 +93,21 @@ async def calculate(request: ReactionRequest):
 # Inicializamos el cliente. os.getenv evita que GitHub bloquee tu push por seguridad.
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-@app.post("/chat")
-async def chat_asistente(user_message: str = Query(...)): # Query(...) permite leer desde la URL
+# Sustituye la inicialización del cliente por esta versión más robusta
+def get_groq_client():
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="Falta la configuración de GROQ_API_KEY en Render")
+        return None
+    return Groq(api_key=api_key)
+
+@app.post("/chat")
+async def chat_asistente(user_message: str = Query(...)):
+    client = get_groq_client()
+    if not client:
+        # Esto devolverá un error claro en lugar de un 500 genérico
+        raise HTTPException(status_code=500, detail="Error de configuración: GROQ_API_KEY no encontrada en el sistema.")
     
+    # ... resto del código del chat ...
     system_prompt = """
     Eres el asistente técnico de 'FASS Severity Calculator'. Tu misión es guiar al clínico.
     CONOCIMIENTO TÉCNICO:
