@@ -47,7 +47,6 @@ def init_db():
 
 init_db()
 
-
 # --- ENDPOINTS ---
 @app.post("/calculate")
 async def calculate(request: ReactionRequest):
