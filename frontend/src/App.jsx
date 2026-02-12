@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { HeartPulse, ClipboardList, User, Info } from 'lucide-react';
-
-// Importación de tus nuevos módulos
 import { SECCIONES_SINTOMAS } from './data/sintomas';
 import ResultadoCard from './components/ResultadoCard';
 import ChatBot from './components/ChatBot';
@@ -29,24 +27,20 @@ const App = () => {
         sintomas: listaIds
       });
       setResultado(res.data);
-    } catch (err) { 
-      console.error("Error al calcular:", err); 
-    }
+    } catch (err) { console.error("Error:", err); }
   };
 
   return (
-    <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '20px', boxSizing: 'border-box', fontFamily: '"Inter", sans-serif' }}>
+    <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', margin: 0, padding: '20px', boxSizing: 'border-box', fontFamily: '"Inter", sans-serif' }}>
       
       <header style={{ width: '100%', textAlign: 'left', marginBottom: '30px', paddingLeft: '5px' }}>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', color: '#2563eb', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '15px', margin: 0 }}>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', color: '#2563eb', fontWeight: '800', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '15px', margin: '0 0 5px 0' }}>
           <HeartPulse size={40} /> FASS Severity Calculator
         </h1>
         <p style={{ color: '#64748b', fontSize: '1.1rem', margin: 0 }}>Basado en el sistema nFASS/oFASS</p>
       </header>
 
-      <main style={{ display: 'grid', gridTemplateColumns: '1fr 450px', gap: '30px', width: '100%', alignItems: 'start' }}>
-        
-        {/* COLUMNA IZQUIERDA: FORMULARIO */}
+      <main style={{ display: 'grid', gridTemplateColumns: '1fr 450px', gap: '30px', width: '100%', maxWidth: '100%', alignItems: 'start' }}>
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={cardStyle}>
             <h3 style={cardTitleStyle}><User size={18} color="#2563eb"/> Identificación del Paciente</h3>
@@ -78,7 +72,6 @@ const App = () => {
           </div>
         </section>
 
-        {/* COLUMNA DERECHA: RESULTADO (Llama al componente) */}
         <aside style={{ position: 'sticky', top: '20px' }}>
           {resultado ? (
             <ResultadoCard resultado={resultado} />
@@ -91,14 +84,12 @@ const App = () => {
         </aside>
       </main>
 
-      {/* CHATBOT (Llama al componente) */}
       <ChatBot />
-      
     </div>
   );
 };
 
-// ESTILOS (Mantenlos aquí por ahora o muévelos a App.css)
+// ESTILOS ORIGINALES (Mantener aquí)
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' };
 const cardTitleStyle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '700', textAlign: 'left' };
 const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800', textAlign: 'left' };
