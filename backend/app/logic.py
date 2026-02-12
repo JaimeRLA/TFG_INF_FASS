@@ -23,15 +23,15 @@ def calcular_nfass_ofass(sintomas_ids):
 
     # Clasificación oFASS-5 y oFASS-3 [cite: 26, 30]
     if nfass_final >= 6.0:
-        ofass_grade, category, risk = 5, "Severe", "High"
+        ofass_grade, category, risk = 5, "Severe"
     elif nfass_final >= 4.0:
-        ofass_grade, category, risk = 4, "Severe", "High"
+        ofass_grade, category, risk = 4, "Severe"
     elif nfass_final >= 3.0:
-        ofass_grade, category, risk = 3, "Moderate", "Medium"
+        ofass_grade, category, risk = 3, "Moderate"
     elif nfass_final >= 2.0:
-        ofass_grade, category, risk = 2, "Moderate", "Medium"
+        ofass_grade, category, risk = 2, "Moderate"
     else:
-        ofass_grade, category, risk = 1, "Mild", "Low"
+        ofass_grade, category, risk = 1, "Mild"
 
     return {
     "nfass": nfass_final,
