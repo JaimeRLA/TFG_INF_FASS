@@ -14,7 +14,7 @@ const App = () => {
   ]);
   const [cargandoChat, setCargandoChat] = useState(false);
   // Dentro de tu componente App
-const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por defecto
+  const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por defecto
 
   const SECCIONES_SINTOMAS = [
     {
@@ -103,7 +103,6 @@ const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por 
       setCargandoChat(true);
 
       try {
-      // Cambiamos axios.post por axios.get
       const res = await axios.get(`https://tfg-inf-fass.onrender.com/chat?user_message=${encodeURIComponent(chatInput)}`);
       
       setMensajes(prev => [...prev, { rol: 'bot', texto: res.data.response }]);
@@ -224,7 +223,7 @@ const [minimizado, setMinimizado] = useState(true); // Empezamos minimizado por 
   zIndex: 1000, 
   display: 'flex', 
   flexDirection: 'column',
-  transition: 'all 0.3s ease' // Transición suave al abrir/cerrar
+  transition: 'all 0.3s ease' 
 }}>
   {/* BARRA DE TÍTULO (Siempre visible, al hacer clic alterna minimizado) */}
   <div 
