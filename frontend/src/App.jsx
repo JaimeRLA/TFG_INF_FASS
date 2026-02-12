@@ -89,7 +89,7 @@ const App = () => {
   );
 };
 
-// ESTILOS ORIGINALES (Mantener aquí)
+// ESTILOS ORIGINALES 
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' };
 const cardTitleStyle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '700', textAlign: 'left' };
 const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800', textAlign: 'left' };

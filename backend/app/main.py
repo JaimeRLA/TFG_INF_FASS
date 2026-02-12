@@ -2,11 +2,8 @@ import sqlite3
 import os
 import json
 import psycopg2 
-import numpy as np
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List
 from groq import Groq
 from .logic import calcular_nfass_ofass
 from .data_models import ReactionRequest
