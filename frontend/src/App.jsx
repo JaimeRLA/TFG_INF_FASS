@@ -11,11 +11,19 @@ const App = () => {
   const [paciente, setPaciente] = useState({ nombre: '', id: '' });
   const [seleccionados, setSeleccionados] = useState({});
   const [resultado, setResultado] = useState(null);
+  const [view, setView] = useState('calculadora'); // 'calculadora', 'historial' o 'usuarios'
+
+  // Añade la condición para mostrar el admin de usuarios
+  if (view === 'usuarios') {
+    return <AdminUsuarios volver={() => setView('calculadora')} />;
+  }
 
   // Si no está autenticado, mostramos la pantalla de Login
   if (!isAuthenticated) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
+
+  
 
   const handleSelectChange = (grupoId, valor) => {
     setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
@@ -45,6 +53,7 @@ const App = () => {
           <HeartPulse size={40} /> FASS Severity Calculator
         </h1>
         <p style={{ color: '#64748b', fontSize: '1.1rem', margin: 0 }}>Basado en el sistema nFASS/oFASS</p>
+       
       </header>
 
       <main style={{ display: 'grid', gridTemplateColumns: '1fr 450px', gap: '30px', width: '100%', maxWidth: '100%', alignItems: 'start' }}>

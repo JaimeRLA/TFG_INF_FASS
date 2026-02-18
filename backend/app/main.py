@@ -144,3 +144,15 @@ async def get_history():
         columns = [desc[0] for desc in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
     finally: conn.close()
+
+@app.get("/users")
+async def get_users():
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        # Solo pedimos el ID y el nombre de usuario
+        cursor.execute('SELECT id, username FROM usuarios ORDER BY id DESC')
+        columns = [desc[0] for desc in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    finally:
+        conn.close()
