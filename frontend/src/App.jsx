@@ -59,58 +59,86 @@ const App = () => {
         {view === 'perfil' && (
           <div style={profileCard}>
             <div style={avatarStyle}><User size={40} color="#2563eb" /></div>
-            <h2 style={{ margin: '10px 0' }}>Bienvenido, Dr/a. {usuarioLogueado}</h2>
-            <p style={{ color: '#000000', marginBottom: '30px' }}>Su cuenta está activa y autorizada para el uso de la calculadora de severidad FASS.</p>
+            
+            {/* Color forzado a #1e293b (Azul muy oscuro/negro) */}
+            <h2 style={{ margin: '10px 0', color: '#1e293b', fontWeight: '800' }}>
+              Bienvenido, Dr/a. {usuarioLogueado}
+            </h2>
+            
+            <p style={{ color: '#475569', marginBottom: '30px', fontSize: '1.1rem' }}>
+              Su cuenta está activa y autorizada para el uso de la calculadora de severidad FASS.
+            </p>
             
             <button onClick={() => setView('calculadora')} style={startBtn}>
-              Acceder  la Calculadora Clínica <ArrowRight size={20} />
+              Acceder a la Calculadora Clínica <ArrowRight size={20} />
             </button>
           </div>
         )}
 
         {/* VISTA 2: CALCULADORA */}
         {view === 'calculadora' && (
-          <main style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '25px' }}>
+          <main style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '25px', width: '100%' }}>
             <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <button onClick={() => setView('perfil')} style={backBtn}>← Volver a mi perfil</button>
               
+              {/* CARD: DATOS DEL PACIENTE */}
               <div style={cardStyle}>
-                <h3 style={cardTitle}><User size={18} /> Datos del Paciente</h3>
+                <h3 style={cardTitle}><User size={18} color="#2563eb" /> Datos del Paciente</h3>
                 <div style={{ display: 'flex', gap: '15px' }}>
-                  <input placeholder="Nombre" style={inputStyle} onChange={e => setPaciente({...paciente, nombre: e.target.value})} />
-                  <input placeholder="ID Historia" style={inputStyle} onChange={e => setPaciente({...paciente, id: e.target.value})} />
+                  <input 
+                    placeholder="Nombre del Paciente" 
+                    style={inputStyle} 
+                    onChange={e => setPaciente({...paciente, nombre: e.target.value})} 
+                  />
+                  <input 
+                    placeholder="ID Historia Clínica" 
+                    style={inputStyle} 
+                    onChange={e => setPaciente({...paciente, id: e.target.value})} 
+                  />
                 </div>
               </div>
 
+              {/* CARD: SÍNTOMAS */}
               <div style={cardStyle}>
-                <h3 style={cardTitle}><Activity size={18} /> Evaluación</h3>
+                <h3 style={cardTitle}><Activity size={18} color="#2563eb" /> Evaluación Clínica</h3>
                 {SECCIONES_SINTOMAS.map(sec => (
-                  <div key={sec.titulo} style={{ marginBottom: '20px' }}>
+                  <div key={sec.titulo} style={{ marginBottom: '25px' }}>
                     <h4 style={secHeader}>{sec.titulo}</h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                       {sec.grupos.map(grupo => (
                         <div key={grupo.id_base}>
                           <label style={labelStyle}>{grupo.label}</label>
-                          <select style={selectStyle} onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}>
-                            <option value="">-- No --</option>
-                            {grupo.options.map(opt => <option key={opt.id} value={opt.id}>{opt.text}</option>)}
+                          <select 
+                            style={selectStyle} 
+                            onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}
+                          >
+                            <option value="">-- No presenta --</option>
+                            {grupo.options.map(opt => (
+                              <option key={opt.id} value={opt.id} style={{color: '#000'}}>{opt.text}</option>
+                            ))}
                           </select>
                         </div>
                       ))}
                     </div>
                   </div>
                 ))}
-                <button onClick={enviarEvaluacion} style={calcBtn}>Calcular Grado FASS</button>
+                <button onClick={enviarEvaluacion} style={calcBtn}>Calcular Gravedad nFASS</button>
               </div>
             </section>
 
             <aside>
-              {resultado ? <ResultadoCard resultado={resultado} /> : (
-                <div style={emptyCard}><Info size={40} /><p>Inicie una evaluación</p></div>
+              {resultado ? (
+                <ResultadoCard resultado={resultado} />
+              ) : (
+                <div style={emptyCard}>
+                  <Info size={40} style={{marginBottom: '10px'}} />
+                  <p style={{margin: 0}}>Inicie una evaluación seleccionando los síntomas del paciente.</p>
+                </div>
               )}
             </aside>
           </main>
         )}
+      
       </div>
       <ChatBot />
     </div>
