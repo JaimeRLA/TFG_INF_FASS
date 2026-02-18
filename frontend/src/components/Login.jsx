@@ -21,13 +21,13 @@ const Login = ({ onLoginSuccess }) => {
         if (isRegister) {
           setMsg("Registro completado. Ya puedes iniciar sesión.");
           setIsRegister(false);
-          setForm({ username: '', password: '' }); // Limpiar campos
+          setForm({ username: '', password: '' });
         } else {
-          // ENVIAMOS EL NOMBRE DE USUARIO A APP.JSX
+          // IMPORTANTE: Enviamos el nombre escrito en el input
           onLoginSuccess(form.username); 
         }
       } else {
-        setError(res.data.message || "Credenciales incorrectas");
+        setError(res.data.message || "Error en las credenciales");
       }
     } catch (err) {
       setError("Error de conexión con el servidor.");
@@ -88,34 +88,14 @@ const Login = ({ onLoginSuccess }) => {
   );
 };
 
-// --- ESTILOS ---
-const loginContainerStyle = { 
-  height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f1f5f9', margin: 0, padding: 0 
-};
-
-const loginCardStyle = { 
-  padding: '50px 40px', backgroundColor: '#ffffff', borderRadius: '28px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid #e2e8f0' 
-};
-
-const inputGroup = { 
-  display: 'flex', alignItems: 'center', gap: '12px', border: '2px solid #e2e8f0', padding: '14px 18px', borderRadius: '16px', marginBottom: '20px', backgroundColor: '#f8fafc' 
-};
-
-const loginInput = { 
-  border: 'none', outline: 'none', width: '100%', backgroundColor: 'transparent', fontSize: '1rem', 
-  color: '#0f172a', // FUERZA COLOR OSCURO PARA QUE SE VEA BIEN
-  fontWeight: '500' 
-};
-
-const loginButtonStyle = { 
-  width: '100%', padding: '16px', backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '16px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '1.1rem', boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)', marginTop: '10px' 
-};
-
-const toggleButtonStyle = { 
-  background: 'none', border: 'none', color: '#2563eb', marginTop: '25px', cursor: 'pointer', fontSize: '0.95rem', fontWeight: '700', textDecoration: 'underline' 
-};
-
-const errorBox = { backgroundColor: '#fff1f2', color: '#be123c', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '600', marginBottom: '20px', border: '1px solid #fecdd3' };
-const successBox = { backgroundColor: '#f0fdf4', color: '#16a34a', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '600', marginBottom: '20px', border: '1px solid #bbf7d0' };
+// Estilos
+const loginContainerStyle = { height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f1f5f9', margin: 0 };
+const loginCardStyle = { padding: '50px 40px', backgroundColor: '#ffffff', borderRadius: '28px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid #e2e8f0' };
+const inputGroup = { display: 'flex', alignItems: 'center', gap: '12px', border: '2px solid #e2e8f0', padding: '14px 18px', borderRadius: '16px', marginBottom: '20px', backgroundColor: '#f8fafc' };
+const loginInput = { border: 'none', outline: 'none', width: '100%', backgroundColor: 'transparent', fontSize: '1rem', color: '#0f172a', fontWeight: '500' };
+const loginButtonStyle = { width: '100%', padding: '16px', backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '16px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '1.1rem', marginTop: '10px' };
+const toggleButtonStyle = { background: 'none', border: 'none', color: '#2563eb', marginTop: '25px', cursor: 'pointer', fontSize: '0.95rem', fontWeight: '700', textDecoration: 'underline' };
+const errorBox = { backgroundColor: '#fff1f2', color: '#be123c', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', marginBottom: '20px' };
+const successBox = { backgroundColor: '#f0fdf4', color: '#16a34a', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', marginBottom: '20px' };
 
 export default Login;

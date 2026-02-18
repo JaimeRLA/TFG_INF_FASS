@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { HeartPulse, ClipboardList, Info, Users, History, LogOut } from 'lucide-react';
 
-// Importación de módulos y componentes
+// Importación de componentes
 import { SECCIONES_SINTOMAS } from './data/sintomas';
 import ResultadoCard from './components/ResultadoCard';
 import ChatBot from './components/ChatBot';
@@ -12,11 +12,9 @@ import Historial from './components/Historial';
 import AdminUsuarios from './components/AdminUsuarios';
 
 const App = () => {
-  // --- ESTADOS DE AUTENTICACIÓN Y NAVEGACIÓN ---
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
-  const [view, setView] = useState('calculadora'); // 'calculadora', 'historial', 'usuarios'
+  const [view, setView] = useState('calculadora'); 
 
-  // --- ESTADOS DE LA CALCULADORA ---
   const [paciente, setPaciente] = useState({ nombre: '', id: '' });
   const [seleccionados, setSeleccionados] = useState({});
   const [resultado, setResultado] = useState(null);
@@ -43,31 +41,30 @@ const App = () => {
     } catch (err) { console.error("Error:", err); }
   };
 
-  // --- RENDERIZADO CONDICIONAL: LOGIN ---
+  // --- LÓGICA DE LOGIN ---
   if (!usuarioLogueado) {
     return <Login onLoginSuccess={(nombre) => setUsuarioLogueado(nombre)} />;
   }
 
-  // --- RENDERIZADO CONDICIONAL: VISTAS ---
+  // --- NAVEGACIÓN ---
   if (view === 'historial') {
     return <Historial volver={() => setView('calculadora')} />;
   }
 
   if (view === 'usuarios') {
-    return <AdminUsuarios volver={() => setView('calculadora')} />;
+    return <AdminUsuarios volver={() => setView('calculadora')} usuarioLogueado={usuarioLogueado} />;
   }
 
   return (
-    <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', margin: 0, padding: '20px', boxSizing: 'border-box', fontFamily: '"Inter", sans-serif' }}>
+    <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '20px', boxSizing: 'border-box', fontFamily: '"Inter", sans-serif' }}>
       
-      {/* HEADER CON NAVEGACIÓN */}
       <header style={headerWrapperStyle}>
         <div>
           <h1 style={{ fontSize: '1.8rem', color: '#2563eb', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
             <HeartPulse size={35} /> FASS Severity Calculator
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
-            Sesión iniciada como: <strong>{usuarioLogueado}</strong>
+            Bienvenido, <strong>{usuarioLogueado}</strong>
           </p>
         </div>
 
@@ -76,21 +73,20 @@ const App = () => {
             <History size={18} /> Historial
           </button>
 
-          {/* SOLO EL ADMIN VE ESTE BOTÓN */}
+          {/* EL BOTÓN AHORA DEBE APARECER SI EL USUARIO ES "admin" */}
           {usuarioLogueado === 'admin' && (
             <button onClick={() => setView('usuarios')} style={adminNavButton}>
               <Users size={18} /> Admin Usuarios
             </button>
           )}
 
-          <button onClick={() => setUsuarioLogueado(null)} style={logoutButtonStyle}>
+          <button onClick={() => {setUsuarioLogueado(null); setView('calculadora');}} style={logoutButtonStyle}>
             <LogOut size={18} /> Salir
           </button>
         </nav>
       </header>
 
-      <main style={{ display: 'grid', gridTemplateColumns: '1fr 450px', gap: '30px', width: '100%', maxWidth: '100%', alignItems: 'start' }}>
-        
+      <main style={{ display: 'grid', gridTemplateColumns: '1fr 450px', gap: '30px' }}>
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <FormularioPaciente paciente={paciente} setPaciente={setPaciente} estilos={estilosConfig} />
 
@@ -133,51 +129,17 @@ const App = () => {
   );
 };
 
-// --- ESTILOS ---
-const headerWrapperStyle = { 
-  display: 'flex', 
-  justifyContent: 'space-between', 
-  alignItems: 'center', 
-  marginBottom: '30px', 
-  backgroundColor: '#fff', 
-  padding: '15px 25px', 
-  borderRadius: '20px', 
-  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' 
-};
-
-const navButtonStyle = { 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '8px', 
-  padding: '10px 15px', 
-  backgroundColor: '#f8fafc', 
-  border: '1px solid #e2e8f0', 
-  borderRadius: '12px', 
-  cursor: 'pointer', 
-  fontWeight: '600',
-  color: '#475569'
-};
-
-const adminNavButton = { 
-  ...navButtonStyle, 
-  backgroundColor: '#fffbeb', 
-  color: '#92400e', 
-  border: '1px solid #fde68a' 
-};
-
-const logoutButtonStyle = { 
-  ...navButtonStyle, 
-  backgroundColor: '#fff1f2', 
-  color: '#be123c', 
-  border: '1px solid #fecdd3' 
-};
-
+// Estilos (Idénticos a tu versión anterior)
+const headerWrapperStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', backgroundColor: '#fff', padding: '15px 25px', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' };
+const navButtonStyle = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 15px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', color: '#475569' };
+const adminNavButton = { ...navButtonStyle, backgroundColor: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' };
+const logoutButtonStyle = { ...navButtonStyle, backgroundColor: '#fff1f2', color: '#be123c', border: '1px solid #fecdd3' };
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' };
 const cardTitleStyle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '700' };
-const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800' };
+const sectionHeaderStyle = { color: '#2563eb', fontSize: '0.85rem', textTransform: 'uppercase', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px', fontWeight: '800' };
 const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '8px' };
-const inputStyle = { width: '100%', padding: '14px 18px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none', backgroundColor: '#f8fafc', color: '#000' };
-const selectStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.95rem', cursor: 'pointer', outline: 'none', color: '#000' };
+const inputStyle = { width: '100%', padding: '14px 18px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', backgroundColor: '#f8fafc', color: '#000' };
+const selectStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.95rem', cursor: 'pointer', color: '#000' };
 const buttonStyle = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', marginTop: '10px', boxShadow: '0 8px 15px rgba(37, 99, 235, 0.3)' };
 
 export default App;
