@@ -67,19 +67,7 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
-@app.post("/login")
-async def login(request: LoginRequest):
-    conn = get_connection()
-    cursor = conn.cursor()
-    # En producción, usa bcrypt para comparar contraseñas
-    cursor.execute("SELECT * FROM usuarios WHERE username = %s AND password = %s", 
-                   (request.username, request.password))
-    user = cursor.fetchone()
-    conn.close()
-    
-    if user:
-        return {"success": True, "message": "Acceso concedido"}
-    return {"success": False, "message": "Credenciales inválidas"}
+
 
 # En main.py, añade este nuevo endpoint
 @app.post("/register")
@@ -146,13 +134,40 @@ async def get_history():
     finally: conn.close()
 
 @app.get("/users")
-async def get_users():
+async def get_users(admin_name: str = Query(...)):
+    # Validación de seguridad para el TFG
+    if admin_name != "admin": # Ajusta a "JaimeAdmin" si prefieres ese nombre
+        return {"error": "No tiene permisos para ver esta lista"}
+    
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        # Solo pedimos el ID y el nombre de usuario
+        # Seleccionamos ID y Username para mostrar en la tabla de Admin
         cursor.execute('SELECT id, username FROM usuarios ORDER BY id DESC')
+        
+        # Esto convierte la fila de la DB en un diccionario legible por React
         columns = [desc[0] for desc in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        usuarios = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return usuarios
+    except Exception as e:
+        return {"error": str(e)}
     finally:
         conn.close()
+
+# --- REVISIÓN DEL LOGIN POR SEGURIDAD ---
+@app.post("/login")
+async def login(request: LoginRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # IMPORTANTE: Usar marcadores dinámicos para evitar Inyección SQL
+    placeholder = "%s" if DATABASE_URL else "?"
+    query = f"SELECT username FROM usuarios WHERE username = {placeholder} AND password = {placeholder}"
+    
+    cursor.execute(query, (request.username, request.password))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        return {"success": True, "message": "Acceso concedido", "username": user[0]}
+    return {"success": False, "message": "Credenciales inválidas"}
