@@ -8,6 +8,8 @@ from groq import Groq
 from .logic import calcular_nfass_ofass
 from .data_models import ReactionRequest
 from .prompt import SYSTEM_PROMPT
+from pydantic import BaseModel
+
 
 
 app = FastAPI()
@@ -38,13 +40,47 @@ def init_db():
                 ofass_category TEXT, risk_level TEXT, fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
     if not DATABASE_URL:
         query = query.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
+    
     cursor.execute(query)
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
+                        id SERIAL PRIMARY KEY, 
+                        username TEXT UNIQUE, 
+                        password TEXT)''')
+    
+    # Insertar usuario médico por defecto (en un entorno real usarías hash)
+    try:
+        cursor.execute("INSERT INTO usuarios (username, password) VALUES (%s, %s)", 
+                       ("medico_fass", "tfg2024"))
+    except:
+        pass # Ya existe
+    
     conn.commit()
     conn.close()
 
 init_db()
 
 # --- ENDPOINTS ---
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/login")
+async def login(request: LoginRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+    # En producción, usa bcrypt para comparar contraseñas
+    cursor.execute("SELECT * FROM usuarios WHERE username = %s AND password = %s", 
+                   (request.username, request.password))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        return {"success": True, "message": "Acceso concedido"}
+    return {"success": False, "message": "Credenciales inválidas"}
+
 @app.post("/calculate")
 async def calculate(request: ReactionRequest):
     resultado = calcular_nfass_ofass(request.sintomas)
@@ -63,15 +99,12 @@ async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")
     if not key:
         return {"response": "Error: No configuraste la variable GROQ_API_KEY en Render."}
-    
-    # --- AQUÍ ESTÁ TU "BASE DE CONOCIMIENTO" ---
-    system_prompt = SYSTEM_PROMPT 
     try:
         client = Groq(api_key=key)
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile", # Asegúrate de usar el modelo nuevo
+            model="llama-3.3-70b-versatile", 
             messages=[
-                {"role": "system", "content": system_prompt}, # Aquí inyectamos la info
+                {"role": "system", "content": SYSTEM_PROMPT}, 
                 {"role": "user", "content": user_message}
             ],
             timeout=25.0

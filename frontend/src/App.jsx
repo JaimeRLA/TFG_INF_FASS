@@ -4,11 +4,18 @@ import { HeartPulse, ClipboardList, User, Info } from 'lucide-react';
 import { SECCIONES_SINTOMAS } from './data/sintomas';
 import ResultadoCard from './components/ResultadoCard';
 import ChatBot from './components/ChatBot';
+import Login from './components/Login';
 
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [paciente, setPaciente] = useState({ nombre: '', id: '' });
   const [seleccionados, setSeleccionados] = useState({});
   const [resultado, setResultado] = useState(null);
+
+  // Si no está autenticado, mostramos la pantalla de Login
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   const handleSelectChange = (grupoId, valor) => {
     setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
