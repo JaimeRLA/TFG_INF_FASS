@@ -81,6 +81,27 @@ async def login(request: LoginRequest):
         return {"success": True, "message": "Acceso concedido"}
     return {"success": False, "message": "Credenciales inválidas"}
 
+# En main.py, añade este nuevo endpoint
+@app.post("/register")
+async def register(request: LoginRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Verificamos si el usuario ya existe
+        cursor.execute("SELECT * FROM usuarios WHERE username = %s", (request.username,))
+        if cursor.fetchone():
+            return {"success": False, "message": "El usuario ya existe"}
+        
+        # Insertamos el nuevo usuario
+        cursor.execute("INSERT INTO usuarios (username, password) VALUES (%s, %s)", 
+                       (request.username, request.password))
+        conn.commit()
+        return {"success": True, "message": "Usuario registrado con éxito"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+    finally:
+        conn.close()
+
 @app.post("/calculate")
 async def calculate(request: ReactionRequest):
     resultado = calcular_nfass_ofass(request.sintomas)
