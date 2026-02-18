@@ -10,8 +10,6 @@ from .data_models import ReactionRequest
 from .prompt import SYSTEM_PROMPT
 from pydantic import BaseModel
 
-
-
 app = FastAPI()
 
 # --- CONFIGURACIÓN DE CORS ---
@@ -34,61 +32,86 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
-    query = '''CREATE TABLE IF NOT EXISTS registros (
+    
+    # Marcador de posición dinámico para la semilla inicial
+    placeholder = "%s" if DATABASE_URL else "?"
+
+    # Tabla de Registros Clínicos
+    query_registros = '''CREATE TABLE IF NOT EXISTS registros (
                 id SERIAL PRIMARY KEY, nombre TEXT, paciente_id TEXT, 
                 sintomas TEXT, nfass REAL, ofass_grade INTEGER, 
                 ofass_category TEXT, risk_level TEXT, fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
-    if not DATABASE_URL:
-        query = query.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
     
-    cursor.execute(query)
-
-    cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
+    # Tabla de Usuarios (Médicos)
+    query_usuarios = '''CREATE TABLE IF NOT EXISTS usuarios (
                         id SERIAL PRIMARY KEY, 
                         username TEXT UNIQUE, 
-                        password TEXT)''')
+                        password TEXT)'''
+
+    if not DATABASE_URL:
+        query_registros = query_registros.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
+        query_usuarios = query_usuarios.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
     
-    # Insertar usuario médico por defecto (en un entorno real usarías hash)
+    cursor.execute(query_registros)
+    cursor.execute(query_usuarios)
+    
+    # Usuario médico por defecto
     try:
-        cursor.execute("INSERT INTO usuarios (username, password) VALUES (%s, %s)", 
+        cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", 
                        ("medico_fass", "tfg2024"))
     except:
-        pass # Ya existe
+        pass 
     
     conn.commit()
     conn.close()
 
 init_db()
 
-# --- ENDPOINTS ---
-
-
+# --- MODELOS DE DATOS ---
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+# --- ENDPOINTS DE AUTENTICACIÓN ---
 
-
-# En main.py, añade este nuevo endpoint
 @app.post("/register")
 async def register(request: LoginRequest):
     conn = get_connection()
     cursor = conn.cursor()
+    placeholder = "%s" if DATABASE_URL else "?"
     try:
-        # Verificamos si el usuario ya existe
-        cursor.execute("SELECT * FROM usuarios WHERE username = %s", (request.username,))
+        # Verificar existencia
+        cursor.execute(f"SELECT username FROM usuarios WHERE username = {placeholder}", (request.username,))
         if cursor.fetchone():
-            return {"success": False, "message": "El usuario ya existe"}
+            return {"success": False, "message": "El nombre de usuario ya está registrado"}
         
-        # Insertamos el nuevo usuario
-        cursor.execute("INSERT INTO usuarios (username, password) VALUES (%s, %s)", 
+        # Insertar nuevo usuario
+        cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", 
                        (request.username, request.password))
         conn.commit()
-        return {"success": True, "message": "Usuario registrado con éxito"}
+        return {"success": True, "message": "Registro completado con éxito"}
     except Exception as e:
         return {"success": False, "message": str(e)}
     finally:
         conn.close()
+
+@app.post("/login")
+async def login(request: LoginRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+    placeholder = "%s" if DATABASE_URL else "?"
+    
+    query = f"SELECT username FROM usuarios WHERE username = {placeholder} AND password = {placeholder}"
+    
+    cursor.execute(query, (request.username, request.password))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        return {"success": True, "message": "Acceso concedido", "username": user[0]}
+    return {"success": False, "message": "Usuario o contraseña incorrectos"}
+
+# --- ENDPOINTS CLÍNICOS ---
 
 @app.post("/calculate")
 async def calculate(request: ReactionRequest):
@@ -103,11 +126,23 @@ async def calculate(request: ReactionRequest):
     finally: conn.close()
     return resultado
 
+@app.get("/history")
+async def get_history():
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
+        columns = [desc[0] for desc in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    finally: conn.close()
+
+# --- ASISTENTE IA ---
+
 @app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")
     if not key:
-        return {"response": "Error: No configuraste la variable GROQ_API_KEY en Render."}
+        return {"response": "Error: Groq API Key no configurada."}
     try:
         client = Groq(api_key=key)
         completion = client.chat.completions.create(
@@ -121,53 +156,3 @@ async def chat_asistente(user_message: str = Query(...)):
         return {"response": completion.choices[0].message.content}
     except Exception as e:
         return {"response": f"Error del asistente: {str(e)}"}
-    
-
-@app.get("/history")
-async def get_history():
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
-        columns = [desc[0] for desc in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
-    finally: conn.close()
-
-@app.get("/users")
-async def get_users(admin_name: str = Query(...)):
-    # Validación de seguridad para el TFG
-    if admin_name != "admin": # Ajusta a "JaimeAdmin" si prefieres ese nombre
-        return {"error": "No tiene permisos para ver esta lista"}
-    
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        # Seleccionamos ID y Username para mostrar en la tabla de Admin
-        cursor.execute('SELECT id, username FROM usuarios ORDER BY id DESC')
-        
-        # Esto convierte la fila de la DB en un diccionario legible por React
-        columns = [desc[0] for desc in cursor.description]
-        usuarios = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        return usuarios
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        conn.close()
-
-# --- REVISIÓN DEL LOGIN POR SEGURIDAD ---
-@app.post("/login")
-async def login(request: LoginRequest):
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    # IMPORTANTE: Usar marcadores dinámicos para evitar Inyección SQL
-    placeholder = "%s" if DATABASE_URL else "?"
-    query = f"SELECT username FROM usuarios WHERE username = {placeholder} AND password = {placeholder}"
-    
-    cursor.execute(query, (request.username, request.password))
-    user = cursor.fetchone()
-    conn.close()
-    
-    if user:
-        return {"success": True, "message": "Acceso concedido", "username": user[0]}
-    return {"success": False, "message": "Credenciales inválidas"}
