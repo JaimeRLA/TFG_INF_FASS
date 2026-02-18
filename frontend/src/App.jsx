@@ -63,7 +63,7 @@ const App = () => {
             <p style={{ color: '#000000', marginBottom: '30px' }}>Su cuenta está activa y autorizada para el uso de la calculadora de severidad FASS.</p>
             
             <button onClick={() => setView('calculadora')} style={startBtn}>
-              Acceder a la Calculadora Clínica <ArrowRight size={20} />
+              Acceder  la Calculadora Clínica <ArrowRight size={20} />
             </button>
           </div>
         )}
