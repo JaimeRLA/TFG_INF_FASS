@@ -151,14 +151,79 @@ const profileCard = { backgroundColor: '#fff', padding: '50px', borderRadius: '2
 const avatarStyle = { width: '80px', height: '80px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' };
 const startBtn = { padding: '15px 30px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', fontSize: '1rem' };
 const cardStyle = { backgroundColor: '#fff', padding: '25px', borderRadius: '18px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' };
-const inputStyle = { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#000' };
-const selectStyle = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#000' };
-const calcBtn = { width: '100%', padding: '15px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' };
+const inputStyle = {
+  width: '100%',
+  padding: '14px',
+  borderRadius: '12px',
+  border: '2px solid #e2e8f0',
+  backgroundColor: '#f8fafc',
+  color: '#0f172a', // Azul casi negro
+  fontSize: '0.95rem',
+  outline: 'none'
+};
+
+const selectStyle = {
+  width: '100%',
+  padding: '12px',
+  borderRadius: '12px',
+  border: '2px solid #e2e8f0',
+  backgroundColor: '#f8fafc',
+  color: '#0f172a', // Azul casi negro
+  fontSize: '0.9rem',
+  cursor: 'pointer',
+  outline: 'none'
+};
+const calcBtn = {
+  width: '100%',
+  padding: '18px',
+  backgroundColor: '#2563eb',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '15px',
+  fontSize: '1.1rem',
+  fontWeight: '800',
+  cursor: 'pointer',
+  marginTop: '10px',
+  boxShadow: '0 8px 15px rgba(37, 99, 235, 0.3)'
+};
+
 const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' };
 const backBtn = { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '10px', textAlign: 'left' };
-const cardTitle = { margin: '0 0 15px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' };
-const secHeader = { fontSize: '0.8rem', color: '#2563eb', textTransform: 'uppercase', marginBottom: '10px' };
-const labelStyle = { fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '5px' };
+const cardTitle = {
+  margin: '0 0 20px 0',
+  fontSize: '1.2rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  color: '#1e293b', // Color oscuro para "Datos del Paciente"
+  fontWeight: '800'
+};
+const secHeader = {
+  fontSize: '0.8rem',
+  color: '#2563eb', // El azul brillante de antes para las secciones
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  fontWeight: '800',
+  borderBottom: '2px solid #f1f5f9',
+  paddingBottom: '5px',
+  marginBottom: '15px'
+};
+const labelStyle = {
+  fontSize: '0.85rem',
+  fontWeight: '700',
+  color: '#475569', // Gris oscuro para los títulos de síntomas
+  display: 'block',
+  marginBottom: '6px'
+};
 const emptyCard = { padding: '50px', textAlign: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1', borderRadius: '20px' };
 
 export default App;
+
+
+
+
+
+
+
+
+
