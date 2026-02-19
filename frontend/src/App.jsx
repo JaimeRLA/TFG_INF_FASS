@@ -184,9 +184,17 @@ const App = () => {
 
         {/* VISTA: CALCULADORA */}
         {view === 'calculadora' && (
-          <main style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', alignItems: 'stretch' }}>
-            <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}>
-              <button onClick={() => setView('perfil')} style={backBtn}>← Cambiar paciente</button>
+          <main style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'minmax(600px, 1.2fr) 1fr', // El formulario no bajará de 600px
+            gap: '30px', 
+            width: '100%',
+            maxWidth: '1400px', 
+            margin: '0 auto',
+            alignItems: 'start' // Cambiamos stretch a start para evitar estiramientos raros
+          }}>
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+            <button onClick={() => setView('perfil')} style={backBtn}>← Cambiar paciente</button>
               <div style={{...cardStyle, width: '100%'}}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{...cardTitle, margin: 0}}><Activity size={20} color="#2563eb" /> Evaluación</h3>
@@ -212,19 +220,23 @@ const App = () => {
               </div>
             </section>
 
-            <aside style={{ marginTop: '35px', position: 'sticky', top: '20px', height: 'fit-content' }}>
-              {resultado ? (
-                <div>
-                  <ResultadoCard resultado={resultado} />
-                  <button onClick={reiniciarApp} style={newEvalBtn}>Nueva Evaluación</button>
-                </div>
-              ) : (
-                <div style={emptyCard}>
-                  <Info size={40} style={{marginBottom: '15px'}} />
-                  <p style={{margin: 0, fontWeight: '600'}}>Esperando síntomas...</p>
-                </div>
-              )}
-            </aside>
+            <aside style={{ 
+                  marginTop: '45px', 
+                  width: '100%', // Asegura que ocupe su columna
+                  height: 'fit-content'
+                }}>
+                  {resultado ? (
+                    <div>
+                      <ResultadoCard resultado={resultado} />
+                      <button onClick={reiniciarApp} style={newEvalBtn}>Nueva Evaluación</button>
+                    </div>
+                  ) : (
+                    <div style={emptyCard}>
+                      <Info size={40} style={{marginBottom: '15px'}} />
+                      <p style={{margin: 0, fontWeight: '600'}}>Esperando síntomas...</p>
+                    </div>
+                  )}
+                </aside>
           </main>
         )}
       </div>
@@ -249,8 +261,21 @@ const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor
 const cardTitle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '800' };
 const secHeader = { fontSize: '0.8rem', color: '#2563eb', textTransform: 'uppercase', fontWeight: '800', borderBottom: '2px solid #f1f5f9', paddingBottom: '5px', marginBottom: '15px' };
 const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', marginBottom: '2px' };
-const emptyCard = { padding: '40px 20px', textAlign: 'center', color: '#94a3b8', border: '3px dashed #cbd5e1', borderRadius: '28px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '200px' };
-const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
+const emptyCard = {
+  padding: '40px 20px',
+  textAlign: 'center',
+  color: '#94a3b8',
+  border: '3px dashed #cbd5e1',
+  borderRadius: '28px',
+  backgroundColor: '#fff',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '200px',
+  width: '100%',      // Importante
+  boxSizing: 'border-box' // Importante para que el padding no lo ensanche más de la cuenta
+};const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
 const searchBar = { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px 20px', borderRadius: '14px', border: '2px solid #e2e8f0', marginTop: '10px' };
 const searchInput = { border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '1rem', color: '#1e293b' };
 const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 25px', borderRadius: '16px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', cursor: 'pointer', transition: '0.2s' };
