@@ -33,16 +33,25 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Marcador de posición dinámico para la semilla inicial
     placeholder = "%s" if DATABASE_URL else "?"
 
-    # Tabla de Registros Clínicos
+    # Tabla de Registros Clínicos con TODOS los campos nuevos
     query_registros = '''CREATE TABLE IF NOT EXISTS registros (
-                id SERIAL PRIMARY KEY, nombre TEXT, paciente_id TEXT, 
-                sintomas TEXT, nfass REAL, ofass_grade INTEGER, 
-                ofass_category TEXT, risk_level TEXT, fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
+                id SERIAL PRIMARY KEY, 
+                nombre TEXT, 
+                paciente_id TEXT, 
+                edad TEXT, 
+                sexo TEXT, 
+                antecedentes TEXT,
+                sintomas TEXT, 
+                nfass REAL, 
+                ofass_grade INTEGER, 
+                ofass_category TEXT, 
+                risk_level TEXT, 
+                medico TEXT,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
     
-    # Tabla de Usuarios (Médicos)
+    # Tabla de Usuarios
     query_usuarios = '''CREATE TABLE IF NOT EXISTS usuarios (
                         id SERIAL PRIMARY KEY, 
                         username TEXT UNIQUE, 
@@ -80,12 +89,10 @@ async def register(request: LoginRequest):
     cursor = conn.cursor()
     placeholder = "%s" if DATABASE_URL else "?"
     try:
-        # Verificar existencia
         cursor.execute(f"SELECT username FROM usuarios WHERE username = {placeholder}", (request.username,))
         if cursor.fetchone():
             return {"success": False, "message": "El nombre de usuario ya está registrado"}
         
-        # Insertar nuevo usuario
         cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", 
                        (request.username, request.password))
         conn.commit()
@@ -114,16 +121,37 @@ async def login(request: LoginRequest):
 # --- ENDPOINTS CLÍNICOS ---
 
 @app.post("/calculate")
-async def calculate(request: ReactionRequest):
-    resultado = calcular_nfass_ofass(request.sintomas)
+async def calculate(request: dict):
+    # Lógica del cálculo
+    resultado = calcular_nfass_ofass(request["sintomas"])
+    
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        query = f"INSERT INTO registros (nombre, paciente_id, sintomas, nfass, ofass_grade, ofass_category, risk_level) VALUES ({','.join([placeholder]*7)})"
-        cursor.execute(query, (request.nombre, request.paciente_id, json.dumps(request.sintomas), float(resultado["nfass"]), int(resultado["ofass_grade"]), resultado["ofass_category"], resultado["risk_level"]))
+        
+        # Inserción de los 11 campos
+        query = f"""INSERT INTO registros 
+                (nombre, paciente_id, edad, sexo, antecedentes, sintomas, nfass, ofass_grade, ofass_category, risk_level, medico) 
+                VALUES ({','.join([placeholder]*11)})"""
+        
+        cursor.execute(query, (
+            request.get("nombre", ""), 
+            request.get("paciente_id", ""), 
+            request.get("edad", ""), 
+            request.get("sexo", ""), 
+            request.get("antecedentes", ""),
+            json.dumps(request.get("sintomas", [])), 
+            float(resultado["nfass"]), 
+            int(resultado["ofass_grade"]), 
+            resultado["ofass_category"], 
+            resultado["risk_level"],
+            request.get("medico", "desconocido")
+        ))
         conn.commit()
-    finally: conn.close()
+    finally:
+        conn.close()
+    
     return resultado
 
 @app.get("/history")
@@ -134,10 +162,10 @@ async def get_history():
         cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
         columns = [desc[0] for desc in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
-    finally: conn.close()
+    finally:
+        conn.close()
 
 # --- ASISTENTE IA ---
-
 @app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")
