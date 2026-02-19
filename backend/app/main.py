@@ -184,3 +184,26 @@ async def chat_asistente(user_message: str = Query(...)):
         return {"response": completion.choices[0].message.content}
     except Exception as e:
         return {"response": f"Error del asistente: {str(e)}"}
+    
+@app.get("/pacientes_unicos")
+async def get_pacientes_unicos(medico: str = Query(...)):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+        # Usamos DISTINCT para que no salgan nombres repetidos si un paciente tiene varios registros
+        query = f"SELECT DISTINCT nombre, paciente_id, edad, sexo, antecedentes FROM registros WHERE medico = {placeholder}"
+        cursor.execute(query, (medico,))
+        
+        pacientes = []
+        for row in cursor.fetchall():
+            pacientes.append({
+                "nombre": row[0],
+                "id": row[1],
+                "edad": row[2],
+                "sexo": row[3],
+                "antecedentes": row[4]
+            })
+        return pacientes
+    finally:
+        conn.close()
