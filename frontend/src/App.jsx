@@ -182,24 +182,33 @@ const App = () => {
           </div>
         )}
 
-        {/* VISTA: CALCULADORA */}
+        {/* VISTA 3: CALCULADORA */}
         {view === 'calculadora' && (
           <main style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'minmax(600px, 1.2fr) 1fr', // El formulario no bajará de 600px
+            display: 'flex',          // Cambiamos a Flex para tener más control
+            flexDirection: 'row',     // Una columna al lado de la otra
             gap: '30px', 
             width: '100%',
             maxWidth: '1400px', 
             margin: '0 auto',
-            alignItems: 'start' // Cambiamos stretch a start para evitar estiramientos raros
+            alignItems: 'flex-start'
           }}>
-          <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Cambiar paciente</button>
-              <div style={{...cardStyle, width: '100%'}}>
+            {/* COLUMNA IZQUIERDA: FORMULARIO */}
+            <section style={{ 
+              flex: '1',               // Ocupa todo el espacio sobrante
+              minWidth: '0',           // Permite que el flex trabaje bien
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '20px' 
+            }}>
+              <button onClick={() => setView('perfil')} style={backBtn}>← Cambiar paciente</button>
+              
+              <div style={cardStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{...cardTitle, margin: 0}}><Activity size={20} color="#2563eb" /> Evaluación</h3>
                     <span style={pacienteBadge}>{paciente.nombre} (NHC: {paciente.id})</span>
                 </div>
+                
                 {SECCIONES_SINTOMAS.map(sec => (
                   <div key={sec.titulo} style={{ marginBottom: '30px' }}>
                     <h4 style={secHeader}>{sec.titulo}</h4>
@@ -220,23 +229,26 @@ const App = () => {
               </div>
             </section>
 
+            {/* COLUMNA DERECHA: RESULTADOS / ESPERANDO */}
             <aside style={{ 
-                  marginTop: '45px', 
-                  width: '100%', // Asegura que ocupe su columna
-                  height: 'fit-content'
-                }}>
-                  {resultado ? (
-                    <div>
-                      <ResultadoCard resultado={resultado} />
-                      <button onClick={reiniciarApp} style={newEvalBtn}>Nueva Evaluación</button>
-                    </div>
-                  ) : (
-                    <div style={emptyCard}>
-                      <Info size={40} style={{marginBottom: '15px'}} />
-                      <p style={{margin: 0, fontWeight: '600'}}>Esperando síntomas...</p>
-                    </div>
-                  )}
-                </aside>
+              width: '400px',          // Ancho fijo para que no flote sobre el otro
+              flexShrink: '0',         // No deja que se haga más pequeño de 400px
+              marginTop: '45px', 
+              position: 'sticky', 
+              top: '20px' 
+            }}>
+              {resultado ? (
+                <div>
+                  <ResultadoCard resultado={resultado} />
+                  <button onClick={reiniciarApp} style={newEvalBtn}>Nueva Evaluación</button>
+                </div>
+              ) : (
+                <div style={emptyCard}>
+                  <Info size={40} style={{marginBottom: '15px'}} />
+                  <p style={{margin: 0, fontWeight: '600', color: '#64748b'}}>Esperando síntomas...</p>
+                </div>
+              )}
+            </aside>
           </main>
         )}
       </div>
