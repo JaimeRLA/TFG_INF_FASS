@@ -113,25 +113,29 @@ async def login(request: LoginRequest):
 
 # --- ENDPOINTS CLÍNICOS ---
 
+# Modifica el endpoint de guardado en main.py
 @app.post("/calculate")
-async def calculate(request: ReactionRequest):
+async def calculate(request: ReactionRequest, medico: str = Query(...)):
     resultado = calcular_nfass_ofass(request.sintomas)
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        query = f"INSERT INTO registros (nombre, paciente_id, sintomas, nfass, ofass_grade, ofass_category, risk_level) VALUES ({','.join([placeholder]*7)})"
-        cursor.execute(query, (request.nombre, request.paciente_id, json.dumps(request.sintomas), float(resultado["nfass"]), int(resultado["ofass_grade"]), resultado["ofass_category"], resultado["risk_level"]))
+        # Añadimos 'medico' a la consulta (necesitarás añadir la columna a la DB o recrearla)
+        query = f"INSERT INTO registros (nombre, paciente_id, sintomas, nfass, ofass_grade, ofass_category, risk_level, medico) VALUES ({','.join([placeholder]*8)})"
+        cursor.execute(query, (request.nombre, request.paciente_id, json.dumps(request.sintomas), float(resultado["nfass"]), int(resultado["ofass_grade"]), resultado["ofass_category"], resultado["risk_level"], medico))
         conn.commit()
     finally: conn.close()
     return resultado
 
+# Modifica el historial para que solo devuelva lo del médico actual
 @app.get("/history")
-async def get_history():
+async def get_history(medico: str = Query(...)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
+        placeholder = "%s" if DATABASE_URL else "?"
+        cursor.execute(f'SELECT * FROM registros WHERE medico = {placeholder} ORDER BY fecha DESC', (medico,))
         columns = [desc[0] for desc in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
     finally: conn.close()
