@@ -171,22 +171,27 @@ const App = () => {
               </div>
             </section>
 
-            <aside style={{ marginTop: '45px' }}>
-              {resultado ? (
-                <div>
-                  <ResultadoCard resultado={resultado} />
-                  <button onClick={reiniciarApp} style={{...logoutBtn, color: '#2563eb', marginTop: '20px', width: '100%', justifyContent: 'center', border: '1px solid #2563eb', padding: '10px', borderRadius: '10px'}}>
-                    Nueva Evaluación de Paciente
-                  </button>
-                </div>
-              ) : (
-                <div style={emptyCard}>
-                  <Info size={40} style={{marginBottom: '15px'}} />
-                  <p style={{margin: 0, fontWeight: '600'}}>Esperando datos...</p>
-                  <p style={{fontSize: '0.8rem', opacity: 0.7}}>Complete los síntomas para ver el resultado.</p>
-                </div>
-              )}
-            </aside>
+            <aside style={{ 
+                marginTop: '45px', 
+                height: 'fit-content', // Clave para que no se estire al fondo
+                position: 'sticky', 
+                top: '20px' 
+              }}>
+                {resultado ? (
+                  <div>
+                    <ResultadoCard resultado={resultado} />
+                    <button onClick={reiniciarApp} style={{...logoutBtn, color: '#2563eb', marginTop: '20px', width: '100%', justifyContent: 'center', border: '1px solid #2563eb', padding: '10px', borderRadius: '10px'}}>
+                      Nueva Evaluación de Paciente
+                    </button>
+                  </div>
+                ) : (
+                  <div style={emptyCard}>
+                    <Info size={40} style={{marginBottom: '15px'}} />
+                    <p style={{margin: 0, fontWeight: '600', fontSize: '1rem'}}>Esperando datos...</p>
+                    <p style={{fontSize: '0.85rem', opacity: 0.7}}>Complete la evaluación a la izquierda.</p>
+                  </div>
+                )}
+              </aside>
           </main>
         )}
       </div>
@@ -206,11 +211,34 @@ const inputStyle = { width: '100%', padding: '14px', borderRadius: '12px', borde
 const selectStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#0f172a', cursor: 'pointer', outline: 'none' };
 const calcBtn = { width: '100%', padding: '20px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', marginTop: '10px' };
 const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
-const backBtn = { background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '15px', fontWeight: '700' };
-const cardTitle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '800' };
+const backBtn = { 
+  background: 'none', 
+  border: 'none', 
+  color: '#2563eb', 
+  cursor: 'pointer', 
+  marginBottom: '5px', 
+  fontWeight: '700',
+  padding: '0',           // Quitamos el padding para que pegue al borde
+  textAlign: 'left',      // Forzamos alineación a la izquierda
+  display: 'flex', 
+  alignItems: 'center',
+  alignSelf: 'flex-start' // Esta es la clave: se posiciona al inicio de su contenedor
+};const cardTitle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '800' };
 const secHeader = { fontSize: '0.8rem', color: '#2563eb', textTransform: 'uppercase', fontWeight: '800', borderBottom: '2px solid #f1f5f9', paddingBottom: '5px', marginBottom: '15px' };
 const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', marginBottom: '2px' };
-const emptyCard = { padding: '80px 40px', textAlign: 'center', color: '#94a3b8', border: '3px dashed #cbd5e1', borderRadius: '28px', backgroundColor: '#fff', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' };
-const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
+const emptyCard = { 
+  padding: '40px 20px', 
+  textAlign: 'center', 
+  color: '#94a3b8', 
+  border: '3px dashed #cbd5e1', 
+  borderRadius: '28px', 
+  backgroundColor: '#fff', 
+  display: 'flex', 
+  flexDirection: 'column', 
+  justifyContent: 'center', 
+  alignItems: 'center',
+  minHeight: '200px', // Altura mínima razonable
+  height: 'fit-content' // Solo ocupa el espacio que necesita su contenido
+};const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
 
 export default App;
