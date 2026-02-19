@@ -33,11 +33,6 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # ESTO BORRARÁ LA TABLA VIEJA PARA QUE SE CREE LA NUEVA
-    # Solo necesitas dejar esto puesto una vez.
-    cursor.execute("DROP TABLE IF EXISTS registros")
-    cursor.execute("DROP TABLE IF EXISTS usuarios")
-        
     placeholder = "%s" if DATABASE_URL else "?"
 
     # Tabla de Registros Clínicos con TODOS los campos nuevos

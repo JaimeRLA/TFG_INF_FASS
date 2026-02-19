@@ -141,9 +141,11 @@ const App = () => {
         {/* PASO 3: CALCULADORA DE SÍNTOMAS */}
         {view === 'calculadora' && (
           <main style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px', alignItems: 'stretch' }}>
-            <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <button onClick={() => setView('registro_paciente')} style={backBtn}>← Editar datos del paciente</button>
-              
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}> 
+            {/* Añadimos alignItems: 'flex-start' arriba para que todo en esta columna se pegue a la izquierda */}
+            <button onClick={() => setView('registro_paciente')} style={backBtn}>
+              ← Editar datos del paciente
+            </button>
               <div style={cardStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{...cardTitle, margin: 0}}><Activity size={20} color="#2563eb" /> Síntomas Actuales</h3>
