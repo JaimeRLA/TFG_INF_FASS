@@ -77,68 +77,80 @@ const App = () => {
 
         {/* VISTA 2: CALCULADORA */}
         {view === 'calculadora' && (
-          <main style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '25px', width: '100%' }}>
-            <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <button onClick={() => setView('perfil')} style={backBtn}>← Volver a mi perfil</button>
-              
-              {/* CARD: DATOS DEL PACIENTE */}
-              <div style={cardStyle}>
-                <h3 style={cardTitle}><User size={18} color="#2563eb" /> Datos del Paciente</h3>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                  <input 
-                    placeholder="Nombre del Paciente" 
-                    style={inputStyle} 
-                    onChange={e => setPaciente({...paciente, nombre: e.target.value})} 
-                  />
-                  <input 
-                    placeholder="ID Historia Clínica" 
-                    style={inputStyle} 
-                    onChange={e => setPaciente({...paciente, id: e.target.value})} 
-                  />
-                </div>
+        <main style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1.2fr 1fr', // Proporción más equilibrada y ancha
+          gap: '30px', 
+          width: '100%',
+          maxWidth: '1400px', // Limita el ancho máximo para que no se estire infinito
+          margin: '0 auto',
+          alignItems: 'stretch' // Fuerza a que empiecen a la misma altura
+        }}>
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <button onClick={() => setView('perfil')} style={backBtn}>← Volver a mi perfil</button>
+            
+            {/* CARD: DATOS DEL PACIENTE */}
+            <div style={cardStyle}>
+              <h3 style={cardTitle}><User size={20} color="#2563eb" /> Datos del Paciente</h3>
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <input 
+                  placeholder="Nombre del Paciente" 
+                  style={inputStyle} 
+                  onChange={e => setPaciente({...paciente, nombre: e.target.value})} 
+                />
+                <input 
+                  placeholder="ID Historia Clínica" 
+                  style={inputStyle} 
+                  onChange={e => setPaciente({...paciente, id: e.target.value})} 
+                />
               </div>
+            </div>
 
-              {/* CARD: SÍNTOMAS */}
-              <div style={cardStyle}>
-                <h3 style={cardTitle}><Activity size={18} color="#2563eb" /> Evaluación Clínica</h3>
-                {SECCIONES_SINTOMAS.map(sec => (
-                  <div key={sec.titulo} style={{ marginBottom: '25px' }}>
-                    <h4 style={secHeader}>{sec.titulo}</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                      {sec.grupos.map(grupo => (
-                        <div key={grupo.id_base}>
-                          <label style={labelStyle}>{grupo.label}</label>
-                          <select 
-                            style={selectStyle} 
-                            onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}
-                          >
-                            <option value="">-- No presenta --</option>
-                            {grupo.options.map(opt => (
-                              <option key={opt.id} value={opt.id} style={{color: '#000'}}>{opt.text}</option>
-                            ))}
-                          </select>
-                        </div>
-                      ))}
-                    </div>
+            {/* CARD: SÍNTOMAS */}
+            <div style={cardStyle}>
+              <h3 style={cardTitle}><Activity size={20} color="#2563eb" /> Evaluación Clínica</h3>
+              {SECCIONES_SINTOMAS.map(sec => (
+                <div key={sec.titulo} style={{ marginBottom: '30px' }}>
+                  <h4 style={secHeader}>{sec.titulo}</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    {sec.grupos.map(grupo => (
+                      <div key={grupo.id_base}>
+                        <label style={labelStyle}>{grupo.label}</label>
+                        <select 
+                          style={selectStyle} 
+                          onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}
+                        >
+                          <option value="">-- No presenta --</option>
+                          {grupo.options.map(opt => (
+                            <option key={opt.id} value={opt.id} style={{color: '#000'}}>{opt.text}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                <button onClick={enviarEvaluacion} style={calcBtn}>Calcular Gravedad nFASS</button>
-              </div>
-            </section>
+                </div>
+              ))}
+              <button onClick={enviarEvaluacion} style={calcBtn}>Calcular Gravedad nFASS</button>
+            </div>
+          </section>
 
-            <aside>
+          {/* COLUMNA DE RESULTADOS (Ahora alineada y más ancha) */}
+          <aside style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Añadimos un margen superior para compensar el botón de "Volver" y que queden alineados */}
+            <div style={{ marginTop: '45px', height: '100%' }}>
               {resultado ? (
                 <ResultadoCard resultado={resultado} />
               ) : (
                 <div style={emptyCard}>
-                  <Info size={40} style={{marginBottom: '10px'}} />
-                  <p style={{margin: 0}}>Inicie una evaluación seleccionando los síntomas del paciente.</p>
+                  <Info size={50} style={{marginBottom: '15px'}} />
+                  <p style={{fontSize: '1.1rem', fontWeight: '600'}}>Esperando evaluación...</p>
+                  <p style={{fontSize: '0.9rem', opacity: 0.8}}>Seleccione los síntomas para ver el Grado FASS aquí.</p>
                 </div>
               )}
-            </aside>
-          </main>
-        )}
-      
+            </div>
+          </aside>
+        </main>
+      )}
       </div>
       <ChatBot />
     </div>
@@ -150,28 +162,37 @@ const headerStyle = { display: 'flex', justifyContent: 'space-between', padding:
 const profileCard = { backgroundColor: '#fff', padding: '50px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', marginTop: '50px' };
 const avatarStyle = { width: '80px', height: '80px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' };
 const startBtn = { padding: '15px 30px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', fontSize: '1rem' };
-const cardStyle = { backgroundColor: '#fff', padding: '25px', borderRadius: '18px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' };
-const inputStyle = {
-  width: '100%',
-  padding: '14px',
-  borderRadius: '12px',
-  border: '2px solid #e2e8f0',
-  backgroundColor: '#f8fafc',
-  color: '#0f172a', // Azul casi negro
-  fontSize: '0.95rem',
-  outline: 'none'
+const cardStyle = { 
+  backgroundColor: '#fff', 
+  padding: '35px', // Más padding interno
+  borderRadius: '24px', 
+  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', 
+  border: '1px solid #e2e8f0' 
 };
 
-const selectStyle = {
-  width: '100%',
-  padding: '12px',
-  borderRadius: '12px',
-  border: '2px solid #e2e8f0',
-  backgroundColor: '#f8fafc',
-  color: '#0f172a', // Azul casi negro
-  fontSize: '0.9rem',
+const inputStyle = { 
+  width: '100%', 
+  padding: '16px', // Un poco más grande
+  borderRadius: '14px', 
+  border: '2px solid #e2e8f0', 
+  backgroundColor: '#f8fafc', 
+  color: '#0f172a', 
+  fontSize: '1rem',
+  outline: 'none',
+  boxSizing: 'border-box'
+};
+
+const selectStyle = { 
+  width: '100%', 
+  padding: '14px', 
+  borderRadius: '14px', 
+  border: '2px solid #e2e8f0', 
+  backgroundColor: '#f8fafc', 
+  color: '#0f172a', 
+  fontSize: '1rem',
   cursor: 'pointer',
-  outline: 'none'
+  outline: 'none',
+  boxSizing: 'border-box'
 };
 const calcBtn = {
   width: '100%',
@@ -215,9 +236,27 @@ const labelStyle = {
   display: 'block',
   marginBottom: '6px'
 };
-const emptyCard = { padding: '50px', textAlign: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1', borderRadius: '20px' };
-
+const emptyCard = { 
+  height: '100%', // Para que ocupe todo el alto disponible
+  minHeight: '400px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '40px', 
+  textAlign: 'center', 
+  color: '#94a3b8', 
+  backgroundColor: '#fff',
+  border: '3px dashed #cbd5e1', 
+  borderRadius: '28px' 
+};
 export default App;
+
+
+
+
+
+
 
 
 
