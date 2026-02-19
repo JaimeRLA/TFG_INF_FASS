@@ -35,20 +35,23 @@ const App = () => {
   };
 
   const enviarEvaluacion = async () => {
-    const listaIds = Object.values(seleccionados).filter(id => id !== "");
-    if (listaIds.length === 0) {
-      alert("Por favor, seleccione al menos un síntoma para la evaluación.");
-      return;
-    }
+    // ... validaciones ...
     try {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
-        ...paciente,
-        sintomas: listaIds,
-        medico: usuarioLogueado
+        nombre: paciente.nombre,
+        paciente_id: paciente.id,
+        edad: paciente.edad,
+        sexo: paciente.sexo,
+        antecedentes: paciente.antecedentes,
+        sintomas: Object.values(seleccionados).filter(id => id !== ""),
+        medico: usuarioLogueado // ¡Esto es muy importante!
       });
       setResultado(res.data);
-    } catch (err) { console.error("Error al calcular:", err); }
-  };
+    } catch (err) { 
+      console.error(err);
+      alert("Error al conectar con el servidor. Revisa la consola.");
+    }
+};
 
   if (!usuarioLogueado) {
     return <Login onLoginSuccess={(nombre) => setUsuarioLogueado(nombre)} />;
