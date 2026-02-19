@@ -51,30 +51,39 @@ const App = () => {
   const seleccionarPaciente = (p) => {
     setPaciente({
       nombre: p.nombre,
-      id: p.id,
+      id: p.id || p.paciente_id, // <-- Aseguramos que use el ID correcto de la DB
       edad: p.edad,
       sexo: p.sexo,
       antecedentes: p.antecedentes
     });
-    setResultado(null); // Limpiar resultados previos
-    setSeleccionados({}); // Limpiar síntomas previos
+    setResultado(null);
+    setSeleccionados({});
     setView('calculadora');
   };
 
   const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
-    if (listaIds.length === 0) {
-      alert("Por favor, seleccione al menos un síntoma.");
+    
+    // Verificación de seguridad
+    if (!paciente.id) {
+      alert("Error: El ID del paciente se ha perdido. Por favor, reintente.");
       return;
     }
+
     try {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
-        ...paciente,
+        nombre: paciente.nombre,
+        paciente_id: paciente.id, // Enviamos el ID explícitamente
+        edad: paciente.edad,
+        sexo: paciente.sexo,
+        antecedentes: paciente.antecedentes,
         sintomas: listaIds,
         medico: usuarioLogueado
       });
       setResultado(res.data);
-    } catch (err) { console.error("Error al calcular:", err); }
+    } catch (err) { 
+      console.error("Error al calcular:", err); 
+    }
   };
 
   const pacientesFiltrados = listaPacientes.filter(p => 
@@ -168,7 +177,15 @@ const App = () => {
               <h3 style={cardTitle}><ClipboardCheck size={22} color="#2563eb" /> Nueva Ficha Clínica</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div style={inputWrapper}><label style={labelStyle}>Nombre Completo</label><input style={inputStyle} value={paciente.nombre} onChange={e => setPaciente({...paciente, nombre: e.target.value})} placeholder="Nombre" /></div>
-                <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} placeholder="ID Único" /></div>
+                <div style={inputWrapper}>
+                  <label style={labelStyle}>NHC / ID</label>
+                  <input 
+                    style={inputStyle} 
+                    value={paciente.id} 
+                    onChange={e => setPaciente({...paciente, id: e.target.value})} 
+                    placeholder="ID Único" 
+                  />
+                </div>                
                 <div style={inputWrapper}><label style={labelStyle}>Edad</label><input type="number" style={inputStyle} value={paciente.edad} onChange={e => setPaciente({...paciente, edad: e.target.value})} /></div>
                 <div style={inputWrapper}><label style={labelStyle}>Sexo</label>
                   <select style={selectStyle} value={paciente.sexo} onChange={e => setPaciente({...paciente, sexo: e.target.value})}>
