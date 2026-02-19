@@ -48,10 +48,43 @@ const App = () => {
     }
   };
 
+  // NUEVA FUNCIÓN: Validar duplicados antes de entrar a la calculadora
+  const continuarEvaluacion = async () => {
+    if (!paciente.nombre || !paciente.id) {
+      alert("Nombre e ID (NHC) son obligatorios");
+      return;
+    }
+
+    try {
+      // Verificamos si el NHC ya existe en la base de datos del médico
+      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
+      const duplicado = res.data.find(p => p.id === paciente.id);
+
+      if (duplicado) {
+        // Caso A: El NHC existe pero con OTRO nombre (Error de seguridad)
+        if (duplicado.nombre.toLowerCase().trim() !== paciente.nombre.toLowerCase().trim()) {
+          alert(`ALERTA DE SEGURIDAD: El NHC ${paciente.id} ya pertenece al paciente "${duplicado.nombre}". No puede registrarlo con un nombre diferente.`);
+          return;
+        }
+        // Caso B: El paciente ya existe (Avisamos que usaremos su ficha existente)
+        alert("Paciente detectado en el sistema. Se procederá con la ficha existente.");
+        seleccionarPaciente(duplicado);
+        return;
+      }
+      
+      // Si no hay duplicados, pasamos a la calculadora normalmente
+      setView('calculadora');
+    } catch (err) {
+      // Si el servidor de pacientes falla, permitimos pasar por emergencia, 
+      // pero el backend lo validará al guardar.
+      setView('calculadora');
+    }
+  };
+
   const seleccionarPaciente = (p) => {
     setPaciente({
       nombre: p.nombre,
-      id: p.id || p.paciente_id, // <-- Aseguramos que use el ID correcto de la DB
+      id: p.id || p.paciente_id,
       edad: p.edad,
       sexo: p.sexo,
       antecedentes: p.antecedentes
@@ -64,7 +97,6 @@ const App = () => {
   const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
     
-    // Verificación de seguridad
     if (!paciente.id) {
       alert("Error: El ID del paciente se ha perdido. Por favor, reintente.");
       return;
@@ -73,7 +105,7 @@ const App = () => {
     try {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
         nombre: paciente.nombre,
-        paciente_id: paciente.id, // Enviamos el ID explícitamente
+        paciente_id: paciente.id,
         edad: paciente.edad,
         sexo: paciente.sexo,
         antecedentes: paciente.antecedentes,
@@ -113,7 +145,7 @@ const App = () => {
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         
-        {/* VISTA: PERFIL (Doble Opción) */}
+        {/* VISTA: PERFIL */}
         {view === 'perfil' && (
           <div style={{ display: 'flex', gap: '30px', marginTop: '60px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <div style={optionCard}>
@@ -183,7 +215,7 @@ const App = () => {
                     style={inputStyle} 
                     value={paciente.id} 
                     onChange={e => setPaciente({...paciente, id: e.target.value})} 
-                    placeholder="ID Único" 
+                    placeholder="ID Único (NHC)" 
                   />
                 </div>                
                 <div style={inputWrapper}><label style={labelStyle}>Edad</label><input type="number" style={inputStyle} value={paciente.edad} onChange={e => setPaciente({...paciente, edad: e.target.value})} /></div>
@@ -194,7 +226,13 @@ const App = () => {
                 </div>
               </div>
               <div style={{ marginTop: '20px' }}><label style={labelStyle}>Antecedentes</label><textarea style={{...inputStyle, height: '80px', resize: 'none'}} value={paciente.antecedentes} onChange={e => setPaciente({...paciente, antecedentes: e.target.value})} /></div>
-              <button onClick={() => (paciente.nombre && paciente.id) ? setView('calculadora') : alert("Nombre e ID obligatorios")} style={{...startBtn, width: '100%', marginTop: '30px', justifyContent: 'center'}}>Continuar a Síntomas <ArrowRight size={20} /></button>
+              
+              <button 
+                onClick={continuarEvaluacion} 
+                style={{...startBtn, width: '100%', marginTop: '30px', justifyContent: 'center'}}
+              >
+                Continuar a Síntomas <ArrowRight size={20} />
+              </button>
             </div>
           </div>
         )}
@@ -202,18 +240,17 @@ const App = () => {
         {/* VISTA 3: CALCULADORA */}
         {view === 'calculadora' && (
           <main style={{ 
-            display: 'flex',          // Cambiamos a Flex para tener más control
-            flexDirection: 'row',     // Una columna al lado de la otra
+            display: 'flex',
+            flexDirection: 'row',
             gap: '30px', 
             width: '100%',
             maxWidth: '1400px', 
             margin: '0 auto',
             alignItems: 'flex-start'
           }}>
-            {/* COLUMNA IZQUIERDA: FORMULARIO */}
             <section style={{ 
-              flex: '1',               // Ocupa todo el espacio sobrante
-              minWidth: '0',           // Permite que el flex trabaje bien
+              flex: '1',
+              minWidth: '0',
               display: 'flex', 
               flexDirection: 'column', 
               gap: '20px' 
@@ -246,10 +283,9 @@ const App = () => {
               </div>
             </section>
 
-            {/* COLUMNA DERECHA: RESULTADOS / ESPERANDO */}
             <aside style={{ 
-              width: '400px',          // Ancho fijo para que no flote sobre el otro
-              flexShrink: '0',         // No deja que se haga más pequeño de 400px
+              width: '400px',
+              flexShrink: '0',
               marginTop: '45px', 
               position: 'sticky', 
               top: '20px' 
@@ -274,7 +310,7 @@ const App = () => {
   );
 };
 
-// --- ESTILOS MEJORADOS ---
+// --- ESTILOS ---
 const headerStyle = { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' };
 const optionCard = { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', width: '350px' };
 const avatarStyle = { width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' };
@@ -290,21 +326,8 @@ const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor
 const cardTitle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '800' };
 const secHeader = { fontSize: '0.8rem', color: '#2563eb', textTransform: 'uppercase', fontWeight: '800', borderBottom: '2px solid #f1f5f9', paddingBottom: '5px', marginBottom: '15px' };
 const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', marginBottom: '2px' };
-const emptyCard = {
-  padding: '40px 20px',
-  textAlign: 'center',
-  color: '#94a3b8',
-  border: '3px dashed #cbd5e1',
-  borderRadius: '28px',
-  backgroundColor: '#fff',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '200px',
-  width: '100%',      // Importante
-  boxSizing: 'border-box' // Importante para que el padding no lo ensanche más de la cuenta
-};const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
+const emptyCard = { padding: '40px 20px', textAlign: 'center', color: '#94a3b8', border: '3px dashed #cbd5e1', borderRadius: '28px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', width: '100%', boxSizing: 'border-box' };
+const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
 const searchBar = { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px 20px', borderRadius: '14px', border: '2px solid #e2e8f0', marginTop: '10px' };
 const searchInput = { border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '1rem', color: '#1e293b' };
 const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 25px', borderRadius: '16px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', cursor: 'pointer', transition: '0.2s' };

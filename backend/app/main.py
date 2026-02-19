@@ -129,6 +129,12 @@ async def calculate(request: dict):
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
+
+        cursor.execute(f"SELECT nombre FROM registros WHERE paciente_id = {placeholder} LIMIT 1", (request["paciente_id"],))
+        existente = cursor.fetchone()
+        
+        if existente and existente[0] != request["nombre"]:
+            return {"success": False, "message": f"El NHC {request['paciente_id']} ya pertenece a {existente[0]}"}
         
         # Inserción de los 11 campos
         query = f"""INSERT INTO registros 
