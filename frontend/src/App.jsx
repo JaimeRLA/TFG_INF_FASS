@@ -98,9 +98,8 @@ const App = () => {
   };
 
   const pacientesFiltrados = listaPacientes.filter(p => 
-    // Ahora usamos p.id porque el backend devuelve "id" para el NHC
-    p.id && p.id.toLowerCase().includes(filtroBusqueda.toLowerCase())
-  );
+  p.id && p.id.toString().toLowerCase().includes(filtroBusqueda.toLowerCase())
+);
 
   if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
 

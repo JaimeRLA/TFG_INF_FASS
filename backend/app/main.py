@@ -28,19 +28,16 @@ def get_connection():
     if DATABASE_URL:
         return psycopg2.connect(DATABASE_URL)
     return sqlite3.connect(os.path.join(os.path.dirname(__file__), "fass_database.db"))
-
 def init_db():
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        # FORZADO: Borramos la tabla de registros
-        print("Borrando tabla registros...")
+        # --- PASO 1: BORRADO AGRESIVO ---
+        # Ejecuta esto una vez para limpiar los datos viejos que bloquean el sistema
+        print("Limpiando tablas antiguas...")
         cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
         
-        # Opcional: Si quieres resetear usuarios también descomenta esto:
-        # cursor.execute("DROP TABLE IF EXISTS usuarios CASCADE")
-
-        # Creamos la tabla desde cero con la estructura exacta que pide el Front
+        # --- PASO 2: CREACIÓN CON COLUMNAS NUEVAS ---
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
             nhc TEXT,
@@ -56,7 +53,7 @@ def init_db():
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
         
-        # Volvemos a crear la tabla de usuarios si la borraste
+        # Asegurar tabla usuarios
         cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
@@ -64,9 +61,33 @@ def init_db():
         )''')
         
         conn.commit()
-        print("Base de datos reseteada con éxito.")
+        print("Base de datos sincronizada correctamente.")
     except Exception as e:
-        print(f"Error reseteando base de datos: {e}")
+        print(f"Error en init_db: {e}")
+    finally:
+        conn.close()
+
+# Ejecutamos el reseteo
+init_db()
+
+@app.get("/pacientes_unicos")
+async def get_pacientes_unicos(medico: str = Query(...)):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+        # IMPORTANTE: Buscamos NHC, FECHA y GENERO (que son las columnas nuevas)
+        query = f"SELECT DISTINCT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
+        cursor.execute(query, (medico,))
+        
+        pacientes = []
+        for row in cursor.fetchall():
+            pacientes.append({
+                "id": row[0],
+                "fecha_nacimiento": row[1],
+                "genero": row[2]
+            })
+        return pacientes
     finally:
         conn.close()
 
@@ -147,35 +168,6 @@ async def chat_asistente(user_message: str = Query(...)):
     except Exception as e:
         return {"response": f"Error del asistente: {str(e)}"}
     
-
-# --- BUSCADOR DE PACIENTES ACTUALIZADO ---
-@app.get("/pacientes_unicos")
-async def get_pacientes_unicos(medico: str = Query(...)):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        placeholder = "%s" if DATABASE_URL else "?"
-        # IMPORTANTE: Ahora buscamos nhc, fecha_nacimiento y genero
-        query = f"""
-            SELECT DISTINCT nhc, fecha_nacimiento, genero 
-            FROM registros 
-            WHERE medico = {placeholder}
-        """
-        cursor.execute(query, (medico,))
-        
-        pacientes = []
-        for row in cursor.fetchall():
-            pacientes.append({
-                "id": row[0],
-                "fecha_nacimiento": row[1],
-                "genero": row[2]
-            })
-        return pacientes
-    except Exception as e:
-        print(f"Error en pacientes_unicos: {e}")
-        return []
-    finally:
-        conn.close()
 
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
