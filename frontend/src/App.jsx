@@ -77,7 +77,7 @@ const App = () => {
     });
     setResultado(null);
     setSeleccionados({});
-    setView('event_record'); // Ir directamente al evento si el paciente ya existe
+    setView('event_record'); 
   };
 
   const validarYPasarAEvento = async () => {
@@ -98,7 +98,7 @@ const App = () => {
         fecha_nacimiento: paciente.fecha_nacimiento,
         genero: paciente.genero,
         respuestas: cuestionario,
-        evento: evento, // Enviamos el nuevo objeto de evento
+        evento: evento,
         sintomas: listaIds,
         medico: usuarioLogueado
       });
@@ -147,7 +147,6 @@ const App = () => {
 
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
-      
       <header style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <HeartPulse size={30} color="#2563eb" />
@@ -268,7 +267,8 @@ const App = () => {
                 <div style={questionBlock}><PreguntaClinica id="q9" label="9. Family history of allergies/asthma/eczema?" />{cuestionario.q9 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q9_details', e.target.value)} />}</div>
                 <div style={questionBlock}><PreguntaClinica id="q10" label="10. Any other medical problems or surgeries?" />{cuestionario.q10 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q10_details', e.target.value)} />}</div>
               </div>
-              <button onClick={validarYPasAEvento} style={calcBtn}>Continuar a Event Record <ArrowRight /></button>
+              {/* CORREGIDO: Llamada exacta a validarYPasarAEvento */}
+              <button onClick={validarYPasarAEvento} style={calcBtn}>Continuar a Event Record <ArrowRight /></button>
             </div>
           </div>
         )}
