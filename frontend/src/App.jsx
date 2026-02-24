@@ -25,12 +25,13 @@ const App = () => {
 
   const [cuestionario, setCuestionario] = useState({});
   const [seleccionados, setSeleccionados] = useState({});
-  // 1. Nuevo estado inicial
+  
+  // Estado para el registro del evento agudo
   const [evento, setEvento] = useState({
-    reaccion_fecha: '', trigger: '', trigger_detalles: '', duration: '',
-    location: '', activity: '', adrenaline: '', other_treatment: '',
-    ambulance: '', other_info: '',
-    drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: ''
+    reaccion_fecha: '', trigger_food: '', trigger_insect: '', trigger_drug: '', 
+    duration: '', location: '', activity: '', adrenaline: '', 
+    other_treatment_yn: '', other_treatment_details: '', ambulance: '', other_info: '',
+    drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: '', drug_details_extra: ''
   });
 
   const handleEvento = (campo, valor) => {
@@ -50,6 +51,12 @@ const App = () => {
     setPaciente({ id: '', fecha_nacimiento: '', genero: '' });
     setCuestionario({});
     setSeleccionados({});
+    setEvento({
+      reaccion_fecha: '', trigger_food: '', trigger_insect: '', trigger_drug: '', 
+      duration: '', location: '', activity: '', adrenaline: '', 
+      other_treatment_yn: '', other_treatment_details: '', ambulance: '', other_info: '',
+      drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: '', drug_details_extra: ''
+    });
     setResultado(null);
     setView('perfil');
   };
@@ -70,15 +77,15 @@ const App = () => {
     });
     setResultado(null);
     setSeleccionados({});
-    setView('calculadora');
+    setView('event_record'); // Ir directamente al evento si el paciente ya existe
   };
 
-  const validarYPasarACalculadora = async () => {
+  const validarYPasarAEvento = async () => {
     if (!paciente.id || !paciente.fecha_nacimiento || !paciente.genero) {
       alert("NHC, Fecha de Nacimiento y Género son obligatorios.");
       return;
     }
-    setView('calculadora');
+    setView('event_record');
   };
 
   const enviarEvaluacion = async () => {
@@ -91,15 +98,14 @@ const App = () => {
         fecha_nacimiento: paciente.fecha_nacimiento,
         genero: paciente.genero,
         respuestas: cuestionario,
+        evento: evento, // Enviamos el nuevo objeto de evento
         sintomas: listaIds,
         medico: usuarioLogueado
       });
 
-      // Si el backend devuelve un mensaje de error (como el de género incorrecto)
       if (res.data.success === false) {
         alert(res.data.message);
       } else {
-        // Si todo va bien, el resultado llegará aquí y se actualizará la tarjeta
         setResultado(res.data);
       }
     } catch (err) { 
@@ -109,12 +115,11 @@ const App = () => {
   };
 
   const pacientesFiltrados = listaPacientes.filter(p => 
-  p.id && p.id.toString().toLowerCase().includes(filtroBusqueda.toLowerCase())
-);
+    p.id && p.id.toString().toLowerCase().includes(filtroBusqueda.toLowerCase())
+  );
 
   if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
 
-  // Componente de Pregunta Estilo Calculadora con botones PEQUEÑOS
   const PreguntaClinica = ({ id, label }) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
       <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: '500', maxWidth: '70%' }}>{label}</span>
@@ -153,7 +158,6 @@ const App = () => {
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         
-        {/* VISTA: PERFIL */}
         {view === 'perfil' && (
            <div style={{ display: 'flex', gap: '30px', marginTop: '60px', justifyContent: 'center' }}>
              <div style={optionCard}>
@@ -171,7 +175,6 @@ const App = () => {
            </div>
         )}
 
-        {/* VISTA: SELECCIONAR PACIENTE */}
         {view === 'seleccionar_paciente' && (
           <div style={{ maxWidth: '800px', margin: '40px auto' }}>
             <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
@@ -194,189 +197,183 @@ const App = () => {
           </div>
         )}
 
-        {/* VISTA: REGISTRO (CON TODAS LAS PREGUNTAS 1-10) */}
-{view === 'registro_paciente' && (
-  <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-    <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
-    
-    <div style={cardStyle}>
-      <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Antecedentes del Paciente</h3>
-      
-      {/* SECCIÓN 1: IDENTIFICACIÓN */}
-      <div style={{ marginBottom: '30px' }}>
-        <h4 style={secHeader}>Identificación Básica</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
-          <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
-          <div style={inputWrapper}><label style={labelStyle}>Fecha Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
-          <div style={inputWrapper}><label style={labelStyle}>Género</label>
-            <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
-              <option value="">Seleccionar...</option><option value="Male">Male</option><option value="Female">Female</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* CUESTIONARIO COMPLETO 1-10 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        
-        {/* Pregunta 1 */}
-        <div style={questionBlock}>
-          <PreguntaClinica id="q1" label="1. Do you have any confirmed allergies?" />
-          {cuestionario.q1 === 'Yes' && <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q1_details', e.target.value)} />}
-        </div>
-
-        {/* Pregunta 2 */}
-        <div style={questionBlock}>
-          <h4 style={subLabel}>2. Do you have suspected allergies to:</h4>
-          <div style={gridQuestions}>
-            <PreguntaClinica id="q2_foods" label="• Foods?" />
-            <PreguntaClinica id="q2_insects" label="• Insects or ticks (stings or bites)?" />
-            <PreguntaClinica id="q2_meds" label="• Medications (drugs)?" />
-            <PreguntaClinica id="q2_other" label="• Other?" />
-          </div>
-          {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes' || cuestionario.q2_other === 'Yes') && 
-            <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q2_details', e.target.value)} />}
-        </div>
-
-        {/* Pregunta 3 */}
-        <div style={questionBlock}>
-          <h4 style={subLabel}>3. Are you taking any of the following allergy or asthma medications:</h4>
-          <div style={gridQuestions}>
-            <PreguntaClinica id="q3_anti" label="• Antihistamines?" />
-            <PreguntaClinica id="q3_eyes" label="• Eyedrops?" />
-            <PreguntaClinica id="q3_nasal" label="• Nasal sprays?" />
-            <PreguntaClinica id="q3_puff" label="• Asthma puffers?" />
-            <PreguntaClinica id="q3_cream" label="• Eczema creams?" />
-          </div>
-          {(cuestionario.q3_anti === 'Yes' || cuestionario.q3_eyes === 'Yes' || cuestionario.q3_nasal === 'Yes' || cuestionario.q3_puff === 'Yes' || cuestionario.q3_cream === 'Yes') && 
-            <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q3_details', e.target.value)} />}
-        </div>
-
-        {/* Preguntas 4 y 5 */}
-        <div style={gridQuestions}>
-            <div style={questionBlock}>
-                <PreguntaClinica id="q4" label="4. Prescribed adrenaline (epinephrine) device?" />
+        {view === 'registro_paciente' && (
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
+            <div style={cardStyle}>
+              <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Antecedentes del Paciente</h3>
+              <div style={{ marginBottom: '30px' }}>
+                <h4 style={secHeader}>Identificación Básica</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+                  <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
+                  <div style={inputWrapper}><label style={labelStyle}>Fecha Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
+                  <div style={inputWrapper}><label style={labelStyle}>Género</label>
+                    <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
+                      <option value="">Seleccionar...</option><option value="Male">Male</option><option value="Female">Female</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={questionBlock}>
+                  <PreguntaClinica id="q1" label="1. Do you have any confirmed allergies?" />
+                  {cuestionario.q1 === 'Yes' && <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q1_details', e.target.value)} />}
+                </div>
+                <div style={questionBlock}>
+                  <h4 style={subLabel}>2. Do you have suspected allergies to:</h4>
+                  <div style={gridQuestions}>
+                    <PreguntaClinica id="q2_foods" label="• Foods?" />
+                    <PreguntaClinica id="q2_insects" label="• Insects or ticks (stings or bites)?" />
+                    <PreguntaClinica id="q2_meds" label="• Medications (drugs)?" />
+                    <PreguntaClinica id="q2_other" label="• Other?" />
+                  </div>
+                  {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes' || cuestionario.q2_other === 'Yes') && 
+                    <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q2_details', e.target.value)} />}
+                </div>
+                <div style={questionBlock}>
+                  <h4 style={subLabel}>3. Are you taking any of the following allergy or asthma medications:</h4>
+                  <div style={gridQuestions}>
+                    <PreguntaClinica id="q3_anti" label="• Antihistamines?" />
+                    <PreguntaClinica id="q3_eyes" label="• Eyedrops?" />
+                    <PreguntaClinica id="q3_nasal" label="• Nasal sprays?" />
+                    <PreguntaClinica id="q3_puff" label="• Asthma puffers?" />
+                    <PreguntaClinica id="q3_cream" label="• Eczema creams?" />
+                  </div>
+                  {(cuestionario.q3_anti === 'Yes' || cuestionario.q3_eyes === 'Yes' || cuestionario.q3_nasal === 'Yes' || cuestionario.q3_puff === 'Yes' || cuestionario.q3_cream === 'Yes') && 
+                    <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q3_details', e.target.value)} />}
+                </div>
+                <div style={gridQuestions}>
+                    <div style={questionBlock}><PreguntaClinica id="q4" label="4. Prescribed adrenaline (epinephrine) device?" /></div>
+                    <div style={questionBlock}>
+                        <PreguntaClinica id="q5" label="5. Taking other medications or supplements?" />
+                        {cuestionario.q5 === 'Yes' && <textarea style={detailInput} placeholder="Provide details..." onChange={e => handleCuestionario('q5_details', e.target.value)} />}
+                    </div>
+                </div>
+                <div style={questionBlock}>
+                  <h4 style={subLabel}>6. Do you have any of the following:</h4>
+                  <div style={gridQuestions}>
+                    <PreguntaClinica id="q6_rhin" label="• Allergic rhinitis (hay fever)?" />
+                    <PreguntaClinica id="q6_asth" label="• Asthma?" />
+                    <PreguntaClinica id="q6_ecze" label="• Eczema?" />
+                    <PreguntaClinica id="q6_hive" label="• Hives?" />
+                    <PreguntaClinica id="q6_head" label="• Regular headaches?" />
+                    <PreguntaClinica id="q6_sinu" label="• Sinus problems?" />
+                    <PreguntaClinica id="q6_mouth" label="• Itchy mouth after raw fruit/veg?" />
+                  </div>
+                  {['q6_rhin', 'q6_asth', 'q6_ecze', 'q6_hive', 'q6_head', 'q6_sinu', 'q6_mouth'].some(k => cuestionario[k] === 'Yes') && 
+                    <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q6_details', e.target.value)} />}
+                </div>
+                <div style={questionBlock}><PreguntaClinica id="q7" label="7. Do you live in a house with indoor pets?" />{cuestionario.q7 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q7_details', e.target.value)} />}</div>
+                <div style={questionBlock}><PreguntaClinica id="q8" label="8. Do you live in a damp house?" /></div>
+                <div style={questionBlock}><PreguntaClinica id="q9" label="9. Family history of allergies/asthma/eczema?" />{cuestionario.q9 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q9_details', e.target.value)} />}</div>
+                <div style={questionBlock}><PreguntaClinica id="q10" label="10. Any other medical problems or surgeries?" />{cuestionario.q10 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q10_details', e.target.value)} />}</div>
+              </div>
+              <button onClick={validarYPasAEvento} style={calcBtn}>Continuar a Event Record <ArrowRight /></button>
             </div>
-            <div style={questionBlock}>
-                <PreguntaClinica id="q5" label="5. Taking other medications or supplements?" />
-                {cuestionario.q5 === 'Yes' && <textarea style={detailInput} placeholder="Provide details..." onChange={e => handleCuestionario('q5_details', e.target.value)} />}
+          </div>
+        )}
+
+        {view === 'event_record' && (
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <button onClick={() => setView('registro_paciente')} style={backBtn}>← Volver a Antecedentes</button>
+            <div style={cardStyle}>
+              <h3 style={cardTitle}><Activity color="#ef4444" /> Event Record (Reaction Details)</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+                <div style={inputWrapper}>
+                  <label style={labelStyle}>Date and time of reaction:</label>
+                  <input type="datetime-local" style={inputStyle} onChange={e => handleEvento('reaccion_fecha', e.target.value)} />
+                </div>
+                <div style={inputWrapper}>
+                  <label style={labelStyle}>Duration of symptoms:</label>
+                  <input style={inputStyle} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} />
+                </div>
+              </div>
+
+              <h4 style={secHeader}>Suspected Triggers</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Drug/s (Medication):</label><input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" /></div>
+              </div>
+
+              {evento.trigger_drug && (
+                <div style={{...questionBlock, borderLeft: '5px solid #2563eb', marginBottom: '20px'}}>
+                  <h4 style={subLabel}>Drug Allergy Details</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div style={inputWrapper}><label style={labelStyle}>Reason why drug was prescribed:</label><input style={inputStyle} onChange={e => handleEvento('drug_reason', e.target.value)} /></div>
+                    <div style={inputWrapper}><label style={labelStyle}>Form (capsule, tablet, liquid, IV):</label><input style={inputStyle} onChange={e => handleEvento('drug_form', e.target.value)} /></div>
+                    <div style={inputWrapper}><label style={labelStyle}>Other drugs taken at the time:</label><input style={inputStyle} onChange={e => handleEvento('drug_other', e.target.value)} /></div>
+                    <div style={inputWrapper}>
+                      <label style={labelStyle}>Time of onset:</label>
+                      <select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}>
+                        <option value="">Select...</option>
+                        <option value="within 1-2 hours">within 1-2 hours</option>
+                        <option value="after 2 hours">after 2 hours</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{marginTop:'15px'}}><label style={labelStyle}>Tolerance since initial reaction:</label><input style={inputStyle} onChange={e => handleEvento('drug_tolerance', e.target.value)} /></div>
+                  <div style={{marginTop:'15px'}}><label style={labelStyle}>Other details:</label><textarea style={detailInput} onChange={e => handleEvento('drug_details_extra', e.target.value)} /></div>
+                </div>
+              )}
+
+              <h4 style={secHeader}>Environment & Activity</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+                <div style={inputWrapper}>
+                  <label style={labelStyle}>Location of reaction:</label>
+                  <select style={selectStyle} onChange={e => handleEvento('location', e.target.value)}>
+                    <option value="">Select...</option><option value="Home">Home</option><option value="School">School</option>
+                    <option value="Care Services">Childrens Education/Care Services</option><option value="Work">Work</option>
+                    <option value="Dining out">Dining out</option><option value="Other">Other</option>
+                  </select>
+                </div>
+                <div style={inputWrapper}>
+                  <label style={labelStyle}>Activity immediately before:</label>
+                  <select style={selectStyle} onChange={e => handleEvento('activity', e.target.value)}>
+                    <option value="">Select...</option><option value="Eating">Eating</option><option value="Gardening">Gardening</option>
+                    <option value="Exercise">Exercise</option><option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <h4 style={secHeader}>Management & Treatment</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={labelStyle}>Was adrenaline administered?</span>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    {['Yes', 'No'].map(op => (
+                      <button key={op} onClick={() => handleEvento('adrenaline', op)} style={evento.adrenaline === op ? btnMiniActive : btnMini}>{op}</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={labelStyle}>Was any other treatment given?</span>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    {['Yes', 'No'].map(op => (
+                      <button key={op} onClick={() => handleEvento('other_treatment_yn', op)} style={evento.other_treatment_yn === op ? btnMiniActive : btnMini}>{op}</button>
+                    ))}
+                  </div>
+                </div>
+                {evento.other_treatment_yn === 'Yes' && <textarea style={detailInput} placeholder="Provide details..." onChange={e => handleEvento('other_treatment_details', e.target.value)} />}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={labelStyle}>Was an ambulance called?</span>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    {['Yes', 'No'].map(op => (
+                      <button key={op} onClick={() => handleEvento('ambulance', op)} style={evento.ambulance === op ? btnMiniActive : btnMini}>{op}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div style={{marginTop: '20px'}}><label style={labelStyle}>Other information:</label><textarea style={detailInput} onChange={e => handleEvento('other_info', e.target.value)} /></div>
+              <button onClick={() => setView('calculadora')} style={calcBtn}>Continuar a Síntomas <ArrowRight /></button>
             </div>
-        </div>
-
-        {/* Pregunta 6 */}
-        <div style={questionBlock}>
-          <h4 style={subLabel}>6. Do you have any of the following:</h4>
-          <div style={gridQuestions}>
-            <PreguntaClinica id="q6_rhin" label="• Allergic rhinitis (hay fever)?" />
-            <PreguntaClinica id="q6_asth" label="• Asthma?" />
-            <PreguntaClinica id="q6_ecze" label="• Eczema?" />
-            <PreguntaClinica id="q6_hive" label="• Hives?" />
-            <PreguntaClinica id="q6_head" label="• Regular headaches?" />
-            <PreguntaClinica id="q6_sinu" label="• Sinus problems?" />
-            <PreguntaClinica id="q6_mouth" label="• Itchy mouth after raw fruit/veg?" />
           </div>
-          {['q6_rhin', 'q6_asth', 'q6_ecze', 'q6_hive', 'q6_head', 'q6_sinu', 'q6_mouth'].some(k => cuestionario[k] === 'Yes') && 
-            <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q6_details', e.target.value)} />}
-        </div>
+        )}
 
-        {/* Preguntas 7 a 10 */}
-        <div style={questionBlock}><PreguntaClinica id="q7" label="7. Do you live in a house with indoor pets?" />{cuestionario.q7 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q7_details', e.target.value)} />}</div>
-        <div style={questionBlock}><PreguntaClinica id="q8" label="8. Do you live in a damp house?" /></div>
-        <div style={questionBlock}><PreguntaClinica id="q9" label="9. Family history of allergies/asthma/eczema?" />{cuestionario.q9 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q9_details', e.target.value)} />}</div>
-        <div style={questionBlock}><PreguntaClinica id="q10" label="10. Any other medical problems or surgeries?" />{cuestionario.q10 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q10_details', e.target.value)} />}</div>
-
-      </div>
-
-      <button onClick={validarYPasarACalculadora} style={calcBtn}>Continuar a Evaluación de Síntomas <ArrowRight /></button>
-    </div>
-  </div>
-)}
-
-{view === 'event_record' && (
-  <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-    <button onClick={() => setView('registro_paciente')} style={backBtn}>← Volver a Antecedentes</button>
-    
-    <div style={cardStyle}>
-      <h3 style={cardTitle}><Activity color="#ef4444" /> Event Record (Reaction Details)</h3>
-      
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
-        <div style={inputWrapper}>
-          <label style={labelStyle}>Date and time of reaction:</label>
-          <input type="datetime-local" style={inputStyle} onChange={e => handleEvento('reaccion_fecha', e.target.value)} />
-        </div>
-        <div style={inputWrapper}>
-          <label style={labelStyle}>Duration of symptoms:</label>
-          <input style={inputStyle} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} />
-        </div>
-      </div>
-
-      {/* SECCIÓN TRIGGERS */}
-      <h4 style={secHeader}>Suspected Triggers</h4>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-        <div style={inputWrapper}>
-          <label style={labelStyle}>Food/s:</label>
-          <input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} />
-        </div>
-        <div style={inputWrapper}>
-          <label style={labelStyle}>Insects or Ticks:</label>
-          <input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} />
-        </div>
-        <div style={inputWrapper}>
-          <label style={labelStyle}>Drug/s (Medication):</label>
-          <input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" />
-        </div>
-      </div>
-
-      {/* SECCIÓN CONDICIONAL: DRUGS (Solo aparece si han escrito algo en Drug/s) */}
-      {evento.trigger_drug && (
-        <div style={{...subSection, borderLeft: '5px solid #2563eb', paddingLeft: '20px'}}>
-          <h4 style={{...secHeader, color: '#2563eb'}}>Drug Details</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div style={inputWrapper}><label style={labelStyle}>Reason for prescription:</label><input style={inputStyle} onChange={e => handleEvento('drug_reason', e.target.value)} /></div>
-            <div style={inputWrapper}><label style={labelStyle}>Form (Tablet, IV, etc):</label><input style={inputStyle} onChange={e => handleEvento('drug_form', e.target.value)} /></div>
-            <div style={inputWrapper}>
-              <label style={labelStyle}>Time of onset:</label>
-              <select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}>
-                <option value="">Select...</option>
-                <option value="within 1-2 hours">within 1-2 hours</option>
-                <option value="after 2 hours">after 2 hours</option>
-              </select>
-            </div>
-            <div style={inputWrapper}><label style={labelStyle}>Tolerance since reaction:</label><input style={inputStyle} onChange={e => handleEvento('drug_tolerance', e.target.value)} /></div>
-          </div>
-        </div>
-      )}
-
-      {/* GESTIÓN DE LA REACCIÓN */}
-      <h4 style={secHeader}>Reaction Management</h4>
-      <div style={gridQuestions}>
-        <div style={questionBlock}>
-          <span style={labelStyle}>Was adrenaline administered?</span>
-          <div style={{display:'flex', gap:'5px', marginTop:'5px'}}>
-            {['Yes', 'No'].map(op => (
-              <button key={op} onClick={() => handleEvento('adrenaline', op)} style={evento.adrenaline === op ? btnMiniActive : btnMini}>{op}</button>
-            ))}
-          </div>
-        </div>
-        <div style={questionBlock}>
-          <span style={labelStyle}>Was an ambulance called?</span>
-          <div style={{display:'flex', gap:'5px', marginTop:'5px'}}>
-            {['Yes', 'No'].map(op => (
-              <button key={op} onClick={() => handleEvento('ambulance', op)} style={evento.ambulance === op ? btnMiniActive : btnMini}>{op}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <button onClick={() => setView('calculadora')} style={calcBtn}>Continuar a Evaluación de Síntomas <ArrowRight /></button>
-    </div>
-  </div>
-)}
-        {/* VISTA: CALCULADORA */}
         {view === 'calculadora' && (
           <main style={calculatorLayout}>
             <section style={{ flex: '1', minWidth: '0' }}>
-              <button onClick={() => setView('registro_paciente')} style={backBtn}>← Editar antecedentes</button>
+              <button onClick={() => setView('event_record')} style={backBtn}>← Volver a Event Record</button>
               <div style={cardStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{...cardTitle, margin: 0}}><Activity color="#2563eb" /> Evaluación de la Reacción</h3>
@@ -401,7 +398,6 @@ const App = () => {
                 <button onClick={enviarEvaluacion} style={calcBtn}>Calcular Gravedad nFASS</button>
               </div>
             </section>
-
             <aside style={asideStyle}>
               {resultado ? <ResultadoCard resultado={resultado} /> : <div style={emptyCard}>Esperando evaluación...</div>}
               <button onClick={reiniciarApp} style={newEvalBtn}>Finalizar y Salir</button>
@@ -414,7 +410,7 @@ const App = () => {
   );
 };
 
-// --- ESTILOS (Mantenidos y Centrados) ---
+// --- ESTILOS ---
 const headerStyle = { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' };
 const optionCard = { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', width: '350px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' };
 const cardHeading = { color: '#000', fontWeight: '800', margin: '15px 0', fontSize: '1.4rem' };
@@ -438,43 +434,12 @@ const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', al
 const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '5px 15px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' };
 const calculatorLayout = { display: 'flex', gap: '30px', alignItems: 'flex-start' };
 const asideStyle = { width: '400px', flexShrink: '0', position: 'sticky', top: '20px' };
-const questionBlock = {
-  padding: '15px',
-  backgroundColor: '#fbfcfd',
-  borderRadius: '12px',
-  border: '1px solid #f1f5f9'
-};
+const questionBlock = { padding: '15px', backgroundColor: '#fbfcfd', borderRadius: '12px', border: '1px solid #f1f5f9' };
+const subLabel = { fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px' };
+const gridQuestions = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 30px' };
+const detailInput = { width: '100%', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', fontSize: '0.85rem', minHeight: '60px', resize: 'none' };
+const btnMini = { padding: '6px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' };
+const btnMiniActive = { ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' };
+const subSection = { marginBottom: '20px' };
 
-const subLabel = {
-  fontSize: '0.9rem',
-  fontWeight: '700',
-  color: '#1e293b',
-  marginBottom: '10px'
-};
-
-const gridQuestions = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '10px 30px'
-};
-
-const detailInput = {
-  width: '100%',
-  marginTop: '10px',
-  padding: '10px',
-  borderRadius: '8px',
-  border: '1px solid #cbd5e1',
-  backgroundColor: '#fff',
-  fontSize: '0.85rem',
-  minHeight: '60px',
-  resize: 'none'
-};
-
-const btnMini = { 
-  padding: '6px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', 
-  backgroundColor: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' 
-};
-const btnMiniActive = { 
-  ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' 
-};
 export default App;
