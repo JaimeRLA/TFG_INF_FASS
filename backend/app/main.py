@@ -36,15 +36,15 @@ def init_db():
         # Ejecuta esto una vez para limpiar los datos viejos que bloquean el sistema
         print("Limpiando tablas antiguas...")
         cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
-        
-        # --- PASO 2: CREACIÓN CON COLUMNAS NUEVAS ---
+       
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
             nhc TEXT,
             fecha_nacimiento TEXT,
             genero TEXT,
             medico TEXT,
-            respuestas_json TEXT,
+            respuestas_json TEXT,  -- Aquí guardaremos los Antecedentes
+            evento_json TEXT,      -- Aquí guardaremos el Event Record (NUEVO)
             sintomas TEXT,
             nfass REAL,
             ofass_grade INTEGER,
@@ -52,7 +52,7 @@ def init_db():
             risk_level TEXT,
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
-        
+   
         # Asegurar tabla usuarios
         cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,

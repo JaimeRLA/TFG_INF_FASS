@@ -25,6 +25,17 @@ const App = () => {
 
   const [cuestionario, setCuestionario] = useState({});
   const [seleccionados, setSeleccionados] = useState({});
+  // 1. Nuevo estado inicial
+  const [evento, setEvento] = useState({
+    reaccion_fecha: '', trigger: '', trigger_detalles: '', duration: '',
+    location: '', activity: '', adrenaline: '', other_treatment: '',
+    ambulance: '', other_info: '',
+    drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: ''
+  });
+
+  const handleEvento = (campo, valor) => {
+    setEvento(prev => ({ ...prev, [campo]: valor }));
+  };
 
   // --- LÓGICA ---
   const handleCuestionario = (pregunta, valor) => {
@@ -281,6 +292,86 @@ const App = () => {
   </div>
 )}
 
+{view === 'event_record' && (
+  <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <button onClick={() => setView('registro_paciente')} style={backBtn}>← Volver a Antecedentes</button>
+    
+    <div style={cardStyle}>
+      <h3 style={cardTitle}><Activity color="#ef4444" /> Event Record (Reaction Details)</h3>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Date and time of reaction:</label>
+          <input type="datetime-local" style={inputStyle} onChange={e => handleEvento('reaccion_fecha', e.target.value)} />
+        </div>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Duration of symptoms:</label>
+          <input style={inputStyle} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} />
+        </div>
+      </div>
+
+      {/* SECCIÓN TRIGGERS */}
+      <h4 style={secHeader}>Suspected Triggers</h4>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Food/s:</label>
+          <input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} />
+        </div>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Insects or Ticks:</label>
+          <input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} />
+        </div>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Drug/s (Medication):</label>
+          <input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" />
+        </div>
+      </div>
+
+      {/* SECCIÓN CONDICIONAL: DRUGS (Solo aparece si han escrito algo en Drug/s) */}
+      {evento.trigger_drug && (
+        <div style={{...subSection, borderLeft: '5px solid #2563eb', paddingLeft: '20px'}}>
+          <h4 style={{...secHeader, color: '#2563eb'}}>Drug Details</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div style={inputWrapper}><label style={labelStyle}>Reason for prescription:</label><input style={inputStyle} onChange={e => handleEvento('drug_reason', e.target.value)} /></div>
+            <div style={inputWrapper}><label style={labelStyle}>Form (Tablet, IV, etc):</label><input style={inputStyle} onChange={e => handleEvento('drug_form', e.target.value)} /></div>
+            <div style={inputWrapper}>
+              <label style={labelStyle}>Time of onset:</label>
+              <select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}>
+                <option value="">Select...</option>
+                <option value="within 1-2 hours">within 1-2 hours</option>
+                <option value="after 2 hours">after 2 hours</option>
+              </select>
+            </div>
+            <div style={inputWrapper}><label style={labelStyle}>Tolerance since reaction:</label><input style={inputStyle} onChange={e => handleEvento('drug_tolerance', e.target.value)} /></div>
+          </div>
+        </div>
+      )}
+
+      {/* GESTIÓN DE LA REACCIÓN */}
+      <h4 style={secHeader}>Reaction Management</h4>
+      <div style={gridQuestions}>
+        <div style={questionBlock}>
+          <span style={labelStyle}>Was adrenaline administered?</span>
+          <div style={{display:'flex', gap:'5px', marginTop:'5px'}}>
+            {['Yes', 'No'].map(op => (
+              <button key={op} onClick={() => handleEvento('adrenaline', op)} style={evento.adrenaline === op ? btnMiniActive : btnMini}>{op}</button>
+            ))}
+          </div>
+        </div>
+        <div style={questionBlock}>
+          <span style={labelStyle}>Was an ambulance called?</span>
+          <div style={{display:'flex', gap:'5px', marginTop:'5px'}}>
+            {['Yes', 'No'].map(op => (
+              <button key={op} onClick={() => handleEvento('ambulance', op)} style={evento.ambulance === op ? btnMiniActive : btnMini}>{op}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button onClick={() => setView('calculadora')} style={calcBtn}>Continuar a Evaluación de Síntomas <ArrowRight /></button>
+    </div>
+  </div>
+)}
         {/* VISTA: CALCULADORA */}
         {view === 'calculadora' && (
           <main style={calculatorLayout}>
@@ -379,4 +470,11 @@ const detailInput = {
   resize: 'none'
 };
 
+const btnMini = { 
+  padding: '6px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+  backgroundColor: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' 
+};
+const btnMiniActive = { 
+  ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' 
+};
 export default App;
