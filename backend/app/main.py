@@ -32,12 +32,9 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
-
-    placeholder = "%s" if DATABASE_URL else "?"
-
-    cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
+    # Ejecuta esto una vez si te da error de columnas:
+    # cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
     
-    # 2. CREACIÓN DE LA TABLA CON TODOS LOS NUEVOS CAMPOS
     cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
         id SERIAL PRIMARY KEY,
         nhc TEXT,
@@ -52,27 +49,6 @@ def init_db():
         risk_level TEXT,
         fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
-    
-    # Tabla de Usuarios
-    query_usuarios = '''CREATE TABLE IF NOT EXISTS usuarios (
-                        id SERIAL PRIMARY KEY, 
-                        username TEXT UNIQUE, 
-                        password TEXT)'''
-
-    if not DATABASE_URL:
-        query_registros = query_registros.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
-        query_usuarios = query_usuarios.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
-    
-    cursor.execute(query_registros)
-    cursor.execute(query_usuarios)
-    
-    # Usuario médico por defecto
-    try:
-        cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", 
-                       ("medico_fass", "tfg2024"))
-    except:
-        pass 
-    
     conn.commit()
     conn.close()
 
