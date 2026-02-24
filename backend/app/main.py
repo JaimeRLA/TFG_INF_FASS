@@ -36,20 +36,20 @@ def init_db():
     placeholder = "%s" if DATABASE_URL else "?"
 
     # Tabla de Registros Clínicos con TODOS los campos nuevos
+    # main.py - Fragmento de la tabla actualizada
     query_registros = '''CREATE TABLE IF NOT EXISTS registros (
-                id SERIAL PRIMARY KEY, 
-                nombre TEXT, 
-                paciente_id TEXT, 
-                edad TEXT, 
-                sexo TEXT, 
-                antecedentes TEXT,
-                sintomas TEXT, 
-                nfass REAL, 
-                ofass_grade INTEGER, 
-                ofass_category TEXT, 
-                risk_level TEXT, 
-                medico TEXT,
-                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
+        id SERIAL PRIMARY KEY, 
+        nhc TEXT, 
+        fecha_nacimiento TEXT, 
+        genero TEXT, 
+        medico TEXT,
+        respuestas_json TEXT, -- Aquí guardaremos todas las preguntas nuevas como un JSON
+        sintomas TEXT, 
+        nfass REAL, 
+        ofass_grade INTEGER, 
+        ofass_category TEXT, 
+        risk_level TEXT, 
+        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
     
     # Tabla de Usuarios
     query_usuarios = '''CREATE TABLE IF NOT EXISTS usuarios (

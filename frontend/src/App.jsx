@@ -1,37 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-  HeartPulse, ClipboardList, Info, User, LogOut, 
-  ArrowRight, Activity, ArrowLeft, ClipboardCheck, Users, Search 
+  HeartPulse, Info, User, LogOut, ArrowRight, Activity, 
+  ArrowLeft, ClipboardCheck, Users, Search, ChevronDown, ChevronUp 
 } from 'lucide-react';
 
-// Componentes externos
 import { SECCIONES_SINTOMAS } from './data/sintomas';
 import ResultadoCard from './components/ResultadoCard';
 import ChatBot from './components/ChatBot';
 import Login from './components/Login';
 
 const App = () => {
-  // --- ESTADOS ---
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
   const [view, setView] = useState('perfil'); 
-  const [paciente, setPaciente] = useState({ 
-    nombre: '', id: '', edad: '', sexo: '', antecedentes: '' 
-  });
-  const [seleccionados, setSeleccionados] = useState({});
   const [resultado, setResultado] = useState(null);
-  
-  // Estados para pacientes existentes
   const [listaPacientes, setListaPacientes] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
+  
+  // Datos básicos del paciente
+  const [paciente, setPaciente] = useState({ 
+    id: '', fecha_nacimiento: '', genero: '' 
+  });
 
-  // --- LÓGICA ---
+  // Estado para todas las preguntas nuevas (Cuestionario)
+  const [cuestionario, setCuestionario] = useState({});
+  const [seleccionados, setSeleccionados] = useState({});
+
+  const handleCuestionario = (pregunta, valor) => {
+    setCuestionario(prev => ({ ...prev, [pregunta]: valor }));
+  };
+
   const handleSelectChange = (grupoId, valor) => {
     setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
   };
 
   const reiniciarApp = () => {
-    setPaciente({ nombre: '', id: '', edad: '', sexo: '', antecedentes: '' });
+    setPaciente({ id: '', fecha_nacimiento: '', genero: '' });
+    setCuestionario({});
     setSeleccionados({});
     setResultado(null);
     setView('perfil');
@@ -42,265 +47,160 @@ const App = () => {
       const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
       setListaPacientes(res.data);
       setView('seleccionar_paciente');
-    } catch (err) {
-      console.error("Error cargando pacientes", err);
-      alert("No se pudo cargar la lista de pacientes.");
-    }
-  };
-
-  // NUEVA FUNCIÓN: Validar duplicados antes de entrar a la calculadora
-  const continuarEvaluacion = async () => {
-    if (!paciente.nombre || !paciente.id) {
-      alert("Nombre e ID (NHC) son obligatorios");
-      return;
-    }
-
-    try {
-      // Verificamos si el NHC ya existe en la base de datos del médico
-      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
-      const duplicado = res.data.find(p => p.id === paciente.id);
-
-      if (duplicado) {
-        // Caso A: El NHC existe pero con OTRO nombre (Error de seguridad)
-        if (duplicado.nombre.toLowerCase().trim() !== paciente.nombre.toLowerCase().trim()) {
-          alert(`ALERTA DE SEGURIDAD: El NHC ${paciente.id} ya pertenece al paciente "${duplicado.nombre}". No puede registrarlo con un nombre diferente.`);
-          return;
-        }
-        // Caso B: El paciente ya existe (Avisamos que usaremos su ficha existente)
-        alert("Paciente detectado en el sistema. Se procederá con la ficha existente.");
-        seleccionarPaciente(duplicado);
-        return;
-      }
-      
-      // Si no hay duplicados, pasamos a la calculadora normalmente
-      setView('calculadora');
-    } catch (err) {
-      // Si el servidor de pacientes falla, permitimos pasar por emergencia, 
-      // pero el backend lo validará al guardar.
-      setView('calculadora');
-    }
-  };
-
-  const seleccionarPaciente = (p) => {
-    setPaciente({
-      nombre: p.nombre,
-      id: p.id || p.paciente_id,
-      edad: p.edad,
-      sexo: p.sexo,
-      antecedentes: p.antecedentes
-    });
-    setResultado(null);
-    setSeleccionados({});
-    setView('calculadora');
+    } catch (err) { alert("Error cargando pacientes"); }
   };
 
   const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
-    
-    if (!paciente.id) {
-      alert("Error: El ID del paciente se ha perdido. Por favor, reintente.");
-      return;
-    }
+    if (!paciente.id) return alert("NHC obligatorio");
 
     try {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
-        nombre: paciente.nombre,
         paciente_id: paciente.id,
-        edad: paciente.edad,
-        sexo: paciente.sexo,
-        antecedentes: paciente.antecedentes,
+        fecha_nacimiento: paciente.fecha_nacimiento,
+        genero: paciente.genero,
+        respuestas: cuestionario, // Se guarda como JSON en el backend
         sintomas: listaIds,
         medico: usuarioLogueado
       });
       setResultado(res.data);
-    } catch (err) { 
-      console.error("Error al calcular:", err); 
-    }
+    } catch (err) { console.error(err); }
   };
 
-  const pacientesFiltrados = listaPacientes.filter(p => 
-    p.nombre.toLowerCase().includes(filtroBusqueda.toLowerCase()) || 
-    p.id.toLowerCase().includes(filtroBusqueda.toLowerCase())
-  );
+  if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
 
-  if (!usuarioLogueado) {
-    return <Login onLoginSuccess={(nombre) => setUsuarioLogueado(nombre)} />;
-  }
+  // Componente Reutilizable para Pregunta Si/No + Detalles
+  const PreguntaSN = ({ id, label, placeholder = "Detalles..." }) => (
+    <div style={{ marginBottom: '15px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#475569' }}>{label}</span>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {['Yes', 'No'].map(op => (
+            <button 
+              key={op}
+              onClick={() => handleCuestionario(id, op)}
+              style={{
+                padding: '5px 15px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                backgroundColor: cuestionario[id] === op ? '#2563eb' : '#fff',
+                color: cuestionario[id] === op ? '#fff' : '#64748b', cursor: 'pointer'
+              }}
+            >{op}</button>
+          ))}
+        </div>
+      </div>
+      {cuestionario[id] === 'Yes' && (
+        <input 
+          style={inputStyle} 
+          placeholder={placeholder}
+          onChange={(e) => handleCuestionario(`${id}_detalles`, e.target.value)}
+        />
+      )}
+    </div>
+  );
 
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
-      
       <header style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <HeartPulse size={30} color="#2563eb" />
           <h1 style={{ fontSize: '1.4rem', color: '#1e293b', margin: 0, fontWeight: '800' }}>FASS System</h1>
         </div>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.9rem', color: '#64748b' }}>Dr/a. <strong>{usuarioLogueado}</strong></span>
-          <button onClick={() => setUsuarioLogueado(null)} style={logoutBtn}>
-            <LogOut size={18} /> Salir
-          </button>
-        </div>
+        <button onClick={() => setUsuarioLogueado(null)} style={logoutBtn}><LogOut size={18} /> Salir</button>
       </header>
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         
-        {/* VISTA: PERFIL */}
         {view === 'perfil' && (
-          <div style={{ display: 'flex', gap: '30px', marginTop: '60px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <div style={optionCard}>
-              <div style={avatarStyle}><User size={40} color="#2563eb" /></div>
-              <h2 style={cardHeading}>Nuevo Paciente</h2>
-              <p style={cardSubtext}>Registrar datos demográficos y clínicos desde cero.</p>
-              <button onClick={() => { setPaciente({nombre:'', id:'', edad:'', sexo:'', antecedentes:''}); setView('registro_paciente'); }} style={startBtn}>
-                Crear Ficha <ArrowRight size={20} />
-              </button>
-            </div>
-
-            <div style={{ ...optionCard, border: '1px solid #e2e8f0' }}>
-              <div style={{ ...avatarStyle, backgroundColor: '#f0fdf4' }}><Users size={40} color="#16a34a" /></div>
-              <h2 style={cardHeading}>Paciente Existente</h2>
-              <p style={cardSubtext}>Recuperar datos de un paciente ya registrado en el sistema.</p>
-              <button onClick={cargarPacientesExistentes} style={{ ...startBtn, backgroundColor: '#16a34a' }}>
-                Buscar en Lista <Search size={20} />
-              </button>
-            </div>
-          </div>
+           <div style={{ display: 'flex', gap: '30px', marginTop: '60px', justifyContent: 'center' }}>
+             <div style={optionCard}>
+               <User size={40} color="#2563eb" />
+               <h2>Nuevo Paciente</h2>
+               <button onClick={() => setView('registro_paciente')} style={startBtn}>Empezar</button>
+             </div>
+             <div style={optionCard}>
+               <Users size={40} color="#16a34a" />
+               <h2>Paciente Existente</h2>
+               <button onClick={cargarPacientesExistentes} style={{...startBtn, backgroundColor: '#16a34a'}}>Buscar</button>
+             </div>
+           </div>
         )}
 
-        {/* VISTA: SELECCIONAR PACIENTE */}
-        {view === 'seleccionar_paciente' && (
-          <div style={{ maxWidth: '800px', margin: '40px auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Volver al panel</button>
-            <div style={cardStyle}>
-              <h3 style={cardTitle}><Users size={22} color="#2563eb" /> Directorio de Pacientes</h3>
-              <div style={searchBar}>
-                <Search size={20} color="#94a3b8" />
-                <input 
-                  style={searchInput} 
-                  placeholder="Buscar por nombre o NHC..." 
-                  onChange={(e) => setFiltroBusqueda(e.target.value)}
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
-                {pacientesFiltrados.length === 0 ? (
-                  <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No se encontraron pacientes.</div>
-                ) : (
-                  pacientesFiltrados.map((p) => (
-                    <div key={p.id} onClick={() => seleccionarPaciente(p)} style={itemPacienteStyle}>
-                      <div>
-                        <div style={{ fontWeight: '800', color: '#1e293b' }}>{p.nombre}</div>
-                        <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NHC: {p.id} | {p.sexo} | {p.edad} años</div>
-                      </div>
-                      <ArrowRight size={20} color="#2563eb" />
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* VISTA: REGISTRO NUEVO PACIENTE */}
         {view === 'registro_paciente' && (
-          <div style={{ maxWidth: '800px', margin: '40px auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
+            
+            {/* SECCIÓN 1: DATOS BÁSICOS */}
             <div style={cardStyle}>
-              <h3 style={cardTitle}><ClipboardCheck size={22} color="#2563eb" /> Nueva Ficha Clínica</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div style={inputWrapper}><label style={labelStyle}>Nombre Completo</label><input style={inputStyle} value={paciente.nombre} onChange={e => setPaciente({...paciente, nombre: e.target.value})} placeholder="Nombre" /></div>
-                <div style={inputWrapper}>
-                  <label style={labelStyle}>NHC / ID</label>
-                  <input 
-                    style={inputStyle} 
-                    value={paciente.id} 
-                    onChange={e => setPaciente({...paciente, id: e.target.value})} 
-                    placeholder="ID Único (NHC)" 
-                  />
-                </div>                
-                <div style={inputWrapper}><label style={labelStyle}>Edad</label><input type="number" style={inputStyle} value={paciente.edad} onChange={e => setPaciente({...paciente, edad: e.target.value})} /></div>
-                <div style={inputWrapper}><label style={labelStyle}>Sexo</label>
-                  <select style={selectStyle} value={paciente.sexo} onChange={e => setPaciente({...paciente, sexo: e.target.value})}>
-                    <option value="">Seleccionar...</option><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option>
+              <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Datos del Paciente</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+                <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Fecha Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Género</label>
+                  <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
+                    <option value="">Seleccionar...</option><option value="M">Masculino</option><option value="F">Femenino</option><option value="O">Otro</option>
                   </select>
                 </div>
               </div>
-              <div style={{ marginTop: '20px' }}><label style={labelStyle}>Antecedentes</label><textarea style={{...inputStyle, height: '80px', resize: 'none'}} value={paciente.antecedentes} onChange={e => setPaciente({...paciente, antecedentes: e.target.value})} /></div>
+            </div>
+
+            {/* SECCIÓN 2: HISTORIAL MÉDICO (Cuestionario) */}
+            <div style={{...cardStyle, marginTop: '20px'}}>
+              <h3 style={cardTitle}>Historial de Alergias y Medicación</h3>
+              <PreguntaSN id="p1" label="1. Do you have any confirmed allergies?" />
+              <div style={{padding: '10px', backgroundColor: '#f8fafc', borderRadius: '12px', marginBottom: '15px'}}>
+                <p style={{fontSize: '0.85rem', fontWeight: 'bold', color: '#1e293b'}}>2. Do you have suspected allergies to:</p>
+                <PreguntaSN id="p2_foods" label="• Foods?" />
+                <PreguntaSN id="p2_insects" label="• Insects or ticks?" />
+                <PreguntaSN id="p2_meds" label="• Medications?" />
+              </div>
+              <PreguntaSN id="p3" label="3. Taking allergy/asthma medications? (Antihistamines, sprays...)" />
+              <PreguntaSN id="p4" label="4. Prescribed adrenaline device?" />
+              <PreguntaSN id="p6_asthma" label="6. Do you have Asthma?" />
+              <PreguntaSN id="p6_eczema" label="6. Do you have Eczema?" />
+              <PreguntaSN id="p9" label="9. Family history of allergies?" />
               
-              <button 
-                onClick={continuarEvaluacion} 
-                style={{...startBtn, width: '100%', marginTop: '30px', justifyContent: 'center'}}
-              >
-                Continuar a Síntomas <ArrowRight size={20} />
-              </button>
+              <button onClick={() => setView('calculadora')} style={{...startBtn, width: '100%', marginTop: '20px'}}>Siguiente: Evaluación de Reacción <ArrowRight /></button>
             </div>
           </div>
         )}
 
-        {/* VISTA 3: CALCULADORA */}
         {view === 'calculadora' && (
-          <main style={{ 
-            display: 'flex',
-            flexDirection: 'row',
-            gap: '30px', 
-            width: '100%',
-            maxWidth: '1400px', 
-            margin: '0 auto',
-            alignItems: 'flex-start'
-          }}>
-            <section style={{ 
-              flex: '1',
-              minWidth: '0',
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '20px' 
-            }}>
-              <button onClick={() => setView('perfil')} style={backBtn}>← Cambiar paciente</button>
-              
+          <main style={{ display: 'flex', gap: '30px', alignItems: 'flex-start' }}>
+            <section style={{ flex: '1' }}>
               <div style={cardStyle}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{...cardTitle, margin: 0}}><Activity size={20} color="#2563eb" /> Evaluación</h3>
-                    <span style={pacienteBadge}>{paciente.nombre} (NHC: {paciente.id})</span>
+                <h3 style={cardTitle}><Activity color="#2563eb" /> Detalles de la Reacción</h3>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
+                   <div style={inputWrapper}><label style={labelStyle}>Date/Time of Reaction</label><input type="datetime-local" style={inputStyle} onChange={e => handleCuestionario('reaccion_fecha', e.target.value)} /></div>
+                   <div style={inputWrapper}><label style={labelStyle}>Location</label>
+                    <select style={selectStyle} onChange={e => handleCuestionario('reaccion_lugar', e.target.value)}>
+                      <option value="Home">Home</option><option value="School">School</option><option value="Dining Out">Dining Out</option>
+                    </select>
+                   </div>
                 </div>
-                
+
                 {SECCIONES_SINTOMAS.map(sec => (
-                  <div key={sec.titulo} style={{ marginBottom: '30px' }}>
+                  <div key={sec.titulo} style={{ marginBottom: '25px' }}>
                     <h4 style={secHeader}>{sec.titulo}</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                       {sec.grupos.map(grupo => (
                         <div key={grupo.id_base}>
                           <label style={labelStyle}>{grupo.label}</label>
                           <select style={selectStyle} onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}>
-                            <option value="">-- Sin síntomas --</option>
-                            {grupo.options.map(opt => <option key={opt.id} value={opt.id} style={{color: '#000'}}>{opt.text}</option>)}
+                            <option value="">-- No --</option>
+                            {grupo.options.map(opt => <option key={opt.id} value={opt.id}>{opt.text}</option>)}
                           </select>
                         </div>
                       ))}
                     </div>
                   </div>
                 ))}
-                <button onClick={enviarEvaluacion} style={calcBtn}>Calcular Grado FASS</button>
+                <button onClick={enviarEvaluacion} style={calcBtn}>Calcular nFASS / oFASS</button>
               </div>
             </section>
 
-            <aside style={{ 
-              width: '400px',
-              flexShrink: '0',
-              marginTop: '45px', 
-              position: 'sticky', 
-              top: '20px' 
-            }}>
-              {resultado ? (
-                <div>
-                  <ResultadoCard resultado={resultado} />
-                  <button onClick={reiniciarApp} style={newEvalBtn}>Nueva Evaluación</button>
-                </div>
-              ) : (
-                <div style={emptyCard}>
-                  <Info size={40} style={{marginBottom: '15px'}} />
-                  <p style={{margin: 0, fontWeight: '600', color: '#64748b'}}>Esperando síntomas...</p>
-                </div>
-              )}
+            <aside style={{ width: '400px', position: 'sticky', top: '20px' }}>
+              {resultado ? <ResultadoCard resultado={resultado} /> : <div style={emptyCard}>Esperando datos...</div>}
+              <button onClick={reiniciarApp} style={newEvalBtn}>Nuevo Paciente</button>
             </aside>
           </main>
         )}
@@ -310,28 +210,21 @@ const App = () => {
   );
 };
 
-// --- ESTILOS ---
-const headerStyle = { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' };
-const optionCard = { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', width: '350px' };
-const avatarStyle = { width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' };
-const cardHeading = { color: '#1e293b', fontWeight: '800', margin: '10px 0', fontSize: '1.4rem' };
-const cardSubtext = { color: '#64748b', marginBottom: '30px', fontSize: '0.95rem', lineHeight: '1.5' };
-const startBtn = { padding: '14px 24px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px' };
-const cardStyle = { backgroundColor: '#fff', padding: '35px', borderRadius: '24px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' };
-const inputStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#0f172a', outline: 'none', boxSizing: 'border-box' };
-const selectStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#0f172a', cursor: 'pointer', outline: 'none' };
-const calcBtn = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: '800', cursor: 'pointer', marginTop: '10px' };
-const backBtn = { background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '10px', fontWeight: '700', padding: '0', textAlign: 'left', alignSelf: 'flex-start' };
-const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
-const cardTitle = { margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontWeight: '800' };
-const secHeader = { fontSize: '0.8rem', color: '#2563eb', textTransform: 'uppercase', fontWeight: '800', borderBottom: '2px solid #f1f5f9', paddingBottom: '5px', marginBottom: '15px' };
-const labelStyle = { fontSize: '0.85rem', fontWeight: '700', color: '#475569', marginBottom: '2px' };
-const emptyCard = { padding: '40px 20px', textAlign: 'center', color: '#94a3b8', border: '3px dashed #cbd5e1', borderRadius: '28px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', width: '100%', boxSizing: 'border-box' };
-const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800' };
-const searchBar = { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px 20px', borderRadius: '14px', border: '2px solid #e2e8f0', marginTop: '10px' };
-const searchInput = { border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '1rem', color: '#1e293b' };
-const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 25px', borderRadius: '16px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', cursor: 'pointer', transition: '0.2s' };
-const inputWrapper = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const newEvalBtn = { color: '#2563eb', marginTop: '20px', width: '100%', background: 'none', border: '2px solid #2563eb', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' };
+// --- ESTILOS (Resumidos para brevedad, mantener los anteriores) ---
+const headerStyle = { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0' };
+const optionCard = { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', width: '300px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' };
+const startBtn = { padding: '12px 25px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' };
+const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' };
+const inputStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' };
+const selectStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0' };
+const inputWrapper = { display: 'flex', flexDirection: 'column', gap: '5px' };
+const labelStyle = { fontSize: '0.8rem', fontWeight: '700', color: '#64748b' };
+const cardTitle = { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', marginBottom: '20px', fontWeight: '800' };
+const secHeader = { fontSize: '0.75rem', color: '#2563eb', textTransform: 'uppercase', borderBottom: '1px solid #eee', marginBottom: '15px' };
+const calcBtn = { width: '100%', padding: '20px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '20px' };
+const backBtn = { background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '10px', fontWeight: 'bold' };
+const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' };
+const emptyCard = { padding: '50px', textAlign: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1', borderRadius: '20px' };
+const newEvalBtn = { width: '100%', marginTop: '10px', padding: '12px', border: '1px solid #2563eb', color: '#2563eb', borderRadius: '12px', background: 'none', fontWeight: 'bold', cursor: 'pointer' };
 
 export default App;
