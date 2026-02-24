@@ -171,51 +171,103 @@ const App = () => {
           </div>
         )}
 
-        {/* VISTA: REGISTRO (CON FORMATO CALCULADORA) */}
-        {view === 'registro_paciente' && (
-          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
-            
-            <div style={cardStyle}>
-              <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Antecedentes del Paciente</h3>
-              
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={secHeader}>1. Identificación Básica</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
-                  <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
-                  <div style={inputWrapper}><label style={labelStyle}>Fecha Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
-                  <div style={inputWrapper}><label style={labelStyle}>Género</label>
-                    <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
-                      <option value="">Seleccionar...</option><option value="Male">Male</option><option value="Female">Female</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={secHeader}>2. Alergias y Sospechas</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                  <PreguntaClinica id="q1" label="Confirmed allergies?" />
-                  <PreguntaClinica id="q2_food" label="Suspected Foods?" />
-                  <PreguntaClinica id="q2_insects" label="Insects/Ticks?" />
-                  <PreguntaClinica id="q2_meds" label="Medications?" />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={secHeader}>3. Medicación y Dispositivos</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                  <PreguntaClinica id="q3_asthma" label="Asthma puffers?" />
-                  <PreguntaClinica id="q4" label="Adrenaline device?" />
-                  <PreguntaClinica id="q6_asthma" label="History of Asthma?" />
-                  <PreguntaClinica id="q9" label="Family history?" />
-                </div>
-              </div>
-
-              <button onClick={validarYPasarACalculadora} style={calcBtn}>Continuar a Evaluación de Síntomas <ArrowRight /></button>
-            </div>
+        {/* VISTA: REGISTRO (CON TODAS LAS PREGUNTAS 1-10) */}
+{view === 'registro_paciente' && (
+  <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
+    
+    <div style={cardStyle}>
+      <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Antecedentes del Paciente</h3>
+      
+      {/* SECCIÓN 1: IDENTIFICACIÓN */}
+      <div style={{ marginBottom: '30px' }}>
+        <h4 style={secHeader}>Identificación Básica</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+          <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
+          <div style={inputWrapper}><label style={labelStyle}>Fecha Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
+          <div style={inputWrapper}><label style={labelStyle}>Género</label>
+            <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
+              <option value="">Seleccionar...</option><option value="Male">Male</option><option value="Female">Female</option>
+            </select>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* CUESTIONARIO COMPLETO 1-10 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        
+        {/* Pregunta 1 */}
+        <div style={questionBlock}>
+          <PreguntaClinica id="q1" label="1. Do you have any confirmed allergies?" />
+          {cuestionario.q1 === 'Yes' && <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q1_details', e.target.value)} />}
+        </div>
+
+        {/* Pregunta 2 */}
+        <div style={questionBlock}>
+          <h4 style={subLabel}>2. Do you have suspected allergies to:</h4>
+          <div style={gridQuestions}>
+            <PreguntaClinica id="q2_foods" label="• Foods?" />
+            <PreguntaClinica id="q2_insects" label="• Insects or ticks (stings or bites)?" />
+            <PreguntaClinica id="q2_meds" label="• Medications (drugs)?" />
+            <PreguntaClinica id="q2_other" label="• Other?" />
+          </div>
+          {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes' || cuestionario.q2_other === 'Yes') && 
+            <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q2_details', e.target.value)} />}
+        </div>
+
+        {/* Pregunta 3 */}
+        <div style={questionBlock}>
+          <h4 style={subLabel}>3. Are you taking any of the following allergy or asthma medications:</h4>
+          <div style={gridQuestions}>
+            <PreguntaClinica id="q3_anti" label="• Antihistamines?" />
+            <PreguntaClinica id="q3_eyes" label="• Eyedrops?" />
+            <PreguntaClinica id="q3_nasal" label="• Nasal sprays?" />
+            <PreguntaClinica id="q3_puff" label="• Asthma puffers?" />
+            <PreguntaClinica id="q3_cream" label="• Eczema creams?" />
+          </div>
+          {(cuestionario.q3_anti === 'Yes' || cuestionario.q3_eyes === 'Yes' || cuestionario.q3_nasal === 'Yes' || cuestionario.q3_puff === 'Yes' || cuestionario.q3_cream === 'Yes') && 
+            <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q3_details', e.target.value)} />}
+        </div>
+
+        {/* Preguntas 4 y 5 */}
+        <div style={gridQuestions}>
+            <div style={questionBlock}>
+                <PreguntaClinica id="q4" label="4. Prescribed adrenaline (epinephrine) device?" />
+            </div>
+            <div style={questionBlock}>
+                <PreguntaClinica id="q5" label="5. Taking other medications or supplements?" />
+                {cuestionario.q5 === 'Yes' && <textarea style={detailInput} placeholder="Provide details..." onChange={e => handleCuestionario('q5_details', e.target.value)} />}
+            </div>
+        </div>
+
+        {/* Pregunta 6 */}
+        <div style={questionBlock}>
+          <h4 style={subLabel}>6. Do you have any of the following:</h4>
+          <div style={gridQuestions}>
+            <PreguntaClinica id="q6_rhin" label="• Allergic rhinitis (hay fever)?" />
+            <PreguntaClinica id="q6_asth" label="• Asthma?" />
+            <PreguntaClinica id="q6_ecze" label="• Eczema?" />
+            <PreguntaClinica id="q6_hive" label="• Hives?" />
+            <PreguntaClinica id="q6_head" label="• Regular headaches?" />
+            <PreguntaClinica id="q6_sinu" label="• Sinus problems?" />
+            <PreguntaClinica id="q6_mouth" label="• Itchy mouth after raw fruit/veg?" />
+          </div>
+          {['q6_rhin', 'q6_asth', 'q6_ecze', 'q6_hive', 'q6_head', 'q6_sinu', 'q6_mouth'].some(k => cuestionario[k] === 'Yes') && 
+            <textarea style={detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q6_details', e.target.value)} />}
+        </div>
+
+        {/* Preguntas 7 a 10 */}
+        <div style={questionBlock}><PreguntaClinica id="q7" label="7. Do you live in a house with indoor pets?" />{cuestionario.q7 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q7_details', e.target.value)} />}</div>
+        <div style={questionBlock}><PreguntaClinica id="q8" label="8. Do you live in a damp house?" /></div>
+        <div style={questionBlock}><PreguntaClinica id="q9" label="9. Family history of allergies/asthma/eczema?" />{cuestionario.q9 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q9_details', e.target.value)} />}</div>
+        <div style={questionBlock}><PreguntaClinica id="q10" label="10. Any other medical problems or surgeries?" />{cuestionario.q10 === 'Yes' && <textarea style={detailInput} placeholder="Details..." onChange={e => handleCuestionario('q10_details', e.target.value)} />}</div>
+
+      </div>
+
+      <button onClick={validarYPasarACalculadora} style={calcBtn}>Continuar a Evaluación de Síntomas <ArrowRight /></button>
+    </div>
+  </div>
+)}
 
         {/* VISTA: CALCULADORA */}
         {view === 'calculadora' && (
@@ -283,5 +335,36 @@ const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', al
 const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '5px 15px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' };
 const calculatorLayout = { display: 'flex', gap: '30px', alignItems: 'flex-start' };
 const asideStyle = { width: '400px', flexShrink: '0', position: 'sticky', top: '20px' };
+const questionBlock = {
+  padding: '15px',
+  backgroundColor: '#fbfcfd',
+  borderRadius: '12px',
+  border: '1px solid #f1f5f9'
+};
+
+const subLabel = {
+  fontSize: '0.9rem',
+  fontWeight: '700',
+  color: '#1e293b',
+  marginBottom: '10px'
+};
+
+const gridQuestions = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '10px 30px'
+};
+
+const detailInput = {
+  width: '100%',
+  marginTop: '10px',
+  padding: '10px',
+  borderRadius: '8px',
+  border: '1px solid #cbd5e1',
+  backgroundColor: '#fff',
+  fontSize: '0.85rem',
+  minHeight: '60px',
+  resize: 'none'
+};
 
 export default App;
