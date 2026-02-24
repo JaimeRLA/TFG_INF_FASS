@@ -83,8 +83,18 @@ const App = () => {
         sintomas: listaIds,
         medico: usuarioLogueado
       });
-      setResultado(res.data);
-    } catch (err) { alert("Error en el cálculo."); }
+
+      // Si el backend devuelve un mensaje de error (como el de género incorrecto)
+      if (res.data.success === false) {
+        alert(res.data.message);
+      } else {
+        // Si todo va bien, el resultado llegará aquí y se actualizará la tarjeta
+        setResultado(res.data);
+      }
+    } catch (err) { 
+      console.error("Error en la petición:", err);
+      alert("Error en el cálculo. Verifique la conexión con el servidor."); 
+    }
   };
 
   const pacientesFiltrados = listaPacientes.filter(p => p.id.toLowerCase().includes(filtroBusqueda.toLowerCase()));

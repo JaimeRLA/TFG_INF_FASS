@@ -98,60 +98,7 @@ async def login(request: LoginRequest):
 
 # --- ENDPOINTS CLÍNICOS ---
 
-import json
 
-@app.post("/calculate")
-async def calculate(request: dict):
-    # 1. Realizar el cálculo con los síntomas recibidos
-    sintomas_ids = request.get("sintomas", [])
-    resultado = calcular_nfass_ofass(sintomas_ids)
-    
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        placeholder = "%s" if DATABASE_URL else "?"
-
-        # 2. VALIDACIÓN DE SEGURIDAD (Usando Género en lugar de Nombre como verificador)
-        cursor.execute(f"SELECT genero FROM registros WHERE nhc = {placeholder} LIMIT 1", (request["paciente_id"],))
-        existente = cursor.fetchone()
-        
-        if existente and existente[0] != request["genero"]:
-            return {
-                "success": False, 
-                "message": f"ALERTA: El NHC {request['paciente_id']} ya está registrado con un género distinto ({existente[0]})."
-            }
-        
-        # 3. Preparar los datos para la inserción
-        # Convertimos los objetos a strings (JSON) para que quepan en las celdas de texto
-        respuestas_json = json.dumps(request.get("respuestas", {}))
-        sintomas_json = json.dumps(sintomas_ids)
-
-        # La consulta ahora tiene 10 campos (ajustada a tu nueva base de datos)
-        query = f"""INSERT INTO registros 
-                (nhc, fecha_nacimiento, genero, medico, respuestas_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
-                VALUES ({','.join([placeholder]*10)})"""
-        
-        cursor.execute(query, (
-            request.get("paciente_id", ""), 
-            request.get("fecha_nacimiento", ""), 
-            request.get("genero", ""), 
-            request.get("medico", "desconocido"),
-            respuestas_json,
-            sintomas_json, 
-            float(resultado["nfass"]), 
-            int(resultado["ofass_grade"]), 
-            resultado["ofass_category"], 
-            resultado["risk_level"]
-        ))
-        conn.commit()
-    except Exception as e:
-        print(f"Error en base de datos: {e}")
-        return {"success": False, "message": str(e)}
-    finally:
-        conn.close()
-    
-    # Devolvemos el objeto de resultado al frontend
-    return resultado
 
 @app.get("/history")
 async def get_history():
@@ -184,25 +131,74 @@ async def chat_asistente(user_message: str = Query(...)):
     except Exception as e:
         return {"response": f"Error del asistente: {str(e)}"}
     
+
+# --- BUSCADOR DE PACIENTES ACTUALIZADO ---
 @app.get("/pacientes_unicos")
 async def get_pacientes_unicos(medico: str = Query(...)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        # Usamos DISTINCT para que no salgan nombres repetidos si un paciente tiene varios registros
-        query = f"SELECT DISTINCT nombre, paciente_id, edad, sexo, antecedentes FROM registros WHERE medico = {placeholder}"
+        # Seleccionamos las columnas nuevas: nhc, fecha_nacimiento, genero
+        query = f"SELECT DISTINCT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
         cursor.execute(query, (medico,))
         
         pacientes = []
         for row in cursor.fetchall():
             pacientes.append({
-                "nombre": row[0],
-                "id": row[1],
-                "edad": row[2],
-                "sexo": row[3],
-                "antecedentes": row[4]
+                "id": row[0],
+                "fecha_nacimiento": row[1],
+                "genero": row[2]
             })
         return pacientes
     finally:
         conn.close()
+
+# --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
+@app.post("/calculate")
+async def calculate(request: dict):
+    sintomas_ids = request.get("sintomas", [])
+    resultado = calcular_nfass_ofass(sintomas_ids)
+    
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        # Validación de seguridad
+        cursor.execute(f"SELECT genero FROM registros WHERE nhc = {placeholder} LIMIT 1", (request.get("paciente_id"),))
+        existente = cursor.fetchone()
+        
+        if existente and existente[0] != request.get("genero"):
+            return {
+                "success": False, 
+                "message": f"ALERTA: El NHC {request.get('paciente_id')} ya está registrado con un género distinto."
+            }
+        
+        respuestas_json = json.dumps(request.get("respuestas", {}))
+        sintomas_json = json.dumps(sintomas_ids)
+
+        query = f"""INSERT INTO registros 
+                (nhc, fecha_nacimiento, genero, medico, respuestas_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
+                VALUES ({','.join([placeholder]*10)})"""
+        
+        cursor.execute(query, (
+            request.get("paciente_id", ""), 
+            request.get("fecha_nacimiento", ""), 
+            request.get("genero", ""), 
+            request.get("medico", "desconocido"),
+            respuestas_json,
+            sintomas_json, 
+            float(resultado["nfass"]), 
+            int(resultado["ofass_grade"]), 
+            resultado["ofass_category"], 
+            resultado["risk_level"]
+        ))
+        conn.commit()
+    except Exception as e:
+        print(f"Error en DB: {e}")
+        # Importante: aunque falle la DB, devolvemos el resultado para que la tarjeta se pinte
+    finally:
+        conn.close()
+    
+    return resultado
