@@ -35,21 +35,23 @@ def init_db():
 
     placeholder = "%s" if DATABASE_URL else "?"
 
-    # Tabla de Registros Clínicos con TODOS los campos nuevos
-    # main.py - Fragmento de la tabla actualizada
-    query_registros = '''CREATE TABLE IF NOT EXISTS registros (
-        id SERIAL PRIMARY KEY, 
-        nhc TEXT, 
-        fecha_nacimiento TEXT, 
-        genero TEXT, 
+    cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
+    
+    # 2. CREACIÓN DE LA TABLA CON TODOS LOS NUEVOS CAMPOS
+    cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
+        id SERIAL PRIMARY KEY,
+        nhc TEXT,
+        fecha_nacimiento TEXT,
+        genero TEXT,
         medico TEXT,
-        respuestas_json TEXT, -- Aquí guardaremos todas las preguntas nuevas como un JSON
-        sintomas TEXT, 
-        nfass REAL, 
-        ofass_grade INTEGER, 
-        ofass_category TEXT, 
-        risk_level TEXT, 
-        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'''
+        respuestas_json TEXT,
+        sintomas TEXT,
+        nfass REAL,
+        ofass_grade INTEGER,
+        ofass_category TEXT,
+        risk_level TEXT,
+        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
     
     # Tabla de Usuarios
     query_usuarios = '''CREATE TABLE IF NOT EXISTS usuarios (
@@ -120,44 +122,59 @@ async def login(request: LoginRequest):
 
 # --- ENDPOINTS CLÍNICOS ---
 
+import json
+
 @app.post("/calculate")
 async def calculate(request: dict):
-    # Lógica del cálculo
-    resultado = calcular_nfass_ofass(request["sintomas"])
+    # 1. Realizar el cálculo con los síntomas recibidos
+    sintomas_ids = request.get("sintomas", [])
+    resultado = calcular_nfass_ofass(sintomas_ids)
     
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
 
-        cursor.execute(f"SELECT nombre FROM registros WHERE paciente_id = {placeholder} LIMIT 1", (request["paciente_id"],))
+        # 2. VALIDACIÓN DE SEGURIDAD (Usando Género en lugar de Nombre como verificador)
+        cursor.execute(f"SELECT genero FROM registros WHERE nhc = {placeholder} LIMIT 1", (request["paciente_id"],))
         existente = cursor.fetchone()
         
-        if existente and existente[0] != request["nombre"]:
-            return {"success": False, "message": f"El NHC {request['paciente_id']} ya pertenece a {existente[0]}"}
+        if existente and existente[0] != request["genero"]:
+            return {
+                "success": False, 
+                "message": f"ALERTA: El NHC {request['paciente_id']} ya está registrado con un género distinto ({existente[0]})."
+            }
         
-        # Inserción de los 11 campos
+        # 3. Preparar los datos para la inserción
+        # Convertimos los objetos a strings (JSON) para que quepan en las celdas de texto
+        respuestas_json = json.dumps(request.get("respuestas", {}))
+        sintomas_json = json.dumps(sintomas_ids)
+
+        # La consulta ahora tiene 10 campos (ajustada a tu nueva base de datos)
         query = f"""INSERT INTO registros 
-                (nombre, paciente_id, edad, sexo, antecedentes, sintomas, nfass, ofass_grade, ofass_category, risk_level, medico) 
-                VALUES ({','.join([placeholder]*11)})"""
+                (nhc, fecha_nacimiento, genero, medico, respuestas_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
+                VALUES ({','.join([placeholder]*10)})"""
         
         cursor.execute(query, (
-            request.get("nombre", ""), 
             request.get("paciente_id", ""), 
-            request.get("edad", ""), 
-            request.get("sexo", ""), 
-            request.get("antecedentes", ""),
-            json.dumps(request.get("sintomas", [])), 
+            request.get("fecha_nacimiento", ""), 
+            request.get("genero", ""), 
+            request.get("medico", "desconocido"),
+            respuestas_json,
+            sintomas_json, 
             float(resultado["nfass"]), 
             int(resultado["ofass_grade"]), 
             resultado["ofass_category"], 
-            resultado["risk_level"],
-            request.get("medico", "desconocido")
+            resultado["risk_level"]
         ))
         conn.commit()
+    except Exception as e:
+        print(f"Error en base de datos: {e}")
+        return {"success": False, "message": str(e)}
     finally:
         conn.close()
     
+    # Devolvemos el objeto de resultado al frontend
     return resultado
 
 @app.get("/history")
