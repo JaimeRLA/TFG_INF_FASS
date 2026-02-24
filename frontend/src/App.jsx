@@ -122,6 +122,35 @@ const App = () => {
     </div>
   );
 
+  // Añadir este componente dentro de App o antes del return
+const PreguntaClinica = ({ id, label, cuestionario, handleCuestionario }) => (
+  <div style={{ marginBottom: '15px' }}>
+    <label style={labelStyle}>{label}</label>
+    <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+      {['Yes', 'No'].map(op => (
+        <button 
+          key={op}
+          onClick={() => handleCuestionario(id, op)}
+          style={{
+            flex: 1,
+            padding: '10px',
+            borderRadius: '10px',
+            border: '2px solid',
+            borderColor: cuestionario[id] === op ? '#2563eb' : '#e2e8f0',
+            backgroundColor: cuestionario[id] === op ? '#eff6ff' : '#f8fafc',
+            color: cuestionario[id] === op ? '#2563eb' : '#64748b',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          {op}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
       
@@ -154,75 +183,71 @@ const App = () => {
         )}
 
         {/* VISTA: SELECCIONAR PACIENTE */}
-        {view === 'seleccionar_paciente' && (
-          <div style={{ maxWidth: '800px', margin: '40px auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
-            <div style={cardStyle}>
-              <h3 style={cardTitle}><Users size={22} color="#2563eb" /> Buscar Paciente</h3>
-              <div style={searchBar}>
-                <Search size={20} color="#94a3b8" />
-                <input style={searchInput} placeholder="Escriba el NHC..." onChange={(e) => setFiltroBusqueda(e.target.value)} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-                {pacientesFiltrados.map(p => (
-                  <div key={p.id} onClick={() => seleccionarPacienteExistente(p)} style={itemPacienteStyle}>
-                    <strong>NHC: {p.id}</strong>
-                    <span>{p.genero} | Nacimiento: {p.fecha_nacimiento}</span>
-                    <ArrowRight size={18} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* VISTA: REGISTRO INTEGRADO */}
         {view === 'registro_paciente' && (
-          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <button onClick={() => setView('perfil')} style={backBtn}>← Volver al panel</button>
+          
+          <div style={cardStyle}>
+            <h3 style={cardTitle}><ClipboardCheck color="#2563eb" size={24} /> Ficha de Antecedentes Clínicos</h3>
             
-            <div style={cardStyle}>
-              <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Identificación del Paciente</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
-                <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
+            {/* SECCIÓN: IDENTIFICACIÓN */}
+            <div style={{ marginBottom: '30px' }}>
+              <h4 style={secHeader}>1. Identificación y Demografía</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+                <div style={inputWrapper}><label style={labelStyle}>NHC / ID Paciente</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
                 <div style={inputWrapper}><label style={labelStyle}>Fecha de Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
                 <div style={inputWrapper}><label style={labelStyle}>Género</label>
                   <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
-                    <option value="">Seleccionar...</option><option value="Male">Male</option><option value="Female">Female</option>
+                    <option value="">Seleccionar...</option>
+                    <option value="Male">Masculino</option>
+                    <option value="Female">Femenino</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <div style={{...cardStyle, marginTop: '20px'}}>
-              <h3 style={cardTitle}><ClipboardList color="#2563eb" /> Cuestionario de Antecedentes</h3>
-              <PreguntaSN id="q1" label="1. Do you have any confirmed allergies?" />
-              <textarea style={{...inputStyle, marginTop:'-10px', marginBottom:'15px'}} placeholder="If yes, details..." onChange={e => handleCuestionario('q1_det', e.target.value)} />
-              
-              <div style={subSection}>
-                <p style={subSectionTitle}>2. Suspected allergies to:</p>
-                <PreguntaSN id="q2_food" label="• Foods?" />
-                <PreguntaSN id="q2_insects" label="• Insects or ticks?" />
-                <PreguntaSN id="q2_meds" label="• Medications?" />
-                <PreguntaSN id="q2_other" label="• Other?" />
+            {/* SECCIÓN: ALERGIAS CONFIRMADAS */}
+            <div style={{ marginBottom: '30px' }}>
+              <h4 style={secHeader}>2. Historial de Alergias</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <PreguntaClinica id="q1" label="Confirmed allergies?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q2_food" label="Suspected Food Allergies?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q2_insect" label="Insects or Ticks?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q2_meds" label="Drug Allergies?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
               </div>
-
-              <div style={subSection}>
-                <p style={subSectionTitle}>3. Allergy or asthma medications:</p>
-                <PreguntaSN id="q3_antihist" label="• Antihistamines?" />
-                <PreguntaSN id="q3_nasal" label="• Nasal sprays?" />
-                <PreguntaSN id="q3_asthma" label="• Asthma puffers?" />
-              </div>
-
-              <PreguntaSN id="q4" label="4. Prescribed adrenaline device?" />
-              <PreguntaSN id="q6_asthma" label="6. Do you have Asthma?" />
-              <PreguntaSN id="q8" label="8. Do you live in a damp house?" />
-              <PreguntaSN id="q9" label="9. Family history of allergies?" />
-
-              <button onClick={validarYPasarACalculadora} style={{...startBtn, width:'100%', marginTop:'20px'}}>Continuar a Evaluación de Reacción <ArrowRight /></button>
+              {(cuestionario.q1 === 'Yes' || cuestionario.q2_food === 'Yes') && (
+                <textarea style={{...inputStyle, marginTop: '10px', height: '60px'}} placeholder="Provide details of allergens..." onChange={e => handleCuestionario('allergies_details', e.target.value)} />
+              )}
             </div>
+
+            {/* SECCIÓN: MEDICACIÓN */}
+            <div style={{ marginBottom: '30px' }}>
+              <h4 style={secHeader}>3. Tratamiento Actual</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <PreguntaClinica id="q3_antihist" label="Antihistamines?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q3_asthma" label="Asthma puffers?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q4" label="Prescribed Adrenaline?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q5" label="Other medications/herbal?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+              </div>
+            </div>
+
+            {/* SECCIÓN: CONDICIONES COEXISTENTES */}
+            <div style={{ marginBottom: '30px' }}>
+              <h4 style={secHeader}>4. Condiciones Médicas y Entorno</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <PreguntaClinica id="q6_rhinitis" label="Allergic rhinitis?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q6_asthma" label="Asthma history?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q7" label="Indoor pets?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+                <PreguntaClinica id="q9" label="Family history of allergy?" cuestionario={cuestionario} handleCuestionario={handleCuestionario} />
+              </div>
+            </div>
+
+            <button onClick={validarYPasarACalculadora} style={{...calcBtn, marginTop: '20px'}}>
+              Guardar Antecedentes y Evaluar Reacción <ArrowRight size={20} />
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
         {/* VISTA: CALCULADORA (Layout corregido para no solapar) */}
         {view === 'calculadora' && (
@@ -295,7 +320,8 @@ const startBtn = {
   justifyContent: 'center',
   width: 'fit-content', // Para que el botón no se estire al 100% y se vea centrado
   marginTop: '10px'
-};const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
+};
+const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
 const inputStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.9rem' };
 const selectStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' };
 const labelStyle = { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '4px', display: 'block' };
