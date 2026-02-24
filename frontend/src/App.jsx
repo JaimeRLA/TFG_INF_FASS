@@ -268,10 +268,34 @@ const App = () => {
 
 // --- ESTILOS ---
 const headerStyle = { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' };
-const optionCard = { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', width: '350px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' };
+const optionCard = { 
+  backgroundColor: '#fff', 
+  padding: '40px', 
+  borderRadius: '24px', 
+  textAlign: 'center', 
+  width: '400px', // Aumentamos un poco el ancho para mejor equilibrio
+  boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+  display: 'flex',           // Añadido para centrado vertical interno
+  flexDirection: 'column',    // Añadido
+  alignItems: 'center',       // Centra todos los elementos (icono, h2, p, botón)
+  justifyContent: 'center'    // Añadido
+};
 const avatarStyle = { width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' };
-const startBtn = { padding: '14px 24px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' };
-const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
+const startBtn = { 
+  padding: '14px 30px', 
+  backgroundColor: '#2563eb', 
+  color: '#fff', 
+  border: 'none', 
+  borderRadius: '12px', 
+  cursor: 'pointer', 
+  fontWeight: 'bold', 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '10px', 
+  justifyContent: 'center',
+  width: 'fit-content', // Para que el botón no se estire al 100% y se vea centrado
+  marginTop: '10px'
+};const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
 const inputStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '0.9rem' };
 const selectStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' };
 const labelStyle = { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '4px', display: 'block' };
@@ -294,5 +318,19 @@ const preguntaLabel = { fontSize: '0.9rem', color: '#475569', fontWeight: '500' 
 const btnMini = { padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' };
 const subSection = { backgroundColor: '#fbfcfd', padding: '15px', borderRadius: '15px', border: '1px solid #f1f5f9', marginBottom: '15px' };
 const subSectionTitle = { fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#1e293b' };
+const cardHeading = { 
+  color: '#000000', // Forzamos el color NEGRO
+  fontWeight: '800', 
+  margin: '20px 0 10px 0', 
+  fontSize: '1.6rem' 
+};
+
+
+
+
+
+
+
+
 
 export default App;
