@@ -31,28 +31,44 @@ def get_connection():
 
 def init_db():
     conn = get_connection()
-    cursor = conn.cursor()
-    # Ejecuta esto una vez si te da error de columnas:
-    # cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
-    
-    cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
-        id SERIAL PRIMARY KEY,
-        nhc TEXT,
-        fecha_nacimiento TEXT,
-        genero TEXT,
-        medico TEXT,
-        respuestas_json TEXT,
-        sintomas TEXT,
-        nfass REAL,
-        ofass_grade INTEGER,
-        ofass_category TEXT,
-        risk_level TEXT,
-        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    conn.commit()
-    conn.close()
+    try:
+        cursor = conn.cursor()
+        # FORZADO: Borramos la tabla de registros
+        print("Borrando tabla registros...")
+        cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
+        
+        # Opcional: Si quieres resetear usuarios también descomenta esto:
+        # cursor.execute("DROP TABLE IF EXISTS usuarios CASCADE")
 
-init_db()
+        # Creamos la tabla desde cero con la estructura exacta que pide el Front
+        cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
+            id SERIAL PRIMARY KEY,
+            nhc TEXT,
+            fecha_nacimiento TEXT,
+            genero TEXT,
+            medico TEXT,
+            respuestas_json TEXT,
+            sintomas TEXT,
+            nfass REAL,
+            ofass_grade INTEGER,
+            ofass_category TEXT,
+            risk_level TEXT,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        
+        # Volvemos a crear la tabla de usuarios si la borraste
+        cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE,
+            password TEXT
+        )''')
+        
+        conn.commit()
+        print("Base de datos reseteada con éxito.")
+    except Exception as e:
+        print(f"Error reseteando base de datos: {e}")
+    finally:
+        conn.close()
 
 # --- MODELOS DE DATOS ---
 class LoginRequest(BaseModel):
@@ -139,8 +155,12 @@ async def get_pacientes_unicos(medico: str = Query(...)):
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        # Seleccionamos las columnas nuevas: nhc, fecha_nacimiento, genero
-        query = f"SELECT DISTINCT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
+        # IMPORTANTE: Ahora buscamos nhc, fecha_nacimiento y genero
+        query = f"""
+            SELECT DISTINCT nhc, fecha_nacimiento, genero 
+            FROM registros 
+            WHERE medico = {placeholder}
+        """
         cursor.execute(query, (medico,))
         
         pacientes = []
@@ -151,6 +171,9 @@ async def get_pacientes_unicos(medico: str = Query(...)):
                 "genero": row[2]
             })
         return pacientes
+    except Exception as e:
+        print(f"Error en pacientes_unicos: {e}")
+        return []
     finally:
         conn.close()
 
@@ -164,41 +187,30 @@ async def calculate(request: dict):
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-
-        # Validación de seguridad
-        cursor.execute(f"SELECT genero FROM registros WHERE nhc = {placeholder} LIMIT 1", (request.get("paciente_id"),))
-        existente = cursor.fetchone()
         
-        if existente and existente[0] != request.get("genero"):
-            return {
-                "success": False, 
-                "message": f"ALERTA: El NHC {request.get('paciente_id')} ya está registrado con un género distinto."
-            }
-        
-        respuestas_json = json.dumps(request.get("respuestas", {}))
-        sintomas_json = json.dumps(sintomas_ids)
+        respuestas_str = json.dumps(request.get("respuestas", {}))
+        sintomas_str = json.dumps(sintomas_ids)
 
         query = f"""INSERT INTO registros 
                 (nhc, fecha_nacimiento, genero, medico, respuestas_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
                 VALUES ({','.join([placeholder]*10)})"""
         
         cursor.execute(query, (
-            request.get("paciente_id", ""), 
-            request.get("fecha_nacimiento", ""), 
-            request.get("genero", ""), 
-            request.get("medico", "desconocido"),
-            respuestas_json,
-            sintomas_json, 
+            request.get("paciente_id"), 
+            request.get("fecha_nacimiento"), 
+            request.get("genero"), 
+            request.get("medico"),
+            respuestas_str,
+            sintomas_str, 
             float(resultado["nfass"]), 
             int(resultado["ofass_grade"]), 
             resultado["ofass_category"], 
             resultado["risk_level"]
         ))
         conn.commit()
+        return resultado # Retorno exitoso
     except Exception as e:
-        print(f"Error en DB: {e}")
-        # Importante: aunque falle la DB, devolvemos el resultado para que la tarjeta se pinte
+        print(f"Error al insertar: {e}")
+        return {"error": str(e)}
     finally:
         conn.close()
-    
-    return resultado
