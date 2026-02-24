@@ -121,29 +121,38 @@ const App = () => {
   if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
 
   const PreguntaClinica = ({ id, label }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-      <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: '500', maxWidth: '70%' }}>{label}</span>
-      <div style={{ display: 'flex', gap: '5px' }}>
-        {['Yes', 'No'].map(op => (
-          <button 
-            key={op}
-            onClick={() => handleCuestionario(id, op)}
-            style={{
-              padding: '4px 12px',
-              fontSize: '0.75rem',
-              borderRadius: '6px',
-              border: '1px solid',
-              borderColor: cuestionario[id] === op ? '#2563eb' : '#e2e8f0',
-              backgroundColor: cuestionario[id] === op ? '#2563eb' : '#fff',
-              color: cuestionario[id] === op ? '#fff' : '#64748b',
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}
-          >{op}</button>
-        ))}
-      </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+    <span style={{ 
+      fontSize: '0.9rem', 
+      color: '#1e293b', 
+      fontWeight: '700', 
+      maxWidth: '70%',
+      fontFamily: '"Inter", sans-serif' // Aplicamos aquí también
+    }}>
+      {label}
+    </span>
+    <div style={{ display: 'flex', gap: '5px' }}>
+      {['Yes', 'No'].map(op => (
+        <button 
+          key={op}
+          onClick={() => handleCuestionario(id, op)}
+          style={{
+            padding: '4px 12px',
+            fontSize: '0.75rem',
+            borderRadius: '6px',
+            border: '1px solid',
+            borderColor: cuestionario[id] === op ? '#2563eb' : '#e2e8f0',
+            backgroundColor: cuestionario[id] === op ? '#2563eb' : '#fff',
+            color: cuestionario[id] === op ? '#fff' : '#64748b',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontFamily: '"Inter", sans-serif' // Fuente para los botones Yes/No
+          }}
+        >{op}</button>
+      ))}
     </div>
-  );
+  </div>
+);
 
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
@@ -306,101 +315,124 @@ const App = () => {
         )}
 
         {view === 'event_record' && (
-          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            <button onClick={() => setView('registro_paciente')} style={backBtn}>← Volver a Antecedentes</button>
-            <div style={cardStyle}>
-              <h3 style={cardTitle}><Activity color="#ef4444" /> Event Record (Reaction Details)</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
-                <div style={inputWrapper}>
-                  <label style={labelStyle}>Date and time of reaction:</label>
-                  <input type="datetime-local" style={inputStyle} onChange={e => handleEvento('reaccion_fecha', e.target.value)} />
-                </div>
-                <div style={inputWrapper}>
-                  <label style={labelStyle}>Duration of symptoms:</label>
-                  <input style={inputStyle} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} />
-                </div>
-              </div>
+  <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <button onClick={() => setView('registro_paciente')} style={backBtn}>← Volver a Antecedentes</button>
+    
+    <div style={cardStyle}>
+      {/* TÍTULO EN NEGRO */}
+      <h3 style={{...cardTitle, color: '#000'}}>
+        <Activity color="#ef4444" /> Event Record (Reaction Details)
+      </h3>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Date and time of reaction:</label>
+          <input type="datetime-local" style={inputStyle} onChange={e => handleEvento('reaccion_fecha', e.target.value)} />
+        </div>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Duration of symptoms:</label>
+          <input style={inputStyle} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} />
+        </div>
+      </div>
 
-              <h4 style={secHeader}>Suspected Triggers</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} /></div>
-                <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} /></div>
-                <div style={inputWrapper}><label style={labelStyle}>Drug/s (Medication):</label><input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" /></div>
-              </div>
+      <h4 style={secHeader}>Suspected Triggers</h4>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+        <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} /></div>
+        <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} /></div>
+        <div style={inputWrapper}><label style={labelStyle}>Drug/s (Medication):</label><input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" /></div>
+      </div>
 
-              {evento.trigger_drug && (
-                <div style={{...questionBlock, borderLeft: '5px solid #2563eb', marginBottom: '20px'}}>
-                  <h4 style={subLabel}>Drug Allergy Details</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                    <div style={inputWrapper}><label style={labelStyle}>Reason why drug was prescribed:</label><input style={inputStyle} onChange={e => handleEvento('drug_reason', e.target.value)} /></div>
-                    <div style={inputWrapper}><label style={labelStyle}>Form (capsule, tablet, liquid, IV):</label><input style={inputStyle} onChange={e => handleEvento('drug_form', e.target.value)} /></div>
-                    <div style={inputWrapper}><label style={labelStyle}>Other drugs taken at the time:</label><input style={inputStyle} onChange={e => handleEvento('drug_other', e.target.value)} /></div>
-                    <div style={inputWrapper}>
-                      <label style={labelStyle}>Time of onset:</label>
-                      <select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}>
-                        <option value="">Select...</option>
-                        <option value="within 1-2 hours">within 1-2 hours</option>
-                        <option value="after 2 hours">after 2 hours</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div style={{marginTop:'15px'}}><label style={labelStyle}>Tolerance since initial reaction:</label><input style={inputStyle} onChange={e => handleEvento('drug_tolerance', e.target.value)} /></div>
-                  <div style={{marginTop:'15px'}}><label style={labelStyle}>Other details:</label><textarea style={detailInput} onChange={e => handleEvento('drug_details_extra', e.target.value)} /></div>
-                </div>
-              )}
-
-              <h4 style={secHeader}>Environment & Activity</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
-                <div style={inputWrapper}>
-                  <label style={labelStyle}>Location of reaction:</label>
-                  <select style={selectStyle} onChange={e => handleEvento('location', e.target.value)}>
-                    <option value="">Select...</option><option value="Home">Home</option><option value="School">School</option>
-                    <option value="Care Services">Childrens Education/Care Services</option><option value="Work">Work</option>
-                    <option value="Dining out">Dining out</option><option value="Other">Other</option>
-                  </select>
-                </div>
-                <div style={inputWrapper}>
-                  <label style={labelStyle}>Activity immediately before:</label>
-                  <select style={selectStyle} onChange={e => handleEvento('activity', e.target.value)}>
-                    <option value="">Select...</option><option value="Eating">Eating</option><option value="Gardening">Gardening</option>
-                    <option value="Exercise">Exercise</option><option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <h4 style={secHeader}>Management & Treatment</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={labelStyle}>Was adrenaline administered?</span>
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    {['Yes', 'No'].map(op => (
-                      <button key={op} onClick={() => handleEvento('adrenaline', op)} style={evento.adrenaline === op ? btnMiniActive : btnMini}>{op}</button>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={labelStyle}>Was any other treatment given?</span>
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    {['Yes', 'No'].map(op => (
-                      <button key={op} onClick={() => handleEvento('other_treatment_yn', op)} style={evento.other_treatment_yn === op ? btnMiniActive : btnMini}>{op}</button>
-                    ))}
-                  </div>
-                </div>
-                {evento.other_treatment_yn === 'Yes' && <textarea style={detailInput} placeholder="Provide details..." onChange={e => handleEvento('other_treatment_details', e.target.value)} />}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={labelStyle}>Was an ambulance called?</span>
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    {['Yes', 'No'].map(op => (
-                      <button key={op} onClick={() => handleEvento('ambulance', op)} style={evento.ambulance === op ? btnMiniActive : btnMini}>{op}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div style={{marginTop: '20px'}}><label style={labelStyle}>Other information:</label><textarea style={detailInput} onChange={e => handleEvento('other_info', e.target.value)} /></div>
-              <button onClick={() => setView('calculadora')} style={calcBtn}>Continuar a Síntomas <ArrowRight /></button>
+      {evento.trigger_drug && (
+        <div style={{...questionBlock, borderLeft: '5px solid #2563eb', marginBottom: '20px'}}>
+          <h4 style={subLabel}>Drug Allergy Details</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div style={inputWrapper}><label style={labelStyle}>Reason why drug was prescribed:</label><input style={inputStyle} onChange={e => handleEvento('drug_reason', e.target.value)} /></div>
+            <div style={inputWrapper}><label style={labelStyle}>Form (capsule, tablet, liquid, IV):</label><input style={inputStyle} onChange={e => handleEvento('drug_form', e.target.value)} /></div>
+            <div style={inputWrapper}><label style={labelStyle}>Other drugs taken at the time:</label><input style={inputStyle} onChange={e => handleEvento('drug_other', e.target.value)} /></div>
+            <div style={inputWrapper}>
+              <label style={labelStyle}>Time of onset:</label>
+              <select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}>
+                <option value="">Select...</option>
+                <option value="within 1-2 hours">within 1-2 hours</option>
+                <option value="after 2 hours">after 2 hours</option>
+              </select>
             </div>
           </div>
-        )}
+          <div style={{marginTop:'15px'}}><label style={labelStyle}>Tolerance since initial reaction:</label><input style={inputStyle} onChange={e => handleEvento('drug_tolerance', e.target.value)} /></div>
+          <div style={{marginTop:'15px'}}><label style={labelStyle}>Other details:</label><textarea style={detailInput} onChange={e => handleEvento('drug_details_extra', e.target.value)} /></div>
+        </div>
+      )}
+
+      <h4 style={secHeader}>Environment & Activity</h4>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Location of reaction:</label>
+          <select style={selectStyle} onChange={e => handleEvento('location', e.target.value)}>
+            <option value="">Select...</option><option value="Home">Home</option><option value="School">School</option>
+            <option value="Care Services">Childrens Education/Care Services</option><option value="Work">Work</option>
+            <option value="Dining out">Dining out</option><option value="Other">Other</option>
+          </select>
+        </div>
+        <div style={inputWrapper}>
+          <label style={labelStyle}>Activity immediately before:</label>
+          <select style={selectStyle} onChange={e => handleEvento('activity', e.target.value)}>
+            <option value="">Select...</option><option value="Eating">Eating</option><option value="Gardening">Gardening</option>
+            <option value="Exercise">Exercise</option><option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <h4 style={secHeader}>Management & Treatment</h4>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {/* FILA ADRENALINA */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+          <span style={{ fontSize: '0.9rem', color: '#1e293b', fontWeight: '700', fontFamily: '"Inter", sans-serif' }}>Was adrenaline administered?</span>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            {['Yes', 'No'].map(op => (
+              <button 
+                key={op} 
+                onClick={() => handleEvento('adrenaline', op)} 
+                style={evento.adrenaline === op ? btnSmallActive : btnSmall}
+              >{op}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* FILA OTRO TRATAMIENTO */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+          <span style={{ fontSize: '0.9rem', color: '#1e293b', fontWeight: '700', fontFamily: '"Inter", sans-serif' }}>Was any other treatment given?</span>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            {['Yes', 'No'].map(op => (
+              <button 
+                key={op} 
+                onClick={() => handleEvento('other_treatment_yn', op)} 
+                style={evento.other_treatment_yn === op ? btnSmallActive : btnSmall}
+              >{op}</button>
+            ))}
+          </div>
+        </div>
+        {evento.other_treatment_yn === 'Yes' && <textarea style={detailInput} placeholder="Provide details..." onChange={e => handleEvento('other_treatment_details', e.target.value)} />}
+
+        {/* FILA AMBULANCIA */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+          <span style={{ fontSize: '0.9rem', color: '#1e293b', fontWeight: '700', fontFamily: '"Inter", sans-serif' }}>Was an ambulance called?</span>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            {['Yes', 'No'].map(op => (
+              <button 
+                key={op} 
+                onClick={() => handleEvento('ambulance', op)} 
+                style={evento.ambulance === op ? btnSmallActive : btnSmall}
+              >{op}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div style={{marginTop: '20px'}}><label style={labelStyle}>Other information:</label><textarea style={detailInput} onChange={e => handleEvento('other_info', e.target.value)} /></div>
+      <button onClick={() => setView('calculadora')} style={calcBtn}>Continuar a Síntomas <ArrowRight /></button>
+    </div>
+  </div>
+)}
 
         {view === 'calculadora' && (
           <main style={calculatorLayout}>
@@ -449,9 +481,7 @@ const cardHeading = { color: '#000', fontWeight: '800', margin: '15px 0', fontSi
 const avatarStyle = { width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' };
 const startBtn = { padding: '14px 24px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' };
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
-const labelStyle = { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '4px' };
 const cardTitle = { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '20px', fontWeight: '800' };
-const secHeader = { fontSize: '0.75rem', color: '#2563eb', textTransform: 'uppercase', borderBottom: '1px solid #eee', marginBottom: '15px', paddingBottom: '5px', fontWeight: '800' };
 const calcBtn = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' };
 const backBtn = { background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '10px', fontWeight: 'bold' };
 const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' };
@@ -464,7 +494,6 @@ const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '
 const calculatorLayout = { display: 'flex', gap: '30px', alignItems: 'flex-start' };
 const asideStyle = { width: '400px', flexShrink: '0', position: 'sticky', top: '20px' };
 const questionBlock = { padding: '15px', backgroundColor: '#fbfcfd', borderRadius: '12px', border: '1px solid #f1f5f9' };
-const subLabel = { fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px' };
 const gridQuestions = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 30px' };
 const btnMini = { padding: '6px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' };
 const btnMiniActive = { ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' };
@@ -478,17 +507,6 @@ const inputWrapper = {
   minWidth: '0' // Evita que el flexbox desborde
 };
 
-const inputStyle = { 
-  width: '100%', 
-  padding: '12px 15px', 
-  borderRadius: '10px', 
-  border: '1px solid #e2e8f0', 
-  backgroundColor: '#f8fafc',
-  color: '#1e293b', // <--- AÑADE ESTO PARA QUE LA LETRA SEA VISIBLE
-  fontSize: '0.95rem',
-  boxSizing: 'border-box',
-  outline: 'none'
-};
 
 const selectStyle = { 
   width: '100%', 
@@ -502,6 +520,55 @@ const selectStyle = {
   boxSizing: 'border-box' 
 };
 
+
+
+
+
+// Y por si acaso, el estilo del título de las secciones (1. Identificación, etc)
+const secHeader = { 
+  fontSize: '0.75rem', 
+  color: '#2563eb', 
+  textTransform: 'uppercase', 
+  borderBottom: '1px solid #eee', 
+  marginBottom: '15px', 
+  paddingBottom: '5px', 
+  fontWeight: '800' // Este es el más fuerte (sección)
+};
+
+
+
+
+
+
+const labelStyle = { 
+  fontSize: '0.8rem', 
+  fontWeight: '700', 
+  color: '#64748b', 
+  marginBottom: '4px',
+  fontFamily: '"Inter", sans-serif' // Unificamos fuente
+};
+
+const subLabel = {
+  fontSize: '0.9rem',
+  fontWeight: '700',
+  color: '#1e293b',
+  marginBottom: '10px',
+  fontFamily: '"Inter", sans-serif' // Unificamos fuente
+};
+
+const inputStyle = { 
+  width: '100%', 
+  padding: '12px 15px', 
+  borderRadius: '10px', 
+  border: '1px solid #e2e8f0', 
+  backgroundColor: '#f8fafc',
+  color: '#1e293b', 
+  fontSize: '0.95rem',
+  fontFamily: '"Inter", sans-serif', // Fuente para el texto escrito
+  boxSizing: 'border-box',
+  outline: 'none'
+};
+
 const detailInput = {
   width: '100%',
   marginTop: '10px',
@@ -509,10 +576,16 @@ const detailInput = {
   borderRadius: '8px',
   border: '1px solid #cbd5e1',
   backgroundColor: '#fff',
-  color: '#1e293b', // <--- AÑADE ESTO PARA LOS TEXTAREAS
+  color: '#1e293b', 
   fontSize: '0.85rem',
+  fontFamily: '"Inter", sans-serif', // Fuente para los cuadros de detalles
   minHeight: '60px',
   resize: 'none',
   boxSizing: 'border-box'
 };
+
+
+
+
+
 export default App;
