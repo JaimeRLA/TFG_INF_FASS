@@ -466,17 +466,28 @@ const asideStyle = { width: '400px', flexShrink: '0', position: 'sticky', top: '
 const questionBlock = { padding: '15px', backgroundColor: '#fbfcfd', borderRadius: '12px', border: '1px solid #f1f5f9' };
 const subLabel = { fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px' };
 const gridQuestions = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 30px' };
-const detailInput = { width: '100%', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', fontSize: '0.85rem', minHeight: '60px', resize: 'none' };
 const btnMini = { padding: '6px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' };
 const btnMiniActive = { ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' };
+
+
+
+const inputWrapper = { 
+  display: 'flex', 
+  flexDirection: 'column',
+  gap: '8px', // Espacio entre el label y la caja
+  minWidth: '0' // Evita que el flexbox desborde
+};
+
 const inputStyle = { 
   width: '100%', 
-  padding: '12px 15px', // Un poco más de aire interno
+  padding: '12px 15px', 
   borderRadius: '10px', 
   border: '1px solid #e2e8f0', 
   backgroundColor: '#f8fafc',
+  color: '#1e293b', // <--- AÑADE ESTO PARA QUE LA LETRA SEA VISIBLE
   fontSize: '0.95rem',
-  boxSizing: 'border-box' // Fundamental para que el padding no ensanche la caja
+  boxSizing: 'border-box',
+  outline: 'none'
 };
 
 const selectStyle = { 
@@ -485,15 +496,23 @@ const selectStyle = {
   borderRadius: '10px', 
   border: '1px solid #e2e8f0', 
   backgroundColor: '#f8fafc',
+  color: '#1e293b', // <--- AÑADE ESTO TAMBIÉN
   fontSize: '0.95rem',
   cursor: 'pointer',
   boxSizing: 'border-box' 
 };
 
-const inputWrapper = { 
-  display: 'flex', 
-  flexDirection: 'column',
-  gap: '8px', // Espacio entre el label y la caja
-  minWidth: '0' // Evita que el flexbox desborde
+const detailInput = {
+  width: '100%',
+  marginTop: '10px',
+  padding: '10px',
+  borderRadius: '8px',
+  border: '1px solid #cbd5e1',
+  backgroundColor: '#fff',
+  color: '#1e293b', // <--- AÑADE ESTO PARA LOS TEXTAREAS
+  fontSize: '0.85rem',
+  minHeight: '60px',
+  resize: 'none',
+  boxSizing: 'border-box'
 };
 export default App;
