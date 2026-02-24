@@ -172,6 +172,7 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: dict):
+    # 1. Realizar el cálculo
     sintomas_ids = request.get("sintomas", [])
     resultado = calcular_nfass_ofass(sintomas_ids)
     
@@ -180,27 +181,31 @@ async def calculate(request: dict):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        respuestas_str = json.dumps(request.get("respuestas", {}))
-        sintomas_str = json.dumps(sintomas_ids)
+        # 2. Convertir objetos a JSON string para la DB
+        respuestas_json = json.dumps(request.get("respuestas", {}))
+        evento_json = json.dumps(request.get("evento", {})) # <-- NUEVO
+        sintomas_json = json.dumps(sintomas_ids)
 
+        # 3. Consulta actualizada con 11 campos (Añadido evento_json)
         query = f"""INSERT INTO registros 
-                (nhc, fecha_nacimiento, genero, medico, respuestas_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
-                VALUES ({','.join([placeholder]*10)})"""
+                (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
+                VALUES ({','.join([placeholder]*11)})"""
         
         cursor.execute(query, (
             request.get("paciente_id"), 
             request.get("fecha_nacimiento"), 
             request.get("genero"), 
             request.get("medico"),
-            respuestas_str,
-            sintomas_str, 
+            respuestas_json,
+            evento_json,   # <-- NUEVO: Aquí se guarda el Event Record
+            sintomas_json, 
             float(resultado["nfass"]), 
             int(resultado["ofass_grade"]), 
             resultado["ofass_category"], 
             resultado["risk_level"]
         ))
         conn.commit()
-        return resultado # Retorno exitoso
+        return resultado 
     except Exception as e:
         print(f"Error al insertar: {e}")
         return {"error": str(e)}
