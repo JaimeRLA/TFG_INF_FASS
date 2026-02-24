@@ -199,16 +199,48 @@ const App = () => {
         {view === 'registro_paciente' && (
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
+            
             <div style={cardStyle}>
-              <h3 style={cardTitle}><ClipboardCheck color="#2563eb" /> Antecedentes del Paciente</h3>
+              {/* TÍTULO EN NEGRO */}
+              <h3 style={{...cardTitle, color: '#000'}}><ClipboardCheck color="#2563eb" /> Antecedentes del Paciente</h3>
+              
+              {/* SECCIÓN 1: IDENTIFICACIÓN (Corregido solapamiento) */}
               <div style={{ marginBottom: '30px' }}>
-                <h4 style={secHeader}>Identificación Básica</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
-                  <div style={inputWrapper}><label style={labelStyle}>NHC / ID</label><input style={inputStyle} value={paciente.id} onChange={e => setPaciente({...paciente, id: e.target.value})} /></div>
-                  <div style={inputWrapper}><label style={labelStyle}>Fecha Nacimiento</label><input type="date" style={inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} /></div>
-                  <div style={inputWrapper}><label style={labelStyle}>Género</label>
-                    <select style={selectStyle} value={paciente.genero} onChange={e => setPaciente({...paciente, genero: e.target.value})}>
-                      <option value="">Seleccionar...</option><option value="Male">Male</option><option value="Female">Female</option>
+                <h4 style={secHeader}>1. Identificación Básica</h4>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', // Flexible para evitar choques
+                  gap: '25px', // Más espacio entre columnas
+                  alignItems: 'end' 
+                }}>
+                  <div style={inputWrapper}>
+                    <label style={labelStyle}>NHC / ID</label>
+                    <input 
+                      style={inputStyle} 
+                      value={paciente.id} 
+                      onChange={e => setPaciente({...paciente, id: e.target.value})} 
+                      placeholder="Ej: 123456"
+                    />
+                  </div>
+                  <div style={inputWrapper}>
+                    <label style={labelStyle}>Fecha Nacimiento</label>
+                    <input 
+                      type="date" 
+                      style={inputStyle} 
+                      value={paciente.fecha_nacimiento} 
+                      onChange={e => setPaciente({...paciente, fecha_nacimiento: e.target.value})} 
+                    />
+                  </div>
+                  <div style={inputWrapper}>
+                    <label style={labelStyle}>Género</label>
+                    <select 
+                      style={selectStyle} 
+                      value={paciente.genero} 
+                      onChange={e => setPaciente({...paciente, genero: e.target.value})}
+                    >
+                      <option value="">Select...</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
                     </select>
                   </div>
                 </div>
@@ -417,10 +449,7 @@ const cardHeading = { color: '#000', fontWeight: '800', margin: '15px 0', fontSi
 const avatarStyle = { width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' };
 const startBtn = { padding: '14px 24px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' };
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
-const inputStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' };
-const selectStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' };
 const labelStyle = { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '4px' };
-const inputWrapper = { display: 'flex', flexDirection: 'column' };
 const cardTitle = { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '20px', fontWeight: '800' };
 const secHeader = { fontSize: '0.75rem', color: '#2563eb', textTransform: 'uppercase', borderBottom: '1px solid #eee', marginBottom: '15px', paddingBottom: '5px', fontWeight: '800' };
 const calcBtn = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' };
@@ -440,6 +469,31 @@ const gridQuestions = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1
 const detailInput = { width: '100%', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', fontSize: '0.85rem', minHeight: '60px', resize: 'none' };
 const btnMini = { padding: '6px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' };
 const btnMiniActive = { ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' };
-const subSection = { marginBottom: '20px' };
+const inputStyle = { 
+  width: '100%', 
+  padding: '12px 15px', // Un poco más de aire interno
+  borderRadius: '10px', 
+  border: '1px solid #e2e8f0', 
+  backgroundColor: '#f8fafc',
+  fontSize: '0.95rem',
+  boxSizing: 'border-box' // Fundamental para que el padding no ensanche la caja
+};
 
+const selectStyle = { 
+  width: '100%', 
+  padding: '12px 15px', 
+  borderRadius: '10px', 
+  border: '1px solid #e2e8f0', 
+  backgroundColor: '#f8fafc',
+  fontSize: '0.95rem',
+  cursor: 'pointer',
+  boxSizing: 'border-box' 
+};
+
+const inputWrapper = { 
+  display: 'flex', 
+  flexDirection: 'column',
+  gap: '8px', // Espacio entre el label y la caja
+  minWidth: '0' // Evita que el flexbox desborde
+};
 export default App;
