@@ -146,6 +146,18 @@ const App = () => {
     </div>
   );
 
+
+const descargarPaciente = (p) => {
+  const encabezados = "NHC,Fecha_Nac,Genero,nFASS,oFASS,Risk,Fecha_Evaluacion\n";
+  const fila = `${p.nhc},${p.fecha_nacimiento},${p.genero},${p.nfass},${p.ofass_grade},${p.risk_level},${p.fecha}\n`;
+  const blob = new Blob([encabezados + fila], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('href', url);
+  a.setAttribute('download', `NHC_${p.nhc}_evaluacion.csv`);
+  a.click();
+};
+
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
       <header style={headerStyle}>
@@ -281,6 +293,71 @@ const App = () => {
             </div>
           </div>
         )}
+
+        {view === 'perfil' && (
+   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '25px', marginTop: '60px' }}>
+     <div style={optionCard}>
+       <div style={avatarStyle}><User size={40} color="#2563eb" /></div>
+       <h2 style={cardHeading}>Nuevo Registro</h2>
+       <button onClick={() => setView('registro_paciente')} style={startBtn}>Empezar</button>
+     </div>
+
+     <div style={optionCard}>
+       <div style={{...avatarStyle, backgroundColor:'#f0fdf4'}}><Users size={40} color="#16a34a" /></div>
+       <h2 style={cardHeading}>Nueva Evaluación</h2>
+       <button onClick={cargarPacientesExistentes} style={{...startBtn, backgroundColor: '#16a34a'}}>Buscar NHC</button>
+     </div>
+
+     <div style={optionCard}>
+       <div style={{...avatarStyle, backgroundColor:'#fff7ed'}}><ClipboardList size={40} color="#ea580c" /></div>
+       <h2 style={cardHeading}>Historial Completo</h2>
+       <button onClick={async () => {
+         const res = await axios.get('https://tfg-inf-fass.onrender.com/history');
+         setListaPacientes(res.data);
+         setView('historial_global');
+       }} style={{...startBtn, backgroundColor: '#ea580c'}}>Ver Registros</button>
+     </div>
+   </div>
+)}
+
+      {view === 'historial_global' && (
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
+          <div style={cardStyle}>
+            <h3 style={{...cardTitle, color: '#000'}}><ClipboardList color="#ea580c" /> Historial de Evaluaciones</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+              {listaPacientes.map((p, index) => (
+                <div key={index} style={itemPacienteStyle}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <strong style={{color: '#1e293b'}}>NHC: {p.nhc}</strong>
+                      <span style={p.risk_level === 'High' ? badgeRed : badgeBlue}>{p.risk_level} Risk</span>
+                    </div>
+                    <p style={{ margin: '5px 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                      Eval: {new Date(p.fecha).toLocaleDateString()} | nFASS: {p.nfass} | oFASS: {p.ofass_grade}
+                    </p>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => {
+                        seleccionarPacienteExistente({id: p.nhc, fecha_nacimiento: p.fecha_nacimiento, genero: p.genero});
+                        // Aquí podrías precargar los datos de p.respuestas_json si quisieras modificar
+                      }} 
+                      style={actionBtnGray} title="Modificar/Nueva Eval">
+                      Editar
+                    </button>
+                    <button onClick={() => descargarPaciente(p)} style={actionBtnBlue}>
+                      Descargar CSV
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
         {view === 'event_record' && (
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -533,10 +610,6 @@ const detailInput = {
   boxSizing: 'border-box'
 };
 
-
-
-// --- ACTUALIZA ESTOS OBJETOS AL FINAL DE TU APP.JSX ---
-
 const cardTitle = { 
   display: 'flex', 
   alignItems: 'center', 
@@ -579,6 +652,26 @@ const itemPacienteStyle = {
   color: '#1e293b', // NHC y datos en color oscuro
   fontFamily: '"Inter", sans-serif',
   transition: 'all 0.2s ease'
+};
+
+const badgeBlue = { 
+  backgroundColor: '#eff6ff', color: '#2563eb', padding: '2px 10px', 
+  borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' 
+};
+
+const badgeRed = { 
+  backgroundColor: '#fef2f2', color: '#dc2626', padding: '2px 10px', 
+  borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' 
+};
+
+const actionBtnBlue = {
+  padding: '8px 15px', backgroundColor: '#2563eb', color: '#fff', 
+  border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600'
+};
+
+const actionBtnGray = {
+  padding: '8px 15px', backgroundColor: '#f1f5f9', color: '#475569', 
+  border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600'
 };
 
 
