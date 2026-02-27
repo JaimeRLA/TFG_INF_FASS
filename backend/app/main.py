@@ -224,3 +224,23 @@ async def calculate(request: dict):
         return {"success": False, "message": str(e)}
     finally:
         conn.close()
+
+@app.delete("/evaluacion/{id_evaluacion}")
+async def eliminar_registro(id_evaluacion: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        # Usamos el placeholder correcto según la DB
+        query = "DELETE FROM registros WHERE id = %s" if DATABASE_URL else "DELETE FROM registros WHERE id = ?"
+        cursor.execute(query, (id_evaluacion,))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            return {"success": False, "message": "No se encontró el registro"}
+            
+        return {"success": True, "message": "Registro eliminado"}
+    except Exception as e:
+        print(f"Error al eliminar: {e}")
+        return {"success": False, "message": str(e)}
+    finally:
+        conn.close()

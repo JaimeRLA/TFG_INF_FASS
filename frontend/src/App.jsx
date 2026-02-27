@@ -102,21 +102,31 @@ const App = () => {
 };
 
   // NUEVA FUNCIÓN: ELIMINAR
-  const eliminarEvaluacion = async (id_evaluacion) => {
-    if (!window.confirm("¿Estás seguro de que deseas eliminar este registro permanentemente?")) return;
+  const eliminarEvaluacion = async (id_db) => {
+  // 1. Verificamos que el ID existe
+  if (!id_db) {
+    alert("Error: No se pudo encontrar el ID del registro.");
+    return;
+  }
+
+  if (!window.confirm("¿Estás seguro de eliminar este registro? Esta acción no se puede deshacer.")) return;
+  
+  try {
+    const res = await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}`);
     
-    try {
-      // Nota: Asegúrate de que tu backend use 'id' o el campo correcto para el DELETE
-      await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_evaluacion}`);
-      alert("Registro eliminado con éxito.");
-      // Recargar la lista para reflejar el borrado
-      const res = await axios.get('https://tfg-inf-fass.onrender.com/history');
-      setListaPacientes(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Error al intentar eliminar el registro.");
+    if (res.data.success || res.status === 200) {
+      alert("Registro eliminado correctamente.");
+      // 2. IMPORTANTE: Recargar la lista para que desaparezca de la pantalla
+      const resHistory = await axios.get('https://tfg-inf-fass.onrender.com/history');
+      setListaPacientes(resHistory.data);
+    } else {
+      alert("El servidor no pudo eliminar el registro: " + res.data.message);
     }
-  };
+  } catch (err) {
+    console.error("Error al borrar:", err);
+    alert("Error de conexión al intentar eliminar.");
+  }
+};
 
   const validarYPasarAEvento = async () => {
     if (!paciente.id || !paciente.fecha_nacimiento || !paciente.genero) {
@@ -253,12 +263,12 @@ const App = () => {
                       <button onClick={() => seleccionarPacienteExistente(p)} style={actionBtnGray}>Editar</button>
                       <button onClick={() => descargarPaciente(p)} style={actionBtnBlue}>CSV</button>
                       <button 
-                        onClick={() => eliminarEvaluacion(p.id)} 
-                        style={actionBtnRed}
-                        title="Eliminar Registro"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      onClick={() => eliminarEvaluacion(p.id)} // Usamos p.id que es como viene en tu JSON
+                      style={actionBtnRed}
+                      title="Eliminar Registro"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                     </div>
                   </div>
                 ))}
