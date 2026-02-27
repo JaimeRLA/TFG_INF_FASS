@@ -18,6 +18,7 @@ const App = () => {
   const [resultado, setResultado] = useState(null);
   const [listaPacientes, setListaPacientes] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
+  const [editandoId, setEditandoId] = useState(null);
   
   const [paciente, setPaciente] = useState({ 
     id: '', fecha_nacimiento: '', genero: '' 
@@ -47,6 +48,7 @@ const App = () => {
   };
 
   const reiniciarApp = () => {
+    setEditandoId(null);
     setPaciente({ id: '', fecha_nacimiento: '', genero: '' });
     setCuestionario({});
     setSeleccionados({});
@@ -78,15 +80,26 @@ const App = () => {
   };
 
   const seleccionarPacienteExistente = (p) => {
-    setPaciente({
-      id: p.id || p.paciente_id || p.nhc,
-      fecha_nacimiento: p.fecha_nacimiento || '',
-      genero: p.genero || ''
-    });
-    setResultado(null);
-    setSeleccionados({});
-    setView('event_record'); 
-  };
+  setEditandoId(p.id || null); // Guardamos el ID de la BBDD
+  setPaciente({
+    id: p.nhc || p.id || '', 
+    fecha_nacimiento: p.fecha_nacimiento || '',
+    genero: p.genero || ''
+  });
+  
+  // OPCIONAL: Si quieres que al editar aparezcan los síntomas que ya tenía:
+  if(p.sintomas) {
+      try {
+          const sints = JSON.parse(p.sintomas);
+          const newSels = {};
+          // Aquí tendrías que mapear los síntomas a tus selectores si quieres precargarlos
+          // setSeleccionados(newSels);
+      } catch(e) {}
+  }
+  
+  setResultado(null);
+  setView('event_record'); 
+};
 
   // NUEVA FUNCIÓN: ELIMINAR
   const eliminarEvaluacion = async (id_evaluacion) => {
@@ -119,14 +132,15 @@ const App = () => {
 
     try {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
-        paciente_id: paciente.id,
-        fecha_nacimiento: paciente.fecha_nacimiento,
-        genero: paciente.genero,
-        respuestas: cuestionario,
-        evento: evento,
-        sintomas: listaIds,
-        medico: usuarioLogueado
-      });
+      id: editandoId, // <--- ENVIAMOS EL ID (será null si es nuevo, o un número si es edición)
+      paciente_id: paciente.id,
+      fecha_nacimiento: paciente.fecha_nacimiento,
+      genero: paciente.genero,
+      respuestas: cuestionario,
+      evento: evento,
+      sintomas: listaIds,
+      medico: usuarioLogueado
+    });
 
       if (res.data.success === false) {
         alert(res.data.message);

@@ -176,38 +176,51 @@ async def calculate(request: dict):
     sintomas_ids = request.get("sintomas", [])
     resultado = calcular_nfass_ofass(sintomas_ids)
     
+    # Extraer el ID (si viene, es una edición)
+    registro_id = request.get("id") 
+    
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # 2. Convertir objetos a JSON string para la DB
         respuestas_json = json.dumps(request.get("respuestas", {}))
-        evento_json = json.dumps(request.get("evento", {})) # <-- NUEVO
+        evento_json = json.dumps(request.get("evento", {}))
         sintomas_json = json.dumps(sintomas_ids)
 
-        # 3. Consulta actualizada con 11 campos (Añadido evento_json)
-        query = f"""INSERT INTO registros 
-                (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
-                VALUES ({','.join([placeholder]*11)})"""
+        if registro_id:
+            # --- LÓGICA DE EDICIÓN (UPDATE) ---
+            query = f"""UPDATE registros SET 
+                        nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
+                        medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
+                        sintomas={placeholder}, nfass={placeholder}, ofass_grade={placeholder}, 
+                        ofass_category={placeholder}, risk_level={placeholder}
+                        WHERE id={placeholder}"""
+            
+            cursor.execute(query, (
+                request.get("paciente_id"), request.get("fecha_nacimiento"), request.get("genero"), 
+                request.get("medico"), respuestas_json, evento_json, sintomas_json, 
+                float(resultado["nfass"]), int(resultado["ofass_grade"]), 
+                resultado["ofass_category"], resultado["risk_level"],
+                registro_id  # El ID para el WHERE
+            ))
+        else:
+            # --- LÓGICA DE CREACIÓN (INSERT) ---
+            query = f"""INSERT INTO registros 
+                    (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
+                    VALUES ({','.join([placeholder]*11)})"""
+            
+            cursor.execute(query, (
+                request.get("paciente_id"), request.get("fecha_nacimiento"), request.get("genero"), 
+                request.get("medico"), respuestas_json, evento_json, sintomas_json, 
+                float(resultado["nfass"]), int(resultado["ofass_grade"]), 
+                resultado["ofass_category"], resultado["risk_level"]
+            ))
         
-        cursor.execute(query, (
-            request.get("paciente_id"), 
-            request.get("fecha_nacimiento"), 
-            request.get("genero"), 
-            request.get("medico"),
-            respuestas_json,
-            evento_json,   # <-- NUEVO: Aquí se guarda el Event Record
-            sintomas_json, 
-            float(resultado["nfass"]), 
-            int(resultado["ofass_grade"]), 
-            resultado["ofass_category"], 
-            resultado["risk_level"]
-        ))
         conn.commit()
         return resultado 
     except Exception as e:
-        print(f"Error al insertar: {e}")
-        return {"error": str(e)}
+        print(f"Error en DB: {e}")
+        return {"success": False, "message": str(e)}
     finally:
         conn.close()
