@@ -302,8 +302,8 @@ const App = () => {
 
               <h4 style={secHeader}>Suspected Triggers</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} /></div>
-                <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)}  placeholder="Suspected Food Name" /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)}  placeholder="Suspected Insect Name" /></div>
                 <div style={inputWrapper}><label style={labelStyle}>Drug/s (Medication):</label><input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" /></div>
               </div>
 
@@ -428,15 +428,11 @@ const cardHeading = { color: '#000', fontWeight: '800', margin: '15px 0', fontSi
 const avatarStyle = { width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' };
 const startBtn = { padding: '14px 24px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' };
 const cardStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: '20px' };
-const cardTitle = { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '20px', fontWeight: '800' };
 const calcBtn = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' };
 const backBtn = { background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '10px', fontWeight: 'bold' };
 const logoutBtn = { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' };
 const emptyCard = { padding: '50px', textAlign: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1', borderRadius: '20px', backgroundColor: '#fff' };
 const newEvalBtn = { width: '100%', marginTop: '10px', padding: '12px', border: '2px solid #2563eb', color: '#2563eb', borderRadius: '12px', background: 'none', fontWeight: 'bold', cursor: 'pointer' };
-const searchBar = { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' };
-const searchInput = { border: 'none', background: 'transparent', outline: 'none', width: '100%' };
-const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', cursor: 'pointer', border: '1px solid #e2e8f0' };
 const pacienteBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '5px 15px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' };
 const calculatorLayout = { display: 'flex', gap: '30px', alignItems: 'flex-start' };
 const asideStyle = { width: '400px', flexShrink: '0', position: 'sticky', top: '20px' };
@@ -537,4 +533,56 @@ const detailInput = {
   boxSizing: 'border-box'
 };
 
+
+
+// --- ACTUALIZA ESTOS OBJETOS AL FINAL DE TU APP.JSX ---
+
+const cardTitle = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '10px', 
+  fontSize: '1.2rem', 
+  marginBottom: '20px', 
+  fontWeight: '800',
+  color: '#000' // Título en Negro absoluto
+};
+
+const searchBar = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '10px', 
+  backgroundColor: '#f8fafc', 
+  padding: '12px', 
+  borderRadius: '12px', 
+  border: '1px solid #e2e8f0',
+  color: '#1e293b' // Color para el texto de búsqueda
+};
+
+const searchInput = { 
+  border: 'none', 
+  background: 'transparent', 
+  outline: 'none', 
+  width: '100%',
+  color: '#1e293b', // Letra oscura al escribir
+  fontFamily: '"Inter", sans-serif'
+};
+
+const itemPacienteStyle = { 
+  display: 'flex', 
+  justifyContent: 'space-between', 
+  alignItems: 'center', 
+  padding: '15px', 
+  backgroundColor: '#f8fafc', 
+  borderRadius: '12px', 
+  cursor: 'pointer', 
+  border: '1px solid #e2e8f0',
+  color: '#1e293b', // NHC y datos en color oscuro
+  fontFamily: '"Inter", sans-serif',
+  transition: 'all 0.2s ease'
+};
+
+
+
 export default App;
+
+
