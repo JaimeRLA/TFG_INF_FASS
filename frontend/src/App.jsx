@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   HeartPulse, Info, User, LogOut, ArrowRight, Activity, 
-  ArrowLeft, ClipboardCheck, Users, Search, ClipboardList 
+  ArrowLeft, ClipboardCheck, Users, Search, ClipboardList, Trash2
 } from 'lucide-react';
 
 // Componentes externos
@@ -60,6 +60,15 @@ const App = () => {
     setView('perfil');
   };
 
+  // Función para cargar historial (reutilizable)
+  const cargarHistorial = async () => {
+    try {
+      const res = await axios.get('https://tfg-inf-fass.onrender.com/history');
+      setListaPacientes(res.data);
+      setView('historial_global');
+    } catch (err) { alert("Error al cargar el historial."); }
+  };
+
   const cargarPacientesExistentes = async () => {
     try {
       const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
@@ -70,13 +79,30 @@ const App = () => {
 
   const seleccionarPacienteExistente = (p) => {
     setPaciente({
-      id: p.id || p.paciente_id,
+      id: p.id || p.paciente_id || p.nhc,
       fecha_nacimiento: p.fecha_nacimiento || '',
       genero: p.genero || ''
     });
     setResultado(null);
     setSeleccionados({});
     setView('event_record'); 
+  };
+
+  // NUEVA FUNCIÓN: ELIMINAR
+  const eliminarEvaluacion = async (id_evaluacion) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este registro permanentemente?")) return;
+    
+    try {
+      // Nota: Asegúrate de que tu backend use 'id' o el campo correcto para el DELETE
+      await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_evaluacion}`);
+      alert("Registro eliminado con éxito.");
+      // Recargar la lista para reflejar el borrado
+      const res = await axios.get('https://tfg-inf-fass.onrender.com/history');
+      setListaPacientes(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Error al intentar eliminar el registro.");
+    }
   };
 
   const validarYPasarAEvento = async () => {
@@ -189,18 +215,45 @@ const App = () => {
                <div style={{...avatarStyle, backgroundColor:'#fff7ed'}}><ClipboardList size={40} color="#ea580c" /></div>
                <h2 style={cardHeading}>Historial Completo</h2>
                <p style={{color:'#64748b', marginBottom:'20px', fontSize: '0.9rem'}}>Ver reportes anteriores, modificarlos o descargarlos.</p>
-               <button onClick={async () => {
-                 try {
-                   const res = await axios.get('https://tfg-inf-fass.onrender.com/history');
-                   setListaPacientes(res.data);
-                   setView('historial_global');
-                 } catch (err) { alert("Error al cargar el historial."); }
-               }} style={{...startBtn, backgroundColor: '#ea580c'}}>Ver Registros</button>
+               <button onClick={cargarHistorial} style={{...startBtn, backgroundColor: '#ea580c'}}>Ver Registros</button>
              </div>
            </div>
         )}
 
-        {/* BUSCAR PACIENTE */}
+        {/* HISTORIAL GLOBAL CON BOTÓN ELIMINAR */}
+        {view === 'historial_global' && (
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
+            <div style={cardStyle}>
+              <h3 style={{...cardTitle, color: '#000'}}><ClipboardList color="#ea580c" /> Historial de Evaluaciones</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                {listaPacientes.map((p, index) => (
+                  <div key={index} style={itemPacienteStyle}>
+                    <div style={{ flex: 1 }}>
+                      <strong style={{color: '#1e293b'}}>NHC: {p.nhc}</strong>
+                      <p style={{ margin: '5px 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                        Eval: {new Date(p.fecha).toLocaleDateString()} | nFASS: {p.nfass} | oFASS: {p.ofass_grade}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => seleccionarPacienteExistente(p)} style={actionBtnGray}>Editar</button>
+                      <button onClick={() => descargarPaciente(p)} style={actionBtnBlue}>CSV</button>
+                      <button 
+                        onClick={() => eliminarEvaluacion(p.id)} 
+                        style={actionBtnRed}
+                        title="Eliminar Registro"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BUSCAR PACIENTE EXISTENTE */}
         {view === 'seleccionar_paciente' && (
           <div style={{ maxWidth: '800px', margin: '40px auto' }}>
             <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
@@ -269,32 +322,6 @@ const App = () => {
           </div>
         )}
 
-        {/* HISTORIAL GLOBAL */}
-        {view === 'historial_global' && (
-          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
-            <div style={cardStyle}>
-              <h3 style={{...cardTitle, color: '#000'}}><ClipboardList color="#ea580c" /> Historial de Evaluaciones</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
-                {listaPacientes.map((p, index) => (
-                  <div key={index} style={itemPacienteStyle}>
-                    <div style={{ flex: 1 }}>
-                      <strong style={{color: '#1e293b'}}>NHC: {p.nhc}</strong>
-                      <p style={{ margin: '5px 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                        Eval: {new Date(p.fecha).toLocaleDateString()} | nFASS: {p.nfass} | oFASS: {p.ofass_grade}
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button onClick={() => seleccionarPacienteExistente({id: p.nhc, fecha_nacimiento: p.fecha_nacimiento, genero: p.genero})} style={actionBtnGray}>Editar</button>
-                      <button onClick={() => descargarPaciente(p)} style={actionBtnBlue}>Descargar CSV</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* EVENT RECORD */}
         {view === 'event_record' && (
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -346,7 +373,7 @@ const App = () => {
           </div>
         )}
 
-        {/* CALCULADORA (CORREGIDA) */}
+        {/* CALCULADORA DE SÍNTOMAS */}
         {view === 'calculadora' && (
           <main style={calculatorLayout}>
             <section style={{ flex: '1', minWidth: '0' }}>
@@ -417,14 +444,15 @@ const inputWrapper = { display: 'flex', flexDirection: 'column', gap: '8px', min
 const cardTitle = { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '20px', fontWeight: '800' };
 const searchBar = { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#1e293b' };
 const searchInput = { border: 'none', background: 'transparent', outline: 'none', width: '100%', color: '#1e293b', fontFamily: '"Inter", sans-serif' };
-const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', cursor: 'pointer', border: '1px solid #e2e8f0', color: '#1e293b', fontFamily: '"Inter", sans-serif' };
+const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#1e293b', fontFamily: '"Inter", sans-serif' };
 const detailInput = { width: '100%', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b', fontSize: '0.85rem', fontFamily: '"Inter", sans-serif', minHeight: '60px', resize: 'none', boxSizing: 'border-box' };
 
 const btnMini = { padding: '4px 12px', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#64748b', fontWeight: '400', cursor: 'pointer', fontFamily: '"Inter", sans-serif' };
 const btnMiniActive = { ...btnMini, backgroundColor: '#2563eb', color: '#fff', borderColor: '#2563eb' };
-const actionBtnBlue = { padding: '8px 15px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' };
-const actionBtnGray = { padding: '8px 15px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' };
-const badgeBlue = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '2px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' };
-const badgeRed = { backgroundColor: '#fef2f2', color: '#dc2626', padding: '2px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' };
+const actionBtnBlue = { padding: '8px 12px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' };
+const actionBtnGray = { padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' };
+
+// ESTILO PARA BOTÓN ELIMINAR (ROJO)
+const actionBtnRed = { padding: '8px 12px', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fee2e2', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
 export default App;
