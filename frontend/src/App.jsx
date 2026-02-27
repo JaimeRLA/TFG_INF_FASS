@@ -5,7 +5,7 @@ import {
   ArrowLeft, ClipboardCheck, Users, Search, ClipboardList, Trash2
 } from 'lucide-react';
 
-import { styles } from './AppStyles'; 
+import { styles } from './AppStyles.js'; 
 
 // Componentes externos
 import { SECCIONES_SINTOMAS } from './data/sintomas';
