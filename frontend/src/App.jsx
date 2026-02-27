@@ -170,7 +170,7 @@ const App = () => {
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         
-        {/* MENÚ PRINCIPAL ÚNICO (SOLO 3 OPCIONES) */}
+        {/* MENÚ PRINCIPAL */}
         {view === 'perfil' && (
            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '25px', marginTop: '60px' }}>
              <div style={optionCard}>
@@ -179,14 +179,12 @@ const App = () => {
                <p style={{color:'#64748b', marginBottom:'20px', fontSize: '0.9rem'}}>Inscribir un paciente por primera vez y sus antecedentes.</p>
                <button onClick={() => setView('registro_paciente')} style={startBtn}>Empezar</button>
              </div>
-
              <div style={optionCard}>
                <div style={{...avatarStyle, backgroundColor:'#f0fdf4'}}><Users size={40} color="#16a34a" /></div>
                <h2 style={cardHeading}>Nueva Evaluación</h2>
                <p style={{color:'#64748b', marginBottom:'20px', fontSize: '0.9rem'}}>Registrar un nuevo evento para un paciente ya existente.</p>
                <button onClick={cargarPacientesExistentes} style={{...startBtn, backgroundColor: '#16a34a'}}>Buscar NHC</button>
              </div>
-
              <div style={optionCard}>
                <div style={{...avatarStyle, backgroundColor:'#fff7ed'}}><ClipboardList size={40} color="#ea580c" /></div>
                <h2 style={cardHeading}>Historial Completo</h2>
@@ -202,7 +200,7 @@ const App = () => {
            </div>
         )}
 
-        {/* VISTAS RESTANTES (SIN CAMBIOS) */}
+        {/* BUSCAR PACIENTE */}
         {view === 'seleccionar_paciente' && (
           <div style={{ maxWidth: '800px', margin: '40px auto' }}>
             <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
@@ -225,6 +223,7 @@ const App = () => {
           </div>
         )}
 
+        {/* REGISTRO ANTECEDENTES */}
         {view === 'registro_paciente' && (
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <button onClick={() => setView('perfil')} style={backBtn}>← Cancelar</button>
@@ -270,6 +269,7 @@ const App = () => {
           </div>
         )}
 
+        {/* HISTORIAL GLOBAL */}
         {view === 'historial_global' && (
           <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
@@ -295,19 +295,22 @@ const App = () => {
           </div>
         )}
 
+        {/* EVENT RECORD */}
         {view === 'event_record' && (
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <button onClick={() => setView('registro_paciente')} style={backBtn}>← Volver a Antecedentes</button>
             <div style={cardStyle}>
-              <h3 style={{...cardTitle, color: '#000'}}><Activity color="#ef4444" /> Event Record (Reaction Details)</h3>
+              <h3 style={{...cardTitle, color: '#000'}}>
+                <Activity color="#ef4444" /> Event Record (Reaction Details)
+              </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                 <div style={inputWrapper}><label style={labelStyle}>Date and time of reaction:</label><input type="datetime-local" style={inputStyle} onChange={e => handleEvento('reaccion_fecha', e.target.value)} /></div>
                 <div style={inputWrapper}><label style={labelStyle}>Duration of symptoms:</label><input style={inputStyle} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} /></div>
               </div>
               <h4 style={secHeader}>Suspected Triggers</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} /></div>
-                <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Food/s:</label><input style={inputStyle} onChange={e => handleEvento('trigger_food', e.target.value)} placeholder="Suspected Food Name" /></div>
+                <div style={inputWrapper}><label style={labelStyle}>Insects or Ticks:</label><input style={inputStyle} onChange={e => handleEvento('trigger_insect', e.target.value)} placeholder="Suspected Insect Name" /></div>
                 <div style={inputWrapper}><label style={labelStyle}>Drug/s (Medication):</label><input style={inputStyle} value={evento.trigger_drug} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Suspected Drug Name" /></div>
               </div>
               {evento.trigger_drug && (
@@ -317,7 +320,12 @@ const App = () => {
                     <div style={inputWrapper}><label style={labelStyle}>Reason why drug was prescribed:</label><input style={inputStyle} onChange={e => handleEvento('drug_reason', e.target.value)} /></div>
                     <div style={inputWrapper}><label style={labelStyle}>Form (capsule, tablet, liquid, IV):</label><input style={inputStyle} onChange={e => handleEvento('drug_form', e.target.value)} /></div>
                     <div style={inputWrapper}><label style={labelStyle}>Other drugs taken at the time:</label><input style={inputStyle} onChange={e => handleEvento('drug_other', e.target.value)} /></div>
-                    <div style={inputWrapper}><label style={labelStyle}>Time of onset:</label><select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}><option value="">Select...</option><option value="within 1-2 hours">within 1-2 hours</option><option value="after 2 hours">after 2 hours</option></select></div>
+                    <div style={inputWrapper}>
+                      <label style={labelStyle}>Time of onset:</label>
+                      <select style={selectStyle} onChange={e => handleEvento('drug_onset', e.target.value)}>
+                        <option value="">Select...</option><option value="within 1-2 hours">within 1-2 hours</option><option value="after 2 hours">after 2 hours</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -338,6 +346,7 @@ const App = () => {
           </div>
         )}
 
+        {/* CALCULADORA (CORREGIDA) */}
         {view === 'calculadora' && (
           <main style={calculatorLayout}>
             <section style={{ flex: '1', minWidth: '0' }}>
@@ -345,7 +354,7 @@ const App = () => {
               <div style={cardStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{...cardTitle, margin: 0, color: '#000'}}><Activity color="#2563eb" /> Evaluación de la Reacción</h3>
-                    <span style={pacienteBadge}>NHC: {paciente.id}</span>
+                    <span style={pacienteBadgeStyle}>NHC: {paciente.id}</span>
                 </div>
                 {SECCIONES_SINTOMAS.map(sec => (
                   <div key={sec.titulo} style={{ marginBottom: '25px' }}>
@@ -354,7 +363,10 @@ const App = () => {
                       {sec.grupos.map(grupo => (
                         <div key={grupo.id_base}>
                           <label style={labelStyle}>{grupo.label}</label>
-                          <select style={selectStyle} onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}><option value="">-- No --</option>{grupo.options.map(opt => <option key={opt.id} value={opt.id}>{opt.text}</option>)}</select>
+                          <select style={selectStyle} onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}>
+                            <option value="">-- No --</option>
+                            {grupo.options.map(opt => <option key={opt.id} value={opt.id}>{opt.text}</option>)}
+                          </select>
                         </div>
                       ))}
                     </div>
@@ -391,7 +403,8 @@ const asideStyle = { width: '400px', flexShrink: '0', position: 'sticky', top: '
 const questionBlock = { padding: '15px', backgroundColor: '#fbfcfd', borderRadius: '12px', border: '1px solid #f1f5f9' };
 const gridQuestions = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 30px' };
 const calcBtn = { width: '100%', padding: '18px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' };
-const patientBadge = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '5px 15px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' };
+
+const pacienteBadgeStyle = { backgroundColor: '#eff6ff', color: '#2563eb', padding: '5px 15px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' };
 const rowYesNo = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' };
 const subLabelNormal = { fontSize: '0.9rem', color: '#1e293b', fontWeight: '700', fontFamily: '"Inter", sans-serif' };
 
