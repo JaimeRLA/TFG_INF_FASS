@@ -277,28 +277,37 @@ const App = () => {
           </div>
         )}
 
-        {/* BUSCAR PACIENTE EXISTENTE */}
         {view === 'seleccionar_paciente' && (
-          <div style={{ maxWidth: '800px', margin: '40px auto' }}>
-            <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
-            <div style={cardStyle}>
-              <h3 style={cardTitle}><Users size={22} color="#2563eb" /> Buscar Paciente</h3>
-              <div style={searchBar}>
-                <Search size={20} color="#94a3b8" />
-                <input style={searchInput} placeholder="Escriba el NHC..." onChange={(e) => setFiltroBusqueda(e.target.value)} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-                {pacientesFiltrados.map(p => (
-                  <div key={p.id} onClick={() => seleccionarPacienteExistente(p)} style={itemPacienteStyle}>
-                    <strong>NHC: {p.id}</strong>
-                    <span>{p.genero} | Nacimiento: {p.fecha_nacimiento}</span>
-                    <ArrowRight size={18} />
-                  </div>
-                ))}
-              </div>
+        <div style={{ maxWidth: '800px', margin: '40px auto' }}>
+          <button onClick={() => setView('perfil')} style={backBtn}>← Volver</button>
+          <div style={cardStyle}>
+            {/* TÍTULO CORREGIDO A COLOR NEGRO */}
+            <h3 style={{...cardTitle, color: '#000'}}>
+              <Users size={22} color="#2563eb" /> Buscar Paciente
+            </h3>
+            
+            <div style={searchBar}>
+              <Search size={20} color="#94a3b8" />
+              <input 
+                style={searchInput} 
+                placeholder="Escriba el NHC..." 
+                onChange={(e) => setFiltroBusqueda(e.target.value)} 
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+              {pacientesFiltrados.map(p => (
+                <div key={p.id} onClick={() => seleccionarPacienteExistente(p)} style={itemPacienteStyle}>
+                  {/* TEXTO DE PACIENTE EN NEGRO */}
+                  <strong style={{color: '#1e293b'}}>NHC: {p.id}</strong>
+                  <span style={{color: '#64748b'}}>{p.genero} | Nacimiento: {p.fecha_nacimiento}</span>
+                  <ArrowRight size={18} color="#2563eb" />
+                </div>
+              ))}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* REGISTRO ANTECEDENTES */}
         {view === 'registro_paciente' && (
@@ -465,9 +474,7 @@ const labelStyle = { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', ma
 const subLabel = { fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px', fontFamily: '"Inter", sans-serif' };
 const secHeader = { fontSize: '0.75rem', color: '#2563eb', textTransform: 'uppercase', borderBottom: '1px solid #eee', marginBottom: '15px', paddingBottom: '5px', fontWeight: '800' };
 const inputWrapper = { display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '0' };
-const cardTitle = { display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '20px', fontWeight: '800' };
 const searchBar = { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#1e293b' };
-const searchInput = { border: 'none', background: 'transparent', outline: 'none', width: '100%', color: '#1e293b', fontFamily: '"Inter", sans-serif' };
 const itemPacienteStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#1e293b', fontFamily: '"Inter", sans-serif' };
 const detailInput = { width: '100%', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#1e293b', fontSize: '0.85rem', fontFamily: '"Inter", sans-serif', minHeight: '60px', resize: 'none', boxSizing: 'border-box' };
 
@@ -478,5 +485,22 @@ const actionBtnGray = { padding: '8px 12px', backgroundColor: '#f1f5f9', color: 
 
 // ESTILO PARA BOTÓN ELIMINAR (ROJO)
 const actionBtnRed = { padding: '8px 12px', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fee2e2', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const cardTitle = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '10px', 
+  fontSize: '1.2rem', 
+  marginBottom: '20px', 
+  fontWeight: '800',
+  color: '#000' // <--- Color negro para todos los títulos de tarjeta
+};
 
+const searchInput = { 
+  border: 'none', 
+  background: 'transparent', 
+  outline: 'none', 
+  width: '100%',
+  color: '#1e293b', // <--- Texto que escribe el médico en negro
+  fontFamily: '"Inter", sans-serif'
+};
 export default App;
