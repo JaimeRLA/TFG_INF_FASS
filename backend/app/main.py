@@ -244,3 +244,12 @@ async def eliminar_registro(id_evaluacion: int):
         return {"success": False, "message": str(e)}
     finally:
         conn.close()
+
+@app.get("/lista_usuarios_debug")
+async def ver_usuarios():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username FROM usuarios")
+    users = cursor.fetchall()
+    conn.close()
+    return {"usuarios": users}
