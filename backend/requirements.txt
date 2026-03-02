@@ -1,6 +1,8 @@
 fastapi
 uvicorn
-pydantic
-numpy
 psycopg2-binary
+python-multipart
 groq
+pydantic
+passlib[bcrypt]
+cryptography
