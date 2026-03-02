@@ -1,8 +1,9 @@
 fastapi
 uvicorn
-psycopg2-binary
-python-multipart
-groq
 pydantic
+numpy
+psycopg2-binary
+groq
+python-multipart
 passlib[bcrypt]
 cryptography
