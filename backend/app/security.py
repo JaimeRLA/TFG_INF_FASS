@@ -11,12 +11,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("ENCRYPTION_KEY", Fernet.generate_key().decode())
 cipher = Fernet(SECRET_KEY.encode())
 
-# Funciones de Contraseña
-def hash_password(password):
-    return pwd_context.hash(password)
 
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
+def hash_password(password: str):
+    # Forzamos a que sea string y luego truncamos
+    pw_str = str(password)
+    return pwd_context.hash(pw_str[:72])
+
+def verify_password(plain_password: str, hashed_password: str):
+    # Forzamos a que sea string el password que llega del login
+    pw_str = str(plain_password)
+    return pwd_context.invoke_hash(hashed_password).verify(pw_str[:72])
 
 # Funciones de Datos
 def encrypt_data(text):
