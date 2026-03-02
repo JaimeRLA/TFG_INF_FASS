@@ -144,17 +144,19 @@ async def get_history():
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         
-        resultados = []
+        registros_descifrados = []
         for row in rows:
-            fila_dict = dict(zip(columns, row))
-            # DESCIFRAMOS EL NHC ANTES DE ENVIARLO AL FRONT
+            item = dict(zip(columns, row))
+            # --- PASO CLAVE: DESCIFRADO ---
             try:
-                fila_dict["nhc"] = decrypt_data(fila_dict["nhc"])
+                # Intentamos descifrar el NHC para que el médico lo vea normal
+                item["nhc"] = decrypt_data(item["nhc"])
             except:
-                pass # Si el dato no estaba cifrado (viejos registros), lo dejamos igual
-            resultados.append(fila_dict)
+                # Si el dato era antiguo y no estaba cifrado, lo dejamos como está
+                pass
+            registros_descifrados.append(item)
             
-        return resultados
+        return registros_descifrados
     finally:
         conn.close()
 
@@ -182,22 +184,30 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
+    # 1. Ejecutar la lógica de cálculo clínica
     sintomas_ids = request.sintomas
     resultado = calcular_nfass_ofass(sintomas_ids)
     
-    # CIFRAMOS EL NHC PARA PRIVACIDAD (AES-256)
-    nhc_cifrado = encrypt_data(request.paciente_id)
-    
+    # 2. CIFRADO DE DATOS SENSIBLES
+    # Protegemos el NHC (paciente_id) antes de que toque la base de datos
+    try:
+        nhc_cifrado = encrypt_data(str(request.paciente_id))
+    except Exception as e:
+        print(f"Error al cifrar NHC: {e}")
+        return {"success": False, "message": "Error crítico de seguridad en el cifrado"}
+
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
+        # 3. Preparación de objetos complejos (JSON)
         respuestas_json = json.dumps(request.respuestas)
         evento_json = json.dumps(request.evento)
         sintomas_json = json.dumps(sintomas_ids)
 
         if request.id:
+            # --- LÓGICA DE ACTUALIZACIÓN (UPDATE) ---
             query = f"""UPDATE registros SET 
                         nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
                         medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
@@ -213,8 +223,10 @@ async def calculate(request: EvaluacionRequest):
                 request.id
             ))
         else:
+            # --- LÓGICA DE CREACIÓN (INSERT) ---
             query = f"""INSERT INTO registros 
-                    (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
+                    (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
+                     nfass, ofass_grade, ofass_category, risk_level) 
                     VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
@@ -225,10 +237,15 @@ async def calculate(request: EvaluacionRequest):
             ))
         
         conn.commit()
+        
+        # Añadimos un flag de éxito al resultado para el Frontend
+        resultado["success"] = True
         return resultado 
+
     except Exception as e:
-        print(f"Error en DB: {e}")
-        return {"success": False, "message": str(e)}
+        if conn: conn.rollback()
+        print(f"Error en persistencia DB: {e}")
+        return {"success": False, "message": f"Error al guardar en base de datos: {str(e)}"}
     finally:
         conn.close()
 
