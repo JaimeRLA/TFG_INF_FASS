@@ -37,7 +37,7 @@ def init_db():
         cursor = conn.cursor()
         # --- PASO 1: BORRADO AGRESIVO ---
         #print("Limpiando tablas antiguas...")
-        #cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
+        cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
        
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
