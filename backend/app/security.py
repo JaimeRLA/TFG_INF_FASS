@@ -20,15 +20,30 @@ cipher = Fernet(cipher_key)
 
 # --- Funciones de Seguridad ---
 
+# backend/app/security.py
+
 def hash_password(password: str):
-    clean_password = str(password)[:72]
-    return pwd_context.hash(clean_password)
+    # 1. Aseguramos que sea string
+    pwd = str(password)
+    # 2. Cortamos a 72 por límite de algoritmo
+    pwd = pwd[:72]
+    # 3. Lo convertimos a bytes y luego otra vez a string limpio
+    # Esto elimina cualquier carácter oculto que confunda a Bcrypt
+    clean_pwd = pwd.encode('utf-8').decode('utf-8')
+    
+    return pwd_context.hash(clean_pwd)
 
 def verify_password(plain_password: str, hashed_password: str):
-    clean_password = str(plain_password)[:72]
+    if not hashed_password or not plain_password:
+        return False
     try:
-        return pwd_context.verify(clean_password, hashed_password)
-    except Exception:
+        # Repetimos la limpieza para la verificación
+        pwd = str(plain_password)[:72]
+        clean_pwd = pwd.encode('utf-8').decode('utf-8')
+        
+        return pwd_context.verify(clean_pwd, hashed_password)
+    except Exception as e:
+        print(f"Error en verificación: {e}")
         return False
 
 def encrypt_data(text: str):
