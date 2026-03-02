@@ -105,7 +105,7 @@ async def register(request: LoginRequest):
             return {"success": False, "message": "El nombre de usuario ya está registrado"}
         
         # CIFRAMOS LA CONTRASEÑA ANTES DE GUARDAR
-        hashed_pw = hash_password(request.password)
+        hashed_pw = hash_password(request.password) 
         
         cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", 
                        (request.username, hashed_pw))
@@ -129,8 +129,8 @@ async def login(request: LoginRequest):
     conn.close()
     
     # Verificamos si existe el usuario y si el hash coincide
-    if user and verify_password(request.password, user[1]):
-        return {"success": True, "message": "Acceso concedido", "username": user[0]}
+    if user and verify_password(request.password, user[1]): 
+        return {"success": True, "username": user[0]}
         
     return {"success": False, "message": "Usuario o contraseña incorrectos"}
 
