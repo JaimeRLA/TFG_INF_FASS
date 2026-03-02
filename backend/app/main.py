@@ -9,6 +9,8 @@ from .logic import calcular_nfass_ofass
 from .prompt import SYSTEM_PROMPT
 from pydantic import BaseModel
 from .data_models import LoginRequest, EvaluacionRequest
+# --- Añade estos imports al principio ---
+from .security import hash_password, verify_password, encrypt_data, decrypt_data
 
 app = FastAPI()
 
@@ -28,12 +30,12 @@ def get_connection():
     if DATABASE_URL:
         return psycopg2.connect(DATABASE_URL)
     return sqlite3.connect(os.path.join(os.path.dirname(__file__), "fass_database.db"))
+
 def init_db():
     conn = get_connection()
     try:
         cursor = conn.cursor()
         # --- PASO 1: BORRADO AGRESIVO ---
-        # Ejecuta esto una vez para limpiar los datos viejos que bloquean el sistema
         #print("Limpiando tablas antiguas...")
         #cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
        
@@ -102,8 +104,11 @@ async def register(request: LoginRequest):
         if cursor.fetchone():
             return {"success": False, "message": "El nombre de usuario ya está registrado"}
         
+        # CIFRAMOS LA CONTRASEÑA ANTES DE GUARDAR
+        hashed_pw = hash_password(request.password)
+        
         cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", 
-                       (request.username, request.password))
+                       (request.username, hashed_pw))
         conn.commit()
         return {"success": True, "message": "Registro completado con éxito"}
     except Exception as e:
@@ -117,14 +122,16 @@ async def login(request: LoginRequest):
     cursor = conn.cursor()
     placeholder = "%s" if DATABASE_URL else "?"
     
-    query = f"SELECT username FROM usuarios WHERE username = {placeholder} AND password = {placeholder}"
-    
-    cursor.execute(query, (request.username, request.password))
+    # Buscamos solo por nombre de usuario
+    query = f"SELECT username, password FROM usuarios WHERE username = {placeholder}"
+    cursor.execute(query, (request.username,))
     user = cursor.fetchone()
     conn.close()
     
-    if user:
+    # Verificamos si existe el usuario y si el hash coincide
+    if user and verify_password(request.password, user[1]):
         return {"success": True, "message": "Acceso concedido", "username": user[0]}
+        
     return {"success": False, "message": "Usuario o contraseña incorrectos"}
 
 # --- ENDPOINTS CLÍNICOS ---
@@ -135,7 +142,19 @@ async def get_history():
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
         columns = [desc[0] for desc in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        rows = cursor.fetchall()
+        
+        resultados = []
+        for row in rows:
+            fila_dict = dict(zip(columns, row))
+            # DESCIFRAMOS EL NHC ANTES DE ENVIARLO AL FRONT
+            try:
+                fila_dict["nhc"] = decrypt_data(fila_dict["nhc"])
+            except:
+                pass # Si el dato no estaba cifrado (viejos registros), lo dejamos igual
+            resultados.append(fila_dict)
+            
+        return resultados
     finally:
         conn.close()
 
@@ -163,24 +182,22 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
-    # 1. Acceso a datos de forma limpia (usando .propiedad en lugar de ["clave"])
     sintomas_ids = request.sintomas
     resultado = calcular_nfass_ofass(sintomas_ids)
     
-    registro_id = request.id 
+    # CIFRAMOS EL NHC PARA PRIVACIDAD (AES-256)
+    nhc_cifrado = encrypt_data(request.paciente_id)
     
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # Convertimos los diccionarios a JSON para la base de datos
         respuestas_json = json.dumps(request.respuestas)
         evento_json = json.dumps(request.evento)
         sintomas_json = json.dumps(sintomas_ids)
 
-        if registro_id:
-            # --- LÓGICA DE EDICIÓN (UPDATE) ---
+        if request.id:
             query = f"""UPDATE registros SET 
                         nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
                         medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
@@ -189,20 +206,19 @@ async def calculate(request: EvaluacionRequest):
                         WHERE id={placeholder}"""
             
             cursor.execute(query, (
-                request.paciente_id, request.fecha_nacimiento, request.genero, 
+                nhc_cifrado, request.fecha_nacimiento, request.genero, 
                 request.medico, respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"],
-                registro_id
+                request.id
             ))
         else:
-            # --- LÓGICA DE CREACIÓN (INSERT) ---
             query = f"""INSERT INTO registros 
                     (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, nfass, ofass_grade, ofass_category, risk_level) 
                     VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
-                request.paciente_id, request.fecha_nacimiento, request.genero, 
+                nhc_cifrado, request.fecha_nacimiento, request.genero, 
                 request.medico, respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"]
