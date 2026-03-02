@@ -134,9 +134,6 @@ async def login(request: LoginRequest):
     return {"success": False, "message": "Usuario o contraseña incorrectos"}
 
 # --- ENDPOINTS CLÍNICOS ---
-
-
-
 @app.get("/history")
 async def get_history():
     conn = get_connection()
@@ -249,7 +246,7 @@ async def eliminar_registro(id_evaluacion: int):
 async def ver_usuarios():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username FROM usuarios")
+    cursor.execute("SELECT id, password, username FROM usuarios")
     users = cursor.fetchall()
     conn.close()
     return {"usuarios": users}
