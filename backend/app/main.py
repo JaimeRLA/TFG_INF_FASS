@@ -6,9 +6,9 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from groq import Groq
 from .logic import calcular_nfass_ofass
-from .data_models import ReactionRequest
 from .prompt import SYSTEM_PROMPT
 from pydantic import BaseModel
+from .data_models import LoginRequest, EvaluacionRequest
 
 app = FastAPI()
 
@@ -91,13 +91,7 @@ async def get_pacientes_unicos(medico: str = Query(...)):
     finally:
         conn.close()
 
-# --- MODELOS DE DATOS ---
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
 # --- ENDPOINTS DE AUTENTICACIÓN ---
-
 @app.post("/register")
 async def register(request: LoginRequest):
     conn = get_connection()
@@ -168,21 +162,21 @@ async def chat_asistente(user_message: str = Query(...)):
 
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
-async def calculate(request: dict):
-    # 1. Realizar el cálculo
-    sintomas_ids = request.get("sintomas", [])
+async def calculate(request: EvaluacionRequest):
+    # 1. Acceso a datos de forma limpia (usando .propiedad en lugar de ["clave"])
+    sintomas_ids = request.sintomas
     resultado = calcular_nfass_ofass(sintomas_ids)
     
-    # Extraer el ID (si viene, es una edición)
-    registro_id = request.get("id") 
+    registro_id = request.id 
     
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        respuestas_json = json.dumps(request.get("respuestas", {}))
-        evento_json = json.dumps(request.get("evento", {}))
+        # Convertimos los diccionarios a JSON para la base de datos
+        respuestas_json = json.dumps(request.respuestas)
+        evento_json = json.dumps(request.evento)
         sintomas_json = json.dumps(sintomas_ids)
 
         if registro_id:
@@ -195,11 +189,11 @@ async def calculate(request: dict):
                         WHERE id={placeholder}"""
             
             cursor.execute(query, (
-                request.get("paciente_id"), request.get("fecha_nacimiento"), request.get("genero"), 
-                request.get("medico"), respuestas_json, evento_json, sintomas_json, 
+                request.paciente_id, request.fecha_nacimiento, request.genero, 
+                request.medico, respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"],
-                registro_id  # El ID para el WHERE
+                registro_id
             ))
         else:
             # --- LÓGICA DE CREACIÓN (INSERT) ---
@@ -208,8 +202,8 @@ async def calculate(request: dict):
                     VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
-                request.get("paciente_id"), request.get("fecha_nacimiento"), request.get("genero"), 
-                request.get("medico"), respuestas_json, evento_json, sintomas_json, 
+                request.paciente_id, request.fecha_nacimiento, request.genero, 
+                request.medico, respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"]
             ))
