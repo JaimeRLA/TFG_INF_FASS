@@ -37,7 +37,6 @@ def init_db():
         cursor = conn.cursor()
         # --- PASO 1: BORRADO AGRESIVO ---
         #print("Limpiando tablas antiguas...")
-        cursor.execute("DROP TABLE IF EXISTS usuarios CASCADE")
        
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
@@ -141,22 +140,30 @@ async def get_history():
     try:
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
+        
+        # Obtenemos los nombres de las columnas
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         
-        registros_descifrados = []
+        registros_finales = []
         for row in rows:
-            item = dict(zip(columns, row))
-            # --- PASO CLAVE: DESCIFRADO ---
-            try:
-                # Intentamos descifrar el NHC para que el médico lo vea normal
-                item["nhc"] = decrypt_data(item["nhc"])
-            except:
-                # Si el dato era antiguo y no estaba cifrado, lo dejamos como está
-                pass
-            registros_descifrados.append(item)
+            # Convertimos la fila en un diccionario
+            registro = dict(zip(columns, row))
             
-        return registros_descifrados
+            # --- INTENTO DE DESCIFRADO ---
+            # Si el NHC está cifrado, lo descifra. Si es texto plano (viejo), 
+            # saltará al except y lo dejará tal cual.
+            try:
+                # Solo intentamos descifrar si parece un token de Fernet (empieza por gAAAA)
+                if registro["nhc"] and registro["nhc"].startswith("gAAAA"):
+                    registro["nhc"] = decrypt_data(registro["nhc"])
+            except Exception as e:
+                print(f"Aviso: No se pudo descifrar el registro {registro['id']}: {e}")
+                # No hacemos nada, se queda con el valor original (texto plano)
+            
+            registros_finales.append(registro)
+            
+        return registros_finales
     finally:
         conn.close()
 
