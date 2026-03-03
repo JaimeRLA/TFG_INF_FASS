@@ -57,40 +57,36 @@ const App = () => {
 
   const cargarHistorial = async () => {
     try {
-      const res = await axios.get(`https://.../history?medico=${usuarioLogueado}`, {
-    headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
-    });
+      // Endpoint protegido con medico y x-tfg-key
+      const res = await axios.get(`https://tfg-inf-fass.onrender.com/history?medico=${usuarioLogueado}`, {
+        headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+      });
       setListaPacientes(res.data);
       setView('historial_global');
-    } catch (err) { alert("Error al cargar el historial."); }
+    } catch (err) { 
+      console.error(err);
+      alert("Error al cargar el historial. Acceso denegado."); 
+    }
   };
 
   const cargarPacientesExistentes = async () => {
-  try {
-    setFiltroBusqueda(''); 
-    
-    // Añadimos los headers a la petición
-    const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
-      headers: {
-        'x-tfg-key': 'Clave_Secreta_App_2024' // Esta clave debe coincidir con la del Backend
-      }
-    });
-    
-    console.log("Pacientes cargados:", res.data); // Para verificar que llegan
-    setListaPacientes(res.data);
-    setView('seleccionar_paciente');
-  } catch (err) { 
-    console.error(err);
-    alert("Error al cargar pacientes. Acceso denegado por seguridad."); 
-  }
-};
+    try {
+      setFiltroBusqueda(''); 
+      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
+        headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+      });
+      setListaPacientes(res.data);
+      setView('seleccionar_paciente');
+    } catch (err) { 
+      console.error(err);
+      alert("Error al cargar pacientes. Acceso denegado por seguridad."); 
+    }
+  };
 
-  
-
-  // ESTA FUNCIÓN ES PARA REGISTRAR UN NUEVO EVENTO (BLOQUEA VOLVER)
+  // REGISTRAR NUEVO EVENTO (BLOQUEA VOLVER)
   const seleccionarPacienteExistente = (p) => {
-    setEditandoId(null); // Nuevo registro
-    setEsPacienteExistente(true); // Bloquea el botón volver
+    setEditandoId(null); 
+    setEsPacienteExistente(true); 
     setPaciente({
       id: p.id || p.nhc || '',
       fecha_nacimiento: p.fecha_nacimiento || '',
@@ -100,44 +96,41 @@ const App = () => {
     setView('event_record'); 
   };
 
-  // NUEVA FUNCIÓN: PARA EDITAR UN REPORTE DEL HISTORIAL (PERMITE VOLVER)
+  // EDITAR REPORTE (PERMITE VOLVER)
   const seleccionarParaEditar = (p) => {
-    setEditandoId(p.id); // Guardamos el ID de la fila para el UPDATE
-    setEsPacienteExistente(false); // Al ser false, los botones "Volver" aparecerán
+    setEditandoId(p.id); 
+    setEsPacienteExistente(false); 
     setPaciente({
       id: p.nhc || '',
       fecha_nacimiento: p.fecha_nacimiento || '',
       genero: p.genero || ''
     });
-    // Cargamos los datos guardados en el formulario
     setEvento(p.evento_json || {});
     setCuestionario(p.respuestas_json || {});
-    // Para los síntomas seleccionados, necesitamos reconstruir el objeto de seleccionados
+    
     const sintomasPrevios = {};
     if (p.sintomas) {
       p.sintomas.forEach(idSintoma => {
-        // Asumimos que el id_base se puede extraer o mapear
-        // Por simplicidad, si p.sintomas es la lista de IDs:
         sintomasPrevios[idSintoma] = idSintoma; 
       });
     }
     setSeleccionados(sintomasPrevios);
     setResultado(null);
-    setView('registro_paciente'); // Permite modificar desde el principio
+    setView('registro_paciente'); 
   };
 
   const eliminarEvaluacion = async (id_db) => {
     if (!id_db) return;
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
     try {
-      const res = await axios.delete(`https://.../evaluacion/${id_db}?medico=${usuarioLogueado}`, {
-    headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
-});
+      const res = await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
+        headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+      });
       if (res.data.success || res.status === 200) {
         alert("Registro eliminado.");
         cargarHistorial();
       }
-    } catch (err) { alert("Error al borrar."); }
+    } catch (err) { alert("Error al borrar el registro."); }
   };
 
   const validarYPasarAEvento = async () => {
@@ -170,7 +163,7 @@ const App = () => {
         setResultado(res.data);
       }
     } catch (err) { 
-      alert("Error en el cálculo. Revisa que los datos sean correctos."); 
+      alert("Error en el cálculo. Revisa la conexión con el servidor."); 
     }
   };
 
@@ -204,7 +197,6 @@ const App = () => {
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         {view === 'perfil' && <MenuView setView={setView} cargarPacientesExistentes={cargarPacientesExistentes} cargarHistorial={cargarHistorial} />}
         
-        {/* EN EL HISTORIAL USAMOS LA NUEVA FUNCIÓN seleccionarParaEditar */}
         {view === 'historial_global' && (
           <HistorialView 
             listaPacientes={listaPacientes} 
@@ -221,7 +213,7 @@ const App = () => {
         {view === 'event_record' && (
           <EventRecordView 
             evento={evento} 
-            handleEvento = {handleEvento} 
+            handleEvento={handleEvento} 
             setView={setView} 
             esPacienteExistente={esPacienteExistente} 
           />
