@@ -20,9 +20,6 @@ cipher = Fernet(cipher_key)
 
 # --- Funciones de Seguridad ---
 
-# backend/app/security.py
-
-# backend/app/security.py
 
 def hash_password(password: str):
     # Forzamos la conversión a string y nos aseguramos de que no sea None

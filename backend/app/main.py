@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from .data_models import LoginRequest, EvaluacionRequest
 # --- Añade estos imports al principio ---
 from .security import hash_password, verify_password, encrypt_data, decrypt_data
+from fastapi import Header, HTTPException
 
 app = FastAPI()
 
@@ -73,38 +74,42 @@ def init_db():
 init_db()
 
 @app.get("/pacientes_unicos")
-async def get_pacientes_unicos(medico: str = Query(...)):
+async def get_pacientes_unicos(medico: str = Query(...), x_app_key: str = Header(None)):    
+    if x_app_key != "mi_clave_secreta_de_app":
+        raise HTTPException(status_code=401, detail="Acceso no autorizado desde fuera de la App")
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # 1. Traemos todos los registros del médico
+        # 1. Buscamos los datos que están "RUIDO" (cifrados) en la DB
         query = f"SELECT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
         cursor.execute(query, (medico,))
         
-        pacientes_dict = {} # Usaremos el NHC descifrado como clave para evitar duplicados
+        pacientes_dict = {} 
         
         for row in cursor.fetchall():
+            # Los datos vienen como 'gAAAAABl...'
             raw_nhc = row[0]
             raw_fecha = row[1]
             raw_genero = row[2]
             
-            # 2. DESCIFRADO DE SEGURIDAD
             try:
-                # Desciframos solo si el dato parece un token de Fernet
-                nhc_real = decrypt_data(raw_nhc) if raw_nhc.startswith("gAAAA") else raw_nhc
-                fecha_real = decrypt_data(raw_fecha) if raw_fecha.startswith("gAAAA") else raw_fecha
-                genero_real = decrypt_data(raw_genero) if raw_genero.startswith("gAAAA") else raw_genero
+                # 2. EL SERVIDOR USA LA CLAVE PARA DESCIFRAR
+                # Aquí es donde ocurre la "magia": el servidor lee el ruido y lo vuelve texto
+                nhc_real = decrypt_data(raw_nhc)
+                fecha_real = decrypt_data(raw_fecha)
+                genero_real = decrypt_data(raw_genero)
                 
-                # 3. Agregamos al diccionario (si el NHC ya existe, se sobrescribe, eliminando duplicados)
-                pacientes_dict[nhc_real] = {
-                    "id": nhc_real,
-                    "fecha_nacimiento": fecha_real,
-                    "genero": genero_real
-                }
-            except Exception as e:
-                print(f"Error procesando paciente: {e}")
+                # 3. Solo lo añadimos si se pudo descifrar correctamente
+                if nhc_real not in pacientes_dict:
+                    pacientes_dict[nhc_real] = {
+                        "id": nhc_real,
+                        "fecha_nacimiento": fecha_real,
+                        "genero": genero_real
+                    }
+            except:
+                # Si el dato no está cifrado (viejo) o la clave falla, lo ignoramos por seguridad
                 continue
                 
         return list(pacientes_dict.values())
