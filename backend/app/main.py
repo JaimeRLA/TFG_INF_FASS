@@ -37,6 +37,7 @@ def init_db():
         cursor = conn.cursor()
         # --- PASO 1: BORRADO AGRESIVO ---
         #print("Limpiando tablas antiguas...")
+        cursor.execute("DROP TABLE IF EXISTS registros CASCADE")
        
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
@@ -217,7 +218,6 @@ async def calculate(request: EvaluacionRequest):
     resultado = calcular_nfass_ofass(sintomas_ids)
     
     # 2. BLOQUE DE CIFRADO TOTAL
-    # Convertimos todo a string y lo ciframos
     nhc_c = encrypt_data(str(request.paciente_id))
     fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
     genero_c = encrypt_data(str(request.genero))
@@ -297,3 +297,10 @@ async def ver_usuarios():
     users = cursor.fetchall()
     conn.close()
     return {"usuarios": users}
+
+@app.get("/debug_db")
+async def debug_db():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT nhc, fecha_nacimiento FROM registros LIMIT 5')
+    return cursor.fetchall() # Esto te mostrará el "ruido" gAAAA... si está funcionando
