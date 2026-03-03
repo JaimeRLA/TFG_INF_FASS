@@ -73,30 +73,35 @@ init_db()
 
 # --- ENDPOINTS DE PACIENTES ---
 
+from fastapi import Header, HTTPException, Query
+
 @app.get("/pacientes_unicos")
-async def get_pacientes_unicos(medico: str = Query(...)):    
+async def get_pacientes_unicos(
+    medico: str = Query(...), 
+    x_tfg_key: str = Header(None) # Lee la clave de la cabecera
+):
+    # BLOQUEO: Si no viene la clave de la App, no damos datos
+    if x_tfg_key != "Clave_Secreta_App_2024":
+        raise HTTPException(status_code=401, detail="Acceso no autorizado")
+
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # Consultamos los datos (que ya están cifrados en la DB)
+        # Obtenemos los datos y los DESCIFRAMOS para la App
         query = f"SELECT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
         cursor.execute(query, (medico,))
         
-        pacientes_dict = {} 
-        
+        pacientes_dict = {}
         for row in cursor.fetchall():
-            # NO los desciframos. Los enviamos como vienen: 'gAAAAABl...'
-            raw_nhc = row[0]
-            
-            if raw_nhc not in pacientes_dict:
-                pacientes_dict[raw_nhc] = {
-                    "nhc_cifrado": raw_nhc,
-                    "fecha_cifrada": row[1],
-                    "genero_cifrado": row[2]
+            nhc_descifrado = decrypt_data(row[0]) # Desciframos para el médico
+            if nhc_descifrado not in pacientes_dict:
+                pacientes_dict[nhc_descifrado] = {
+                    "id": nhc_descifrado,
+                    "fecha_nacimiento": decrypt_data(row[1]),
+                    "genero": decrypt_data(row[2])
                 }
-                
         return list(pacientes_dict.values())
     finally:
         conn.close()

@@ -64,15 +64,24 @@ const App = () => {
   };
 
   const cargarPacientesExistentes = async () => {
-    try {
-      setFiltroBusqueda(''); 
-      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
-      setListaPacientes(res.data);
-      setView('seleccionar_paciente');
-    } catch (err) { 
-      alert("Error al cargar pacientes. Verifica la conexión."); 
-    }
-  };
+  try {
+    setFiltroBusqueda(''); 
+    
+    // Añadimos los headers a la petición
+    const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
+      headers: {
+        'x-tfg-key': 'Clave_Secreta_App_2024' // Esta clave debe coincidir con la del Backend
+      }
+    });
+    
+    console.log("Pacientes cargados:", res.data); // Para verificar que llegan
+    setListaPacientes(res.data);
+    setView('seleccionar_paciente');
+  } catch (err) { 
+    console.error(err);
+    alert("Error al cargar pacientes. Acceso denegado por seguridad."); 
+  }
+};
 
   
 
