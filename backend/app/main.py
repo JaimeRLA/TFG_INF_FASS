@@ -25,7 +25,7 @@ app.add_middleware(
 # --- BASE DE DATOS ---
 DATABASE_URL = os.getenv("DATABASE_URL")
 # Intenta leer la clave desde Render, si no existe usa la de local
-APP_SECRET_KEY = os.getenv("APP_SECRET_KEY", "Clave_Secreta_App_2024")
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
 
 def get_connection():
     if DATABASE_URL:
