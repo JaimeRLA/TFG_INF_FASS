@@ -57,7 +57,9 @@ const App = () => {
 
   const cargarHistorial = async () => {
     try {
-      const res = await axios.get('https://tfg-inf-fass.onrender.com/history');
+      const res = await axios.get(`https://.../history?medico=${usuarioLogueado}`, {
+    headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+    });
       setListaPacientes(res.data);
       setView('historial_global');
     } catch (err) { alert("Error al cargar el historial."); }
@@ -128,7 +130,9 @@ const App = () => {
     if (!id_db) return;
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
     try {
-      const res = await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}`);
+      const res = await axios.delete(`https://.../evaluacion/${id_db}?medico=${usuarioLogueado}`, {
+    headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+});
       if (res.data.success || res.status === 200) {
         alert("Registro eliminado.");
         cargarHistorial();
