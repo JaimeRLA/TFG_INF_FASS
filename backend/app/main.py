@@ -77,18 +77,36 @@ async def get_pacientes_unicos(medico: str = Query(...)):
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        # IMPORTANTE: Buscamos NHC, FECHA y GENERO (que son las columnas nuevas)
-        query = f"SELECT DISTINCT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
+        
+        # 1. Traemos todos los registros del médico
+        query = f"SELECT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
         cursor.execute(query, (medico,))
         
-        pacientes = []
+        pacientes_dict = {} # Usaremos el NHC descifrado como clave para evitar duplicados
+        
         for row in cursor.fetchall():
-            pacientes.append({
-                "id": row[0],
-                "fecha_nacimiento": row[1],
-                "genero": row[2]
-            })
-        return pacientes
+            raw_nhc = row[0]
+            raw_fecha = row[1]
+            raw_genero = row[2]
+            
+            # 2. DESCIFRADO DE SEGURIDAD
+            try:
+                # Desciframos solo si el dato parece un token de Fernet
+                nhc_real = decrypt_data(raw_nhc) if raw_nhc.startswith("gAAAA") else raw_nhc
+                fecha_real = decrypt_data(raw_fecha) if raw_fecha.startswith("gAAAA") else raw_fecha
+                genero_real = decrypt_data(raw_genero) if raw_genero.startswith("gAAAA") else raw_genero
+                
+                # 3. Agregamos al diccionario (si el NHC ya existe, se sobrescribe, eliminando duplicados)
+                pacientes_dict[nhc_real] = {
+                    "id": nhc_real,
+                    "fecha_nacimiento": fecha_real,
+                    "genero": genero_real
+                }
+            except Exception as e:
+                print(f"Error procesando paciente: {e}")
+                continue
+                
+        return list(pacientes_dict.values())
     finally:
         conn.close()
 
@@ -121,15 +139,14 @@ async def login(request: LoginRequest):
     cursor = conn.cursor()
     placeholder = "%s" if DATABASE_URL else "?"
     
-    # Buscamos solo por nombre de usuario
     query = f"SELECT username, password FROM usuarios WHERE username = {placeholder}"
     cursor.execute(query, (request.username,))
     user = cursor.fetchone()
     conn.close()
     
-    # Verificamos si existe el usuario y si el hash coincide
     if user and verify_password(request.password, user[1]): 
-        return {"success": True, "username": user[0]}
+        # IMPORTANTE: Asegúrate de devolver success: True
+        return {"success": True, "message": "Acceso concedido", "username": user[0]}
         
     return {"success": False, "message": "Usuario o contraseña incorrectos"}
 
@@ -140,30 +157,34 @@ async def get_history():
     try:
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
-        
-        # Obtenemos los nombres de las columnas
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         
-        registros_finales = []
+        resultados = []
         for row in rows:
-            # Convertimos la fila en un diccionario
-            registro = dict(zip(columns, row))
+            reg = dict(zip(columns, row))
             
-            # --- INTENTO DE DESCIFRADO ---
-            # Si el NHC está cifrado, lo descifra. Si es texto plano (viejo), 
-            # saltará al except y lo dejará tal cual.
+            # DESCIFRADO CAMPO POR CAMPO
+            # Usamos try/except por cada uno por si hay datos viejos sin cifrar
             try:
-                # Solo intentamos descifrar si parece un token de Fernet (empieza por gAAAA)
-                if registro["nhc"] and registro["nhc"].startswith("gAAAA"):
-                    registro["nhc"] = decrypt_data(registro["nhc"])
+                reg["nhc"] = decrypt_data(reg["nhc"])
+                reg["fecha_nacimiento"] = decrypt_data(reg["fecha_nacimiento"])
+                reg["genero"] = decrypt_data(reg["genero"])
+                
+                # Los JSON hay que descifrarlos y luego convertirlos de texto a objeto Python
+                reg["respuestas_json"] = json.loads(decrypt_data(reg["respuestas_json"]))
+                reg["evento_json"] = json.loads(decrypt_data(reg["evento_json"]))
+                reg["sintomas"] = json.loads(decrypt_data(reg["sintomas"]))
             except Exception as e:
-                print(f"Aviso: No se pudo descifrar el registro {registro['id']}: {e}")
-                # No hacemos nada, se queda con el valor original (texto plano)
+                # Si falla (dato viejo), intentamos cargar los JSON normales si no estaban cifrados
+                try:
+                    reg["respuestas_json"] = json.loads(reg["respuestas_json"])
+                    reg["evento_json"] = json.loads(reg["evento_json"])
+                    reg["sintomas"] = json.loads(reg["sintomas"])
+                except: pass
             
-            registros_finales.append(registro)
-            
-        return registros_finales
+            resultados.append(reg)
+        return resultados
     finally:
         conn.close()
 
@@ -191,30 +212,27 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
-    # 1. Ejecutar la lógica de cálculo clínica
+    # 1. Cálculos clínicos (se hacen con los datos en "limpio" que llegan del Front)
     sintomas_ids = request.sintomas
     resultado = calcular_nfass_ofass(sintomas_ids)
     
-    # 2. CIFRADO DE DATOS SENSIBLES
-    # Protegemos el NHC (paciente_id) antes de que toque la base de datos
-    try:
-        nhc_cifrado = encrypt_data(str(request.paciente_id))
-    except Exception as e:
-        print(f"Error al cifrar NHC: {e}")
-        return {"success": False, "message": "Error crítico de seguridad en el cifrado"}
+    # 2. BLOQUE DE CIFRADO TOTAL
+    # Convertimos todo a string y lo ciframos
+    nhc_c = encrypt_data(str(request.paciente_id))
+    fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
+    genero_c = encrypt_data(str(request.genero))
+    
+    # Los JSON también se cifran como texto
+    respuestas_json = encrypt_data(json.dumps(request.respuestas))
+    evento_json = encrypt_data(json.dumps(request.evento))
+    sintomas_json = encrypt_data(json.dumps(sintomas_ids))
 
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # 3. Preparación de objetos complejos (JSON)
-        respuestas_json = json.dumps(request.respuestas)
-        evento_json = json.dumps(request.evento)
-        sintomas_json = json.dumps(sintomas_ids)
-
         if request.id:
-            # --- LÓGICA DE ACTUALIZACIÓN (UPDATE) ---
             query = f"""UPDATE registros SET 
                         nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
                         medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
@@ -223,31 +241,26 @@ async def calculate(request: EvaluacionRequest):
                         WHERE id={placeholder}"""
             
             cursor.execute(query, (
-                nhc_cifrado, request.fecha_nacimiento, request.genero, 
-                request.medico, respuestas_json, evento_json, sintomas_json, 
+                nhc_c, fecha_n_c, genero_c, request.medico, 
+                respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
-                resultado["ofass_category"], resultado["risk_level"],
-                request.id
+                resultado["ofass_category"], resultado["risk_level"], request.id
             ))
         else:
-            # --- LÓGICA DE CREACIÓN (INSERT) ---
             query = f"""INSERT INTO registros 
                     (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
                      nfass, ofass_grade, ofass_category, risk_level) 
                     VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
-                nhc_cifrado, request.fecha_nacimiento, request.genero, 
-                request.medico, respuestas_json, evento_json, sintomas_json, 
+                nhc_c, fecha_n_c, genero_c, request.medico, 
+                respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"]
             ))
         
         conn.commit()
-        
-        # Añadimos un flag de éxito al resultado para el Frontend
-        resultado["success"] = True
-        return resultado 
+        return {**resultado, "success": True}
 
     except Exception as e:
         if conn: conn.rollback()
