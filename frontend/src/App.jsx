@@ -16,6 +16,7 @@ import CalculadoraView from './views/CalculadoraView';
 
 const App = () => {
   // --- ESTADOS ---
+  const [esPacienteExistente, setEsPacienteExistente] = useState(false);
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
   const [view, setView] = useState('perfil');
   const [resultado, setResultado] = useState(null);
@@ -39,6 +40,7 @@ const App = () => {
   const handleSelectChange = (grupoId, valor) => setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
 
   const reiniciarApp = () => {
+    setEsPacienteExistente(false); // <--- Resetear aquí
     setEditandoId(null);
     setPaciente({ id: '', fecha_nacimiento: '', genero: '' });
     setCuestionario({});
@@ -74,20 +76,16 @@ const App = () => {
 };
 
   const seleccionarPacienteExistente = (p) => {
-    // IMPORTANTE: Ponemos null para que el Backend haga un INSERT (nuevo evento)
-    // y no un UPDATE del registro anterior.
-    setEditandoId(null); 
-    
-    setPaciente({
-      id: p.id || p.nhc || '', // Este es el NHC descifrado que viene del endpoint
-      fecha_nacimiento: p.fecha_nacimiento || '',
-      genero: p.genero || ''
-    });
-    
-    setResultado(null);
-    // Saltamos directamente a Antecedentes o Event Record
-    setView('event_record'); 
-  };
+  setEditandoId(null); 
+  setEsPacienteExistente(true); // <--- Marcamos que ya existe
+  setPaciente({
+    id: p.id || p.nhc || '',
+    fecha_nacimiento: p.fecha_nacimiento || '',
+    genero: p.genero || ''
+  });
+  setResultado(null);
+  setView('event_record'); // <--- Saltamos directamente a la reacción
+};
 
   const eliminarEvaluacion = async (id_db) => {
     if (!id_db) return;
