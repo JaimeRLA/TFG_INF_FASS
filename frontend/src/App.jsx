@@ -40,7 +40,7 @@ const App = () => {
   const handleSelectChange = (grupoId, valor) => setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
 
   const reiniciarApp = () => {
-    setEsPacienteExistente(false); // <--- Resetear aquí
+    setEsPacienteExistente(false); 
     setEditandoId(null);
     setPaciente({ id: '', fecha_nacimiento: '', genero: '' });
     setCuestionario({});
@@ -64,28 +64,27 @@ const App = () => {
   };
 
   const cargarPacientesExistentes = async () => {
-  try {
-    // Limpiamos búsqueda anterior
-    setFiltroBusqueda(''); 
-    const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
-    setListaPacientes(res.data);
-    setView('seleccionar_paciente');
-  } catch (err) { 
-    alert("Error al cargar pacientes. Verifica la conexión."); 
-  }
-};
+    try {
+      setFiltroBusqueda(''); 
+      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
+      setListaPacientes(res.data);
+      setView('seleccionar_paciente');
+    } catch (err) { 
+      alert("Error al cargar pacientes. Verifica la conexión."); 
+    }
+  };
 
   const seleccionarPacienteExistente = (p) => {
-  setEditandoId(null); 
-  setEsPacienteExistente(true); // <--- Marcamos que ya existe
-  setPaciente({
-    id: p.id || p.nhc || '',
-    fecha_nacimiento: p.fecha_nacimiento || '',
-    genero: p.genero || ''
-  });
-  setResultado(null);
-  setView('event_record'); // <--- Saltamos directamente a la reacción
-};
+    setEditandoId(null); 
+    setEsPacienteExistente(true); 
+    setPaciente({
+      id: p.id || p.nhc || '',
+      fecha_nacimiento: p.fecha_nacimiento || '',
+      genero: p.genero || ''
+    });
+    setResultado(null);
+    setView('event_record'); 
+  };
 
   const eliminarEvaluacion = async (id_db) => {
     if (!id_db) return;
@@ -109,32 +108,30 @@ const App = () => {
   };
 
   const enviarEvaluacion = async () => {
-  const listaIds = Object.values(seleccionados).filter(id => id !== "");
-  if (!paciente.id) return alert("Error: Falta ID del paciente.");
+    const listaIds = Object.values(seleccionados).filter(id => id !== "");
+    if (!paciente.id) return alert("Error: Falta ID del paciente.");
 
-  console.log("Enviando evaluación con ID:", editandoId); // DEBUG: Debe ser null para nuevas instancias
-
-  try {
-    const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
-      id: editandoId, // Si es null -> INSERT. Si tiene número -> UPDATE.
-      paciente_id: paciente.id,
-      fecha_nacimiento: paciente.fecha_nacimiento,
-      genero: paciente.genero,
-      respuestas: cuestionario,
-      evento: evento,
-      sintomas: listaIds,
-      medico: usuarioLogueado
-    });
-    
-    if (res.data.success === false) {
-      alert(res.data.message);
-    } else {
-      setResultado(res.data);
+    try {
+      const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
+        id: editandoId, 
+        paciente_id: paciente.id,
+        fecha_nacimiento: paciente.fecha_nacimiento,
+        genero: paciente.genero,
+        respuestas: cuestionario,
+        evento: evento,
+        sintomas: listaIds,
+        medico: usuarioLogueado
+      });
+      
+      if (res.data.success === false) {
+        alert(res.data.message);
+      } else {
+        setResultado(res.data);
+      }
+    } catch (err) { 
+      alert("Error en el cálculo. Revisa los logs del servidor."); 
     }
-  } catch (err) { 
-    alert("Error en el cálculo. Revisa los logs del servidor."); 
-  }
-};
+  };
 
   const descargarPaciente = (p) => {
     const encabezados = "NHC,Fecha_Nac,Genero,nFASS,oFASS,Risk,Fecha_Evaluacion\n";
@@ -168,8 +165,27 @@ const App = () => {
         {view === 'historial_global' && <HistorialView listaPacientes={listaPacientes} seleccionarPacienteExistente={seleccionarPacienteExistente} descargarPaciente={descargarPaciente} eliminarEvaluacion={eliminarEvaluacion} setView={setView} />}
         {view === 'seleccionar_paciente' && <SeleccionarPacienteView pacientesFiltrados={pacientesFiltrados} setFiltroBusqueda={setFiltroBusqueda} seleccionarPacienteExistente={seleccionarPacienteExistente} setView={setView} />}
         {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} />}
-        {view === 'event_record' && <EventRecordView evento={evento} handleEvento={handleEvento} setView={setView} />}
-        {view === 'calculadora' && <CalculadoraView paciente={paciente} handleSelectChange={handleSelectChange} enviarEvaluacion={enviarEvaluacion} resultado={resultado} reiniciarApp={reiniciarApp} setView={setView} />}
+        
+        {/* PASAMOS LA PROP esPacienteExistente A LAS VISTAS CLAVE */}
+        {view === 'event_record' && (
+          <EventRecordView 
+            evento={evento} 
+            handleEvento={handleEvento} 
+            setView={setView} 
+            esPacienteExistente={esPacienteExistente} 
+          />
+        )}
+        {view === 'calculadora' && (
+          <CalculadoraView 
+            paciente={paciente} 
+            handleSelectChange={handleSelectChange} 
+            enviarEvaluacion={enviarEvaluacion} 
+            resultado={resultado} 
+            reiniciarApp={reiniciarApp} 
+            setView={setView} 
+            esPacienteExistente={esPacienteExistente}
+          />
+        )}
       </div>
       <ChatBot />
     </div>

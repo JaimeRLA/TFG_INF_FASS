@@ -4,31 +4,34 @@ import { styles } from '../AppStyles.js';
 
 const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente }) => (
   <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-    {/* MODIFICACIÓN: Botón dinámico según el origen del paciente */}
-    <button 
-      onClick={() => setView(esPacienteExistente ? 'seleccionar_paciente' : 'registro_paciente')} 
-      style={styles.backBtn}
-    >
-      <ArrowLeft size={18} /> {esPacienteExistente ? 'Volver a Selección' : 'Volver a Antecedentes'}
-    </button>
+    
+    {/* MODIFICACIÓN: El botón de volver solo aparece si NO es un paciente existente */}
+    {!esPacienteExistente && (
+      <button onClick={() => setView('registro_paciente')} style={styles.backBtn}>
+        <ArrowLeft size={18} /> ← Volver a Antecedentes
+      </button>
+    )}
 
     <div style={styles.cardStyle}>
       <h3 style={{ ...styles.cardTitle, color: '#000' }}>
         <Activity color="#ef4444" /> Event Record (Reaction Details)
       </h3>
-      
-      {/* Indicador visual de que estamos en un paciente existente */}
+
+      {/* Aviso visual opcional para confirmar el flujo protegido */}
       {esPacienteExistente && (
         <div style={{ 
-          backgroundColor: '#eff6ff', 
-          padding: '10px 15px', 
+          backgroundColor: '#f8fafc', 
+          border: '1px solid #e2e8f0', 
+          padding: '10px', 
           borderRadius: '8px', 
           marginBottom: '20px',
-          border: '1px solid #bfdbfe',
           fontSize: '0.9rem',
-          color: '#1e40af'
+          color: '#64748b',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
         }}>
-          📌 Registrando nuevo evento para paciente de la base de datos.
+          <span>🔒 Perfil de paciente verificado. Los antecedentes están bloqueados.</span>
         </div>
       )}
 
@@ -74,9 +77,12 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
         {evento.other_treatment_yn === 'Yes' && <textarea style={styles.detailInput} value={evento.other_treatment_details} placeholder="Provide details..." onChange={e => handleEvento('other_treatment_details', e.target.value)} />}
         <div style={styles.rowYesNo}><span style={styles.subLabelNormal}>Was an ambulance called?</span><div style={{ display: 'flex', gap: '5px' }}>{['Yes', 'No'].map(op => (<button key={op} onClick={() => handleEvento('ambulance', op)} style={evento.ambulance === op ? styles.btnMiniActive : styles.btnMini}>{op}</button>))}</div></div>
       </div>
+      
       <div style={{ marginTop: '20px' }}><label style={styles.labelStyle}>Other information:</label><textarea style={styles.detailInput} value={evento.other_info} onChange={e => handleEvento('other_info', e.target.value)} /></div>
       
-      <button onClick={() => setView('calculadora')} style={styles.calcBtn}>Continuar a Síntomas <ArrowRight /></button>
+      <button onClick={() => setView('calculadora')} style={styles.calcBtn}>
+        Continuar a Síntomas <ArrowRight size={18} />
+      </button>
     </div>
   </div>
 );
