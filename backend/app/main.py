@@ -80,28 +80,22 @@ async def get_pacientes_unicos(medico: str = Query(...)):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # Traemos NHC, Fecha y Género (que están cifrados en la DB)
+        # Consultamos los datos (que ya están cifrados en la DB)
         query = f"SELECT nhc, fecha_nacimiento, genero FROM registros WHERE medico = {placeholder}"
         cursor.execute(query, (medico,))
         
         pacientes_dict = {} 
         
         for row in cursor.fetchall():
-            try:
-                # Desciframos los datos para que el Frontend los vea legibles
-                nhc_real = decrypt_data(row[0])
-                fecha_real = decrypt_data(row[1])
-                genero_real = decrypt_data(row[2])
-                
-                # Usamos el NHC real como clave para evitar duplicados en la lista
-                if nhc_real not in pacientes_dict:
-                    pacientes_dict[nhc_real] = {
-                        "id": nhc_real,
-                        "fecha_nacimiento": fecha_real,
-                        "genero": genero_real
-                    }
-            except:
-                continue # Saltamos registros viejos o corruptos
+            # NO los desciframos. Los enviamos como vienen: 'gAAAAABl...'
+            raw_nhc = row[0]
+            
+            if raw_nhc not in pacientes_dict:
+                pacientes_dict[raw_nhc] = {
+                    "nhc_cifrado": raw_nhc,
+                    "fecha_cifrada": row[1],
+                    "genero_cifrado": row[2]
+                }
                 
         return list(pacientes_dict.values())
     finally:

@@ -74,6 +74,8 @@ const App = () => {
     }
   };
 
+  
+
   // ESTA FUNCIÓN ES PARA REGISTRAR UN NUEVO EVENTO (BLOQUEA VOLVER)
   const seleccionarPacienteExistente = (p) => {
     setEditandoId(null); // Nuevo registro
