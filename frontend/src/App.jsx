@@ -62,22 +62,31 @@ const App = () => {
   };
 
   const cargarPacientesExistentes = async () => {
-    try {
-      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
-      setListaPacientes(res.data);
-      setView('seleccionar_paciente');
-    } catch (err) { alert("Error al conectar con la base de datos."); }
-  };
+  try {
+    // Limpiamos búsqueda anterior
+    setFiltroBusqueda(''); 
+    const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`);
+    setListaPacientes(res.data);
+    setView('seleccionar_paciente');
+  } catch (err) { 
+    alert("Error al cargar pacientes. Verifica la conexión."); 
+  }
+};
 
   const seleccionarPacienteExistente = (p) => {
-    setEditandoId(p.id || null);
+    // IMPORTANTE: Ponemos null para que el Backend haga un INSERT (nuevo evento)
+    // y no un UPDATE del registro anterior.
+    setEditandoId(null); 
+    
     setPaciente({
-      id: p.nhc || p.id || '',
+      id: p.id || p.nhc || '', // Este es el NHC descifrado que viene del endpoint
       fecha_nacimiento: p.fecha_nacimiento || '',
       genero: p.genero || ''
     });
+    
     setResultado(null);
-    setView('event_record');
+    // Saltamos directamente a Antecedentes o Event Record
+    setView('event_record'); 
   };
 
   const eliminarEvaluacion = async (id_db) => {
@@ -102,23 +111,32 @@ const App = () => {
   };
 
   const enviarEvaluacion = async () => {
-    const listaIds = Object.values(seleccionados).filter(id => id !== "");
-    if (!paciente.id) return alert("Error: Falta ID del paciente.");
-    try {
-      const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
-        id: editandoId,
-        paciente_id: paciente.id,
-        fecha_nacimiento: paciente.fecha_nacimiento,
-        genero: paciente.genero,
-        respuestas: cuestionario,
-        evento: evento,
-        sintomas: listaIds,
-        medico: usuarioLogueado
-      });
-      if (res.data.success === false) alert(res.data.message);
-      else setResultado(res.data);
-    } catch (err) { alert("Error en el cálculo."); }
-  };
+  const listaIds = Object.values(seleccionados).filter(id => id !== "");
+  if (!paciente.id) return alert("Error: Falta ID del paciente.");
+
+  console.log("Enviando evaluación con ID:", editandoId); // DEBUG: Debe ser null para nuevas instancias
+
+  try {
+    const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
+      id: editandoId, // Si es null -> INSERT. Si tiene número -> UPDATE.
+      paciente_id: paciente.id,
+      fecha_nacimiento: paciente.fecha_nacimiento,
+      genero: paciente.genero,
+      respuestas: cuestionario,
+      evento: evento,
+      sintomas: listaIds,
+      medico: usuarioLogueado
+    });
+    
+    if (res.data.success === false) {
+      alert(res.data.message);
+    } else {
+      setResultado(res.data);
+    }
+  } catch (err) { 
+    alert("Error en el cálculo. Revisa los logs del servidor."); 
+  }
+};
 
   const descargarPaciente = (p) => {
     const encabezados = "NHC,Fecha_Nac,Genero,nFASS,oFASS,Risk,Fecha_Evaluacion\n";
