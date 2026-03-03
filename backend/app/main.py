@@ -146,12 +146,25 @@ async def login(request: LoginRequest):
 
 # --- ENDPOINTS CLÍNICOS ---
 
+# --- 1. HISTORIAL ASEGURADO (Filtra por médico y requiere Key) ---
 @app.get("/history")
-async def get_history():
+async def get_history(
+    medico: str = Query(...), 
+    x_tfg_key: str = Header(None)
+):
+    # Verificamos la clave de la App
+    if x_tfg_key != "Clave_Secreta_App_2024":
+        raise HTTPException(status_code=401, detail="No autorizado")
+
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
+        placeholder = "%s" if DATABASE_URL else "?"
+        
+        # IMPORTANTE: Solo seleccionamos los del médico logueado
+        query = f"SELECT * FROM registros WHERE medico = {placeholder} ORDER BY fecha DESC"
+        cursor.execute(query, (medico,))
+        
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         
@@ -159,7 +172,7 @@ async def get_history():
         for row in rows:
             reg = dict(zip(columns, row))
             try:
-                # Descifrado completo para visualización
+                # Descifrado
                 reg["nhc"] = decrypt_data(reg["nhc"])
                 reg["fecha_nacimiento"] = decrypt_data(reg["fecha_nacimiento"])
                 reg["genero"] = decrypt_data(reg["genero"])
@@ -167,17 +180,46 @@ async def get_history():
                 reg["evento_json"] = json.loads(decrypt_data(reg["evento_json"]))
                 reg["sintomas"] = json.loads(decrypt_data(reg["sintomas"]))
             except Exception:
-                # Fallback para datos antiguos
-                try:
-                    reg["respuestas_json"] = json.loads(reg["respuestas_json"])
-                    reg["evento_json"] = json.loads(reg["evento_json"])
-                    reg["sintomas"] = json.loads(reg["sintomas"])
-                except: pass
+                continue # Si no se puede descifrar, no lo enviamos por seguridad
             
             resultados.append(reg)
         return resultados
     finally:
         conn.close()
+
+# --- 2. ELIMINACIÓN SEGURA (Verifica que sea el médico del registro) ---
+@app.delete("/evaluacion/{id_evaluacion}")
+async def eliminar_registro(
+    id_evaluacion: int, 
+    medico: str = Query(...), 
+    x_tfg_key: str = Header(None)
+):
+    if x_tfg_key != "Clave_Secreta_App_2024":
+        raise HTTPException(status_code=401, detail="No autorizado")
+
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+        
+        # Verificamos que el ID pertenezca al médico antes de borrar
+        query_check = f"SELECT medico FROM registros WHERE id = {placeholder}"
+        cursor.execute(query_check, (id_evaluacion,))
+        res = cursor.fetchone()
+        
+        if not res or res[0] != medico:
+            raise HTTPException(status_code=403, detail="No tienes permiso para borrar este registro")
+
+        query_del = f"DELETE FROM registros WHERE id = {placeholder}"
+        cursor.execute(query_del, (id_evaluacion,))
+        conn.commit()
+        return {"success": True, "message": "Registro eliminado"}
+    finally:
+        conn.close()
+
+# --- 3. ELIMINAR DEBUG_DB ---
+# Borra por completo la función @app.get("/debug_db") 
+# No debe existir en una app médica real.
 
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
@@ -256,23 +298,4 @@ async def chat_asistente(user_message: str = Query(...)):
     except Exception as e:
         return {"response": f"Error del asistente: {str(e)}"}
 
-@app.delete("/evaluacion/{id_evaluacion}")
-async def eliminar_registro(id_evaluacion: int):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        query = "DELETE FROM registros WHERE id = %s" if DATABASE_URL else "DELETE FROM registros WHERE id = ?"
-        cursor.execute(query, (id_evaluacion,))
-        conn.commit()
-        return {"success": True, "message": "Registro eliminado"}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
-    finally:
-        conn.close()
 
-@app.get("/debug_db")
-async def debug_db():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT id, nhc, fecha_nacimiento FROM registros LIMIT 5')
-    return cursor.fetchall()
