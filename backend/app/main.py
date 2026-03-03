@@ -127,32 +127,38 @@ async def login(request: LoginRequest):
         conn.close()
 
 # --- ENDPOINTS CLÍNICOS ---
-
 @app.get("/history")
-async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
-    if x_tfg_key != APP_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="No autorizado")
-
+async def get_history():
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        placeholder = "%s" if DATABASE_URL else "?"
-        query = f"SELECT * FROM registros WHERE medico = {placeholder} ORDER BY fecha DESC"
-        cursor.execute(query, (medico,))
+        # Seleccionamos todo sin filtrar por médico ni requerir headers
+        cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
         
         columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        
         resultados = []
-        for row in cursor.fetchall():
+        for row in rows:
             reg = dict(zip(columns, row))
             try:
+                # Descifrado completo para visualización
                 reg["nhc"] = decrypt_data(reg["nhc"])
                 reg["fecha_nacimiento"] = decrypt_data(reg["fecha_nacimiento"])
                 reg["genero"] = decrypt_data(reg["genero"])
                 reg["respuestas_json"] = json.loads(decrypt_data(reg["respuestas_json"]))
                 reg["evento_json"] = json.loads(decrypt_data(reg["evento_json"]))
                 reg["sintomas"] = json.loads(decrypt_data(reg["sintomas"]))
-                resultados.append(reg)
-            except: continue 
+            except Exception:
+                # Fallback para datos antiguos o que no estén cifrados
+                try:
+                    reg["respuestas_json"] = json.loads(reg["respuestas_json"])
+                    reg["evento_json"] = json.loads(reg["evento_json"])
+                    reg["sintomas"] = json.loads(reg["sintomas"])
+                except: 
+                    pass
+            
+            resultados.append(reg)
         return resultados
     finally:
         conn.close()
