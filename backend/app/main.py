@@ -218,26 +218,48 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
-    # 1. Cálculos clínicos (se hacen con los datos en "limpio" que llegan del Front)
+    # 1. Cálculos clínicos normales
     sintomas_ids = request.sintomas
     resultado = calcular_nfass_ofass(sintomas_ids)
     
-    # 2. BLOQUE DE CIFRADO TOTAL
-    nhc_c = encrypt_data(str(request.paciente_id))
-    fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
-    genero_c = encrypt_data(str(request.genero))
+    # 2. Preparamos el NHC para buscarlo
+    nhc_entrante = str(request.paciente_id)
+    nhc_cifrado_nuevo = encrypt_data(nhc_entrante) # Este será el que guardemos
     
-    # Los JSON también se cifran como texto
-    respuestas_json = encrypt_data(json.dumps(request.respuestas))
-    evento_json = encrypt_data(json.dumps(request.evento))
-    sintomas_json = encrypt_data(json.dumps(sintomas_ids))
-
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        if request.id:
+        # --- LÓGICA DE DETECCIÓN DE PACIENTE EXISTENTE ---
+        # Si el frontend no manda un ID de registro, buscamos si el NHC ya existe para este médico
+        registro_id_final = request.id
+        
+        if not registro_id_final:
+            cursor.execute(f"SELECT id, nhc FROM registros WHERE medico = {placeholder}", (request.medico,))
+            rows = cursor.fetchall()
+            for row in rows:
+                db_id = row[0]
+                db_nhc_cifrado = row[1]
+                try:
+                    # Desciframos lo que hay en la DB para comparar con lo que llega del Front
+                    if decrypt_data(db_nhc_cifrado) == nhc_entrante:
+                        # ¡Lo encontramos! No es un paciente nuevo, es uno existente
+                        # Pero queremos crear un registro NUEVO (un nuevo evento), no machacar el anterior
+                        # Si tu lógica es crear un historial, seguimos al INSERT.
+                        pass 
+                except:
+                    continue
+
+        # 3. CIFRADO DE TODOS LOS CAMPOS (Como querías)
+        fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
+        genero_c = encrypt_data(str(request.genero))
+        respuestas_json = encrypt_data(json.dumps(request.respuestas))
+        evento_json = encrypt_data(json.dumps(request.evento))
+        sintomas_json = encrypt_data(json.dumps(sintomas_ids))
+
+        # 4. GUARDAR (INSERT siempre para nuevos eventos, UPDATE solo si editamos uno viejo)
+        if request.id: # Si venimos de "Editar" un registro concreto
             query = f"""UPDATE registros SET 
                         nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
                         medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
@@ -246,19 +268,19 @@ async def calculate(request: EvaluacionRequest):
                         WHERE id={placeholder}"""
             
             cursor.execute(query, (
-                nhc_c, fecha_n_c, genero_c, request.medico, 
+                nhc_cifrado_nuevo, fecha_n_c, genero_c, request.medico, 
                 respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"], request.id
             ))
-        else:
+        else: # NUEVO EVENTO (sea paciente nuevo o existente)
             query = f"""INSERT INTO registros 
                     (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
                      nfass, ofass_grade, ofass_category, risk_level) 
                     VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
-                nhc_c, fecha_n_c, genero_c, request.medico, 
+                nhc_cifrado_nuevo, fecha_n_c, genero_c, request.medico, 
                 respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"]
@@ -268,9 +290,8 @@ async def calculate(request: EvaluacionRequest):
         return {**resultado, "success": True}
 
     except Exception as e:
-        if conn: conn.rollback()
-        print(f"Error en persistencia DB: {e}")
-        return {"success": False, "message": f"Error al guardar en base de datos: {str(e)}"}
+        print(f"Error detallado: {e}")
+        return {"success": False, "message": "Error al conectar con la base de datos."}
     finally:
         conn.close()
 
