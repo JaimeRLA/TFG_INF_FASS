@@ -218,65 +218,66 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
-    try:
-        # 1. Cálculos
-        resultado = calcular_nfass_ofass(request.sintomas)
-        
-        # 2. Cifrado Total (Todo a String antes de cifrar)
-        nhc_c = encrypt_data(str(request.paciente_id))
-        fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
-        genero_c = encrypt_data(str(request.genero))
-        medico_c = request.medico # El médico lo dejamos en texto para el WHERE
-        
-        # Ciframos los JSON como strings
-        respuestas_c = encrypt_data(json.dumps(request.respuestas))
-        evento_c = encrypt_data(json.dumps(request.evento))
-        sintomas_c = encrypt_data(json.dumps(request.sintomas))
+    # 1. Cálculos clínicos (NFASS/OFASS) - Se hacen con los datos limpios del Front
+    sintomas_ids = request.sintomas
+    resultado = calcular_nfass_ofass(sintomas_ids)
+    
+    # 2. CIFRADO TOTAL DE DATOS PERSONALES
+    # Ciframos el NHC y el resto de campos antes de enviarlos a la DB
+    nhc_c = encrypt_data(str(request.paciente_id))
+    fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
+    genero_c = encrypt_data(str(request.genero))
+    
+    # Ciframos los objetos JSON
+    respuestas_json = encrypt_data(json.dumps(request.respuestas))
+    evento_json = encrypt_data(json.dumps(request.evento))
+    sintomas_json = encrypt_data(json.dumps(sintomas_ids))
 
-        conn = get_connection()
+    conn = get_connection()
+    try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-
+        
+        # Lógica: Si viene un request.id > 0, es una EDICIÓN (UPDATE)
+        # Si no viene ID (es null o 0), es un NUEVO EVENTO (INSERT)
         if request.id:
-            # UPDATE
+            # ACTUALIZAR UN REGISTRO EXISTENTE
             query = f"""UPDATE registros SET 
-                nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
-                medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
-                sintomas={placeholder}, nfass={placeholder}, ofass_grade={placeholder}, 
-                ofass_category={placeholder}, risk_level={placeholder}
-                WHERE id={placeholder}"""
+                        nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
+                        medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
+                        sintomas={placeholder}, nfass={placeholder}, ofass_grade={placeholder}, 
+                        ofass_category={placeholder}, risk_level={placeholder}
+                        WHERE id={placeholder}"""
             
             cursor.execute(query, (
-                nhc_c, fecha_n_c, genero_c, medico_c, 
-                respuestas_c, evento_c, sintomas_c, 
+                nhc_c, fecha_n_c, genero_c, request.medico, 
+                respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"], request.id
             ))
         else:
-            # INSERT
+            # CREAR NUEVA INSTANCIA (NUEVO EVENTO)
+            # Esto funcionará tanto para pacientes nuevos como existentes
             query = f"""INSERT INTO registros 
-                (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
-                nfass, ofass_grade, ofass_category, risk_level) 
-                VALUES ({','.join([placeholder]*11)})"""
+                    (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
+                     nfass, ofass_grade, ofass_category, risk_level) 
+                    VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
-                nhc_c, fecha_n_c, genero_c, medico_c, 
-                respuestas_c, evento_c, sintomas_c, 
+                nhc_c, fecha_n_c, genero_c, request.medico, 
+                respuestas_json, evento_json, sintomas_json, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"]
             ))
         
         conn.commit()
-        conn.close()
+        # Devolvemos el resultado al Front-end con éxito
         return {**resultado, "success": True}
 
     except Exception as e:
-        print(f"CRASH EN CALCULATE: {str(e)}") # Esto lo verás en el log de Render
-        return {"success": False, "message": f"Error de base de datos: {str(e)}"}
-
-    except Exception as e:
-        print(f"Error detallado: {e}")
-        return {"success": False, "message": "Error al conectar con la base de datos."}
+        if conn: conn.rollback()
+        print(f"Error en base de datos: {e}")
+        return {"success": False, "message": str(e)}
     finally:
         conn.close()
 
