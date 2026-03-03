@@ -74,9 +74,9 @@ def init_db():
 init_db()
 
 @app.get("/pacientes_unicos")
-async def get_pacientes_unicos(medico: str = Query(...), x_app_key: str = Header(None)):    
-    if x_app_key != "mi_clave_secreta_de_app":
-        raise HTTPException(status_code=401, detail="Acceso no autorizado desde fuera de la App")
+async def get_pacientes_unicos(medico: str = Query(...)):    
+    #if x_app_key != "mi_clave_secreta_de_app":
+        #raise HTTPException(status_code=401, detail="Acceso no autorizado desde fuera de la App")
     conn = get_connection()
     try:
         cursor = conn.cursor()
