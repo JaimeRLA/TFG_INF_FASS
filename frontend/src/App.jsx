@@ -74,9 +74,10 @@ const App = () => {
     }
   };
 
+  // ESTA FUNCIÓN ES PARA REGISTRAR UN NUEVO EVENTO (BLOQUEA VOLVER)
   const seleccionarPacienteExistente = (p) => {
-    setEditandoId(null); 
-    setEsPacienteExistente(true); 
+    setEditandoId(null); // Nuevo registro
+    setEsPacienteExistente(true); // Bloquea el botón volver
     setPaciente({
       id: p.id || p.nhc || '',
       fecha_nacimiento: p.fecha_nacimiento || '',
@@ -86,6 +87,32 @@ const App = () => {
     setView('event_record'); 
   };
 
+  // NUEVA FUNCIÓN: PARA EDITAR UN REPORTE DEL HISTORIAL (PERMITE VOLVER)
+  const seleccionarParaEditar = (p) => {
+    setEditandoId(p.id); // Guardamos el ID de la fila para el UPDATE
+    setEsPacienteExistente(false); // Al ser false, los botones "Volver" aparecerán
+    setPaciente({
+      id: p.nhc || '',
+      fecha_nacimiento: p.fecha_nacimiento || '',
+      genero: p.genero || ''
+    });
+    // Cargamos los datos guardados en el formulario
+    setEvento(p.evento_json || {});
+    setCuestionario(p.respuestas_json || {});
+    // Para los síntomas seleccionados, necesitamos reconstruir el objeto de seleccionados
+    const sintomasPrevios = {};
+    if (p.sintomas) {
+      p.sintomas.forEach(idSintoma => {
+        // Asumimos que el id_base se puede extraer o mapear
+        // Por simplicidad, si p.sintomas es la lista de IDs:
+        sintomasPrevios[idSintoma] = idSintoma; 
+      });
+    }
+    setSeleccionados(sintomasPrevios);
+    setResultado(null);
+    setView('registro_paciente'); // Permite modificar desde el principio
+  };
+
   const eliminarEvaluacion = async (id_db) => {
     if (!id_db) return;
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
@@ -93,8 +120,7 @@ const App = () => {
       const res = await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}`);
       if (res.data.success || res.status === 200) {
         alert("Registro eliminado.");
-        const resHistory = await axios.get('https://tfg-inf-fass.onrender.com/history');
-        setListaPacientes(resHistory.data);
+        cargarHistorial();
       }
     } catch (err) { alert("Error al borrar."); }
   };
@@ -129,7 +155,7 @@ const App = () => {
         setResultado(res.data);
       }
     } catch (err) { 
-      alert("Error en el cálculo. Revisa los logs del servidor."); 
+      alert("Error en el cálculo. Revisa que los datos sean correctos."); 
     }
   };
 
@@ -162,15 +188,25 @@ const App = () => {
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         {view === 'perfil' && <MenuView setView={setView} cargarPacientesExistentes={cargarPacientesExistentes} cargarHistorial={cargarHistorial} />}
-        {view === 'historial_global' && <HistorialView listaPacientes={listaPacientes} seleccionarPacienteExistente={seleccionarPacienteExistente} descargarPaciente={descargarPaciente} eliminarEvaluacion={eliminarEvaluacion} setView={setView} />}
+        
+        {/* EN EL HISTORIAL USAMOS LA NUEVA FUNCIÓN seleccionarParaEditar */}
+        {view === 'historial_global' && (
+          <HistorialView 
+            listaPacientes={listaPacientes} 
+            seleccionarPacienteExistente={seleccionarParaEditar} 
+            descargarPaciente={descargarPaciente} 
+            eliminarEvaluacion={eliminarEvaluacion} 
+            setView={setView} 
+          />
+        )}
+        
         {view === 'seleccionar_paciente' && <SeleccionarPacienteView pacientesFiltrados={pacientesFiltrados} setFiltroBusqueda={setFiltroBusqueda} seleccionarPacienteExistente={seleccionarPacienteExistente} setView={setView} />}
         {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} />}
         
-        {/* PASAMOS LA PROP esPacienteExistente A LAS VISTAS CLAVE */}
         {view === 'event_record' && (
           <EventRecordView 
             evento={evento} 
-            handleEvento={handleEvento} 
+            handleEvento = {handleEvento} 
             setView={setView} 
             esPacienteExistente={esPacienteExistente} 
           />

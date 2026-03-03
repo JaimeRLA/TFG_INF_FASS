@@ -182,15 +182,12 @@ async def get_history():
 
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
-    # 1. Cálculos clínicos con datos limpios
     resultado = calcular_nfass_ofass(request.sintomas)
     
-    # 2. CIFRADO TOTAL (Todo a string antes de cifrar)
+    # Cifrado total
     nhc_c = encrypt_data(str(request.paciente_id))
     fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
     genero_c = encrypt_data(str(request.genero))
-    
-    # Ciframos los objetos complejos
     respuestas_c = encrypt_data(json.dumps(request.respuestas))
     evento_c = encrypt_data(json.dumps(request.evento))
     sintomas_c = encrypt_data(json.dumps(request.sintomas))
@@ -200,9 +197,8 @@ async def calculate(request: EvaluacionRequest):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # Si request.id existe y es > 0, es una EDICIÓN.
-        # Si es None o 0, es una NUEVA INSTANCIA (INSERT).
-        if request.id:
+        # Si hay ID, actualizamos la instancia específica
+        if request.id and int(request.id) > 0:
             query = f"""UPDATE registros SET 
                         nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
                         medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
@@ -214,9 +210,11 @@ async def calculate(request: EvaluacionRequest):
                 nhc_c, fecha_n_c, genero_c, request.medico, 
                 respuestas_c, evento_c, sintomas_c, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
-                resultado["ofass_category"], resultado["risk_level"], request.id
+                resultado["ofass_category"], resultado["risk_level"], 
+                int(request.id) # Aseguramos que sea entero
             ))
         else:
+            # Si no hay ID, creamos registro nuevo
             query = f"""INSERT INTO registros 
                     (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
                      nfass, ofass_grade, ofass_category, risk_level) 
@@ -231,11 +229,10 @@ async def calculate(request: EvaluacionRequest):
         
         conn.commit()
         return {**resultado, "success": True}
-
     except Exception as e:
         if conn: conn.rollback()
-        print(f"Error en persistencia: {e}")
-        return {"success": False, "message": f"Error de base de datos: {str(e)}"}
+        print(f"ERROR CRÍTICO: {e}")
+        return {"success": False, "message": f"Error de DB: {str(e)}"}
     finally:
         conn.close()
 
