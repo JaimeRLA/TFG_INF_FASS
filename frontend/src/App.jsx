@@ -14,7 +14,6 @@ import AntecedentesView from './views/AntecedentesView';
 import EventRecordView from './views/EventRecordView';
 import CalculadoraView from './views/CalculadoraView';
 
-const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
 
 const App = () => {
   // --- ESTADOS ---
@@ -61,17 +60,24 @@ const App = () => {
 
 // Y en tus funciones de Axios:
   const cargarHistorial = async () => {
-    try {
-      const res = await axios.get(`.../history?medico=${usuarioLogueado}`, {
-      headers: { 'x-tfg-key': TFG_KEY } // <--- Usando la variable
+  try {
+    // 1. Obtenemos la llave de la variable de entorno de Vite
+    const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
+
+    // 2. Hacemos la petición
+    const res = await axios.get(`https://tfg-inf-fass.onrender.com/history?medico=${usuarioLogueado}`, {
+      headers: { 
+        'x-tfg-key': TFG_KEY  // <--- Esto debe coincidir con el Backend
+      }
     });
-      setListaPacientes(res.data);
-      setView('historial_global');
-    } catch (err) { 
-      console.error(err);
-      alert("Error al cargar el historial. Acceso denegado."); 
-    }
-  };
+    
+    setListaPacientes(res.data);
+    setView('historial_global');
+  } catch (err) { 
+    console.error("Error detalle:", err.response); // Esto te dirá en la consola por qué falla
+    alert("Error al cargar el historial. Acceso denegado."); 
+  }
+};
 
   const cargarPacientesExistentes = async () => {
     try {
