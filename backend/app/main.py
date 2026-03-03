@@ -218,76 +218,61 @@ async def chat_asistente(user_message: str = Query(...)):
 # --- ENDPOINT CALCULATE (Asegurar retorno de resultado) ---
 @app.post("/calculate")
 async def calculate(request: EvaluacionRequest):
-    # 1. Cálculos clínicos normales
-    sintomas_ids = request.sintomas
-    resultado = calcular_nfass_ofass(sintomas_ids)
-    
-    # 2. Preparamos el NHC para buscarlo
-    nhc_entrante = str(request.paciente_id)
-    nhc_cifrado_nuevo = encrypt_data(nhc_entrante) # Este será el que guardemos
-    
-    conn = get_connection()
     try:
-        cursor = conn.cursor()
-        placeholder = "%s" if DATABASE_URL else "?"
+        # 1. Cálculos
+        resultado = calcular_nfass_ofass(request.sintomas)
         
-        # --- LÓGICA DE DETECCIÓN DE PACIENTE EXISTENTE ---
-        # Si el frontend no manda un ID de registro, buscamos si el NHC ya existe para este médico
-        registro_id_final = request.id
-        
-        if not registro_id_final:
-            cursor.execute(f"SELECT id, nhc FROM registros WHERE medico = {placeholder}", (request.medico,))
-            rows = cursor.fetchall()
-            for row in rows:
-                db_id = row[0]
-                db_nhc_cifrado = row[1]
-                try:
-                    # Desciframos lo que hay en la DB para comparar con lo que llega del Front
-                    if decrypt_data(db_nhc_cifrado) == nhc_entrante:
-                        # ¡Lo encontramos! No es un paciente nuevo, es uno existente
-                        # Pero queremos crear un registro NUEVO (un nuevo evento), no machacar el anterior
-                        # Si tu lógica es crear un historial, seguimos al INSERT.
-                        pass 
-                except:
-                    continue
-
-        # 3. CIFRADO DE TODOS LOS CAMPOS (Como querías)
+        # 2. Cifrado Total (Todo a String antes de cifrar)
+        nhc_c = encrypt_data(str(request.paciente_id))
         fecha_n_c = encrypt_data(str(request.fecha_nacimiento))
         genero_c = encrypt_data(str(request.genero))
-        respuestas_json = encrypt_data(json.dumps(request.respuestas))
-        evento_json = encrypt_data(json.dumps(request.evento))
-        sintomas_json = encrypt_data(json.dumps(sintomas_ids))
+        medico_c = request.medico # El médico lo dejamos en texto para el WHERE
+        
+        # Ciframos los JSON como strings
+        respuestas_c = encrypt_data(json.dumps(request.respuestas))
+        evento_c = encrypt_data(json.dumps(request.evento))
+        sintomas_c = encrypt_data(json.dumps(request.sintomas))
 
-        # 4. GUARDAR (INSERT siempre para nuevos eventos, UPDATE solo si editamos uno viejo)
-        if request.id: # Si venimos de "Editar" un registro concreto
+        conn = get_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        if request.id:
+            # UPDATE
             query = f"""UPDATE registros SET 
-                        nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
-                        medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
-                        sintomas={placeholder}, nfass={placeholder}, ofass_grade={placeholder}, 
-                        ofass_category={placeholder}, risk_level={placeholder}
-                        WHERE id={placeholder}"""
+                nhc={placeholder}, fecha_nacimiento={placeholder}, genero={placeholder}, 
+                medico={placeholder}, respuestas_json={placeholder}, evento_json={placeholder}, 
+                sintomas={placeholder}, nfass={placeholder}, ofass_grade={placeholder}, 
+                ofass_category={placeholder}, risk_level={placeholder}
+                WHERE id={placeholder}"""
             
             cursor.execute(query, (
-                nhc_cifrado_nuevo, fecha_n_c, genero_c, request.medico, 
-                respuestas_json, evento_json, sintomas_json, 
+                nhc_c, fecha_n_c, genero_c, medico_c, 
+                respuestas_c, evento_c, sintomas_c, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"], request.id
             ))
-        else: # NUEVO EVENTO (sea paciente nuevo o existente)
+        else:
+            # INSERT
             query = f"""INSERT INTO registros 
-                    (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
-                     nfass, ofass_grade, ofass_category, risk_level) 
-                    VALUES ({','.join([placeholder]*11)})"""
+                (nhc, fecha_nacimiento, genero, medico, respuestas_json, evento_json, sintomas, 
+                nfass, ofass_grade, ofass_category, risk_level) 
+                VALUES ({','.join([placeholder]*11)})"""
             
             cursor.execute(query, (
-                nhc_cifrado_nuevo, fecha_n_c, genero_c, request.medico, 
-                respuestas_json, evento_json, sintomas_json, 
+                nhc_c, fecha_n_c, genero_c, medico_c, 
+                respuestas_c, evento_c, sintomas_c, 
                 float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                 resultado["ofass_category"], resultado["risk_level"]
             ))
         
         conn.commit()
+        conn.close()
         return {**resultado, "success": True}
+
+    except Exception as e:
+        print(f"CRASH EN CALCULATE: {str(e)}") # Esto lo verás en el log de Render
+        return {"success": False, "message": f"Error de base de datos: {str(e)}"}
 
     except Exception as e:
         print(f"Error detallado: {e}")

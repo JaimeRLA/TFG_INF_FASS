@@ -44,7 +44,8 @@ def verify_password(plain_password: str, hashed_password: str):
 
 def encrypt_data(text: str):
     if not text: return ""
-    return cipher.encrypt(str(text).encode()).decode()
+    # Aseguramos que el resultado sea siempre un string para la DB
+    return cipher.encrypt(str(text).encode()).decode('utf-8')
 
 def decrypt_data(token: str):
     if not token: return ""
