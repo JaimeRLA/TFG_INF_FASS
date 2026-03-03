@@ -19,8 +19,6 @@ cipher_key = base64.urlsafe_b64encode(key_32_bytes)
 cipher = Fernet(cipher_key)
 
 # --- Funciones de Seguridad ---
-
-
 def hash_password(password: str):
     # Forzamos la conversión a string y nos aseguramos de que no sea None
     clean_pwd = str(password or "")[:72]

@@ -8,7 +8,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
     {/* MODIFICACIÓN: El botón de volver solo aparece si NO es un paciente existente */}
     {!esPacienteExistente && (
       <button onClick={() => setView('registro_paciente')} style={styles.backBtn}>
-        <ArrowLeft size={18} /> ← Volver a Antecedentes
+         ← Volver a Antecedentes
       </button>
     )}
 

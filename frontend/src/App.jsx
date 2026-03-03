@@ -14,6 +14,8 @@ import AntecedentesView from './views/AntecedentesView';
 import EventRecordView from './views/EventRecordView';
 import CalculadoraView from './views/CalculadoraView';
 
+const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
+
 const App = () => {
   // --- ESTADOS ---
   const [esPacienteExistente, setEsPacienteExistente] = useState(false);
@@ -55,12 +57,14 @@ const App = () => {
     setView('perfil');
   };
 
+
+
+// Y en tus funciones de Axios:
   const cargarHistorial = async () => {
     try {
-      // Endpoint protegido con medico y x-tfg-key
-      const res = await axios.get(`https://tfg-inf-fass.onrender.com/history?medico=${usuarioLogueado}`, {
-        headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
-      });
+      const res = await axios.get(`.../history?medico=${usuarioLogueado}`, {
+      headers: { 'x-tfg-key': TFG_KEY } // <--- Usando la variable
+    });
       setListaPacientes(res.data);
       setView('historial_global');
     } catch (err) { 
