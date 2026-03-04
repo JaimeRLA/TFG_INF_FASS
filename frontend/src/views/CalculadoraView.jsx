@@ -19,7 +19,7 @@ const CalculadoraView = ({
       {/* MODIFICACIÓN: El botón solo existe si el paciente NO es de la base de datos */}
       {!esPacienteExistente && (
         <button onClick={() => setView('event_record')} style={styles.backBtn}>
-          Volver a Event Record
+          ← Volver a Event Record
         </button>
       )}
 

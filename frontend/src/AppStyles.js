@@ -1,5 +1,21 @@
 // src/AppStyles.js
-export const styles = {
+
+  export const styles = {
+  labelStyle: {
+    color: '#1e293b', // El color oscuro que usas
+    fontSize: '0.95rem',
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: '600',
+  },
+  inputStyle: {
+    width: '100%',
+    padding: '10px',
+    borderRadius: '8px',
+    border: '1px solid #cbd5e1',
+    fontFamily: '"Inter", sans-serif', // IMPORTANTE
+    color: '#334155', // Color del texto dentro del input/select
+    backgroundColor: '#ffffff',
+  },
   headerStyle: { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' },
   optionCard: { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   cardHeading: { color: '#000', fontWeight: '800', margin: '15px 0', fontSize: '1.4rem' },
