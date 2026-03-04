@@ -124,26 +124,29 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
-        {/* 4. MANEJO Y TRATAMIENTO (Sección modificada) */}
+        {/* 4. MANEJO Y TRATAMIENTO */}
         <h4 style={styles.secHeader}>Management & Treatment</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Pregunta 1 */}
           <PreguntaTratamientoLocal id="adrenaline" label="Was adrenaline administered?" />
           
-          <div style={styles.questionBlock}>
-            <PreguntaTratamientoLocal id="other_treatment_yn" label="Was any other treatment given?" />
-            {evento.other_treatment_yn === 'Yes' && (
-              <textarea 
-                style={{ ...styles.detailInput, marginTop: '10px' }} 
-                value={evento.other_treatment_details} 
-                placeholder="Provide details (Steroids, Antihistamines, etc)..." 
-                onChange={e => handleEvento('other_treatment_details', e.target.value)} 
-              />
-            )}
-          </div>
+          {/* Pregunta 2 - ELIMINADO EL RECUADRO GRIS (questionBlock) */}
+          <PreguntaTratamientoLocal id="other_treatment_yn" label="Was any other treatment given?" />
+          {evento.other_treatment_yn === 'Yes' && (
+            <textarea 
+              style={{ ...styles.detailInput, marginTop: '-10px' }} 
+              value={evento.other_treatment_details} 
+              placeholder="Provide details (Steroids, Antihistamines, etc)..." 
+              onChange={e => handleEvento('other_treatment_details', e.target.value)} 
+            />
+          )}
 
+          {/* Pregunta 3 */}
           <PreguntaTratamientoLocal id="ambulance" label="Was an ambulance called?" />
+
         </div>
-        
+                
         <div style={{ marginTop: '25px' }}>
           <label style={styles.labelStyle}>Other relevant information:</label>
           <textarea 
