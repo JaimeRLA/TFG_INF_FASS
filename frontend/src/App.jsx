@@ -62,7 +62,7 @@ const App = () => {
 const cargarHistorial = async () => {
   try {
     // 1. Obtenemos la llave (asegúrate de que esté en tu .env o usa la cadena directa para probar)
-    const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY || 'Clave_Secreta_App_2024';
+    const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
 
     // 2. Enviamos el médico como parámetro de consulta (Query Param)
     const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
@@ -135,7 +135,7 @@ const cargarHistorial = async () => {
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
     try {
       const res = await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
-        headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+        headers: { 'x-tfg-key': TFG_KEY }
       });
       if (res.data.success || res.status === 200) {
         alert("Registro eliminado.");
