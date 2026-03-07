@@ -53,13 +53,13 @@ def calcular_nfass_ofass(sintomas_ids):
     # 4. Clasificación oFASS (Basada en rangos clínicos estándar)
     # nFASS de 6.59 (como el ejemplo de la tabla) es Grado 5
     if nfass_final >= 6.0:
-        ofass_grade, category, risk = 5, "Life-threatening", "Very High"
+        ofass_grade, category, risk = 5, "Severe", "Very High"
     elif nfass_final >= 5.0:
         ofass_grade, category, risk = 4, "Severe", "High"
     elif nfass_final >= 3.5:
         ofass_grade, category, risk = 3, "Moderate", "Medium"
     elif nfass_final >= 2.0:
-        ofass_grade, category, risk = 2, "Mild-Moderate", "Medium"
+        ofass_grade, category, risk = 2, "Moderate", "Medium"
     else:
         ofass_grade, category, risk = 1, "Mild", "Low"
 
