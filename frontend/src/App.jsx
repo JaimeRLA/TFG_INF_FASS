@@ -59,23 +59,24 @@ const App = () => {
 
 
 // Y en tus funciones de Axios:
-  const cargarHistorial = async () => {
+const cargarHistorial = async () => {
   try {
-    // 1. Obtenemos la llave de la variable de entorno de Vite
-    const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
+    // 1. Obtenemos la llave (asegúrate de que esté en tu .env o usa la cadena directa para probar)
+    const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY || 'Clave_Secreta_App_2024';
 
-    // 2. Hacemos la petición
-    const res = await axios.get(`https://tfg-inf-fass.onrender.com/history?medico=${usuarioLogueado}`, {
+    // 2. Enviamos el médico como parámetro de consulta (Query Param)
+    const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
+      params: { medico: usuarioLogueado }, // <-- Añadimos esto
       headers: { 
-        'x-tfg-key': TFG_KEY  // <--- Esto debe coincidir con el Backend
+        'x-tfg-key': TFG_KEY 
       }
     });
     
     setListaPacientes(res.data);
     setView('historial_global');
   } catch (err) { 
-    console.error("Error detalle:", err.response); // Esto te dirá en la consola por qué falla
-    alert("Error al cargar el historial. Acceso denegado."); 
+    console.error("Error detalle:", err.response);
+    alert("Error al cargar SU historial. Acceso denegado."); 
   }
 };
 

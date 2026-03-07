@@ -94,7 +94,6 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
         conn.close()
 
 # --- ENDPOINTS DE AUTENTICACIÓN ---
-
 @app.post("/register")
 async def register(request: LoginRequest):
     conn = get_connection()
@@ -129,12 +128,20 @@ async def login(request: LoginRequest):
 
 # --- ENDPOINTS CLÍNICOS ---
 @app.get("/history")
-async def get_history():
+async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
+    # 1. Verificación de seguridad por Header
+    if x_tfg_key != APP_SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Acceso no autorizado")
+
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        # Seleccionamos todo sin filtrar por médico ni requerir headers
-        cursor.execute('SELECT * FROM registros ORDER BY fecha DESC')
+        # 2. Usamos el placeholder según la DB (Postgres %s o SQLite ?)
+        placeholder = "%s" if DATABASE_URL else "?"
+        
+        # 3. FILTRAMOS POR MÉDICO
+        query = f"SELECT * FROM registros WHERE medico = {placeholder} ORDER BY fecha DESC"
+        cursor.execute(query, (medico,))
         
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
@@ -143,7 +150,7 @@ async def get_history():
         for row in rows:
             reg = dict(zip(columns, row))
             try:
-                # Descifrado completo para visualización
+                # Descifrado
                 reg["nhc"] = decrypt_data(reg["nhc"])
                 reg["fecha_nacimiento"] = decrypt_data(reg["fecha_nacimiento"])
                 reg["genero"] = decrypt_data(reg["genero"])
@@ -151,13 +158,12 @@ async def get_history():
                 reg["evento_json"] = json.loads(decrypt_data(reg["evento_json"]))
                 reg["sintomas"] = json.loads(decrypt_data(reg["sintomas"]))
             except Exception:
-                # Fallback para datos antiguos o que no estén cifrados
+                # Fallback
                 try:
                     reg["respuestas_json"] = json.loads(reg["respuestas_json"])
                     reg["evento_json"] = json.loads(reg["evento_json"])
                     reg["sintomas"] = json.loads(reg["sintomas"])
-                except: 
-                    pass
+                except: pass
             
             resultados.append(reg)
         return resultados
