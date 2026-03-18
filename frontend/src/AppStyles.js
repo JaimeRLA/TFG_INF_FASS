@@ -8,14 +8,18 @@ export const styles = {
     fontFamily: '"Inter", sans-serif',
     fontWeight: '600',
   },
-  inputStyle: {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '8px',
-    border: '1px solid #cbd5e1',
-    fontFamily: '"Inter", sans-serif',
-    color: '#334155',
-    backgroundColor: '#ffffff',
+  inputStyle: { 
+    width: '100%', 
+    height: '45px', // Forzamos altura fija
+    padding: '0 15px', // Padding lateral únicamente para no variar la altura
+    borderRadius: '10px', 
+    border: '1px solid #e2e8f0', 
+    backgroundColor: '#f8fafc', 
+    color: '#1e293b', 
+    fontSize: '0.95rem', 
+    fontFamily: '"Inter", sans-serif', 
+    boxSizing: 'border-box', // Crucial para que el padding no sume al tamaño
+    outline: 'none' 
   },
   headerStyle: { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' },
   optionCard: { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' },
@@ -38,7 +42,21 @@ export const styles = {
   
   // Mantenemos estas versiones duplicadas que tenías al final de tu lista
   inputStyleV2: { width: '100%', padding: '12px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', fontFamily: '"Inter", sans-serif', boxSizing: 'border-box', outline: 'none' },
-  selectStyle: { width: '100%', padding: '12px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', cursor: 'pointer', boxSizing: 'border-box', fontFamily: '"Inter", sans-serif' },
+  selectStyle: { 
+      width: '100%', 
+      height: '45px', // Exactamente la misma altura que el input
+      padding: '0 15px', 
+      borderRadius: '10px', 
+      border: '1px solid #e2e8f0', 
+      backgroundColor: '#f8fafc', 
+      color: '#1e293b', 
+      fontSize: '0.95rem', 
+      cursor: 'pointer', 
+      boxSizing: 'border-box', 
+      fontFamily: '"Inter", sans-serif',
+      outline: 'none',
+    appearance: 'none', // Quita estilos nativos de algunos navegadores
+  },
   labelStyleV2: { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '4px', fontFamily: '"Inter", sans-serif' },
   
   subLabel: { fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', marginBottom: '10px', fontFamily: '"Inter", sans-serif' },
@@ -98,5 +116,14 @@ export const styles = {
     backgroundColor: '#f0fdf4', color: '#16a34a', padding: '12px', 
     borderRadius: '12px', fontSize: '0.9rem', fontWeight: '600', 
     marginBottom: '20px', border: '1px solid #bbf7d0' 
-  }
+  },
+
+
+// Dentro de styles en AppStyles.js
+
+  
+
+  
 };
+
+

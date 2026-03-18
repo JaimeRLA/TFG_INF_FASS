@@ -50,22 +50,34 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
         <div style={{ marginBottom: '30px' }}>
           <h4 style={styles.secHeader}>1. Identificación Básica</h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '25px', alignItems: 'end' }}>
-            <div style={styles.inputWrapper}>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
+            {/* NHC */}
+            <div style={{ flex: 1 }}>
               <label style={styles.labelStyle}>NHC / ID</label>
-              <input style={styles.inputStyle} value={paciente.id} onChange={e => setPaciente({ ...paciente, id: e.target.value })} placeholder="Ej: 123456" />
+              <input 
+                type="text" 
+                placeholder="Ej: 123456" 
+                style={styles.inputStyle} 
+              />
             </div>
-            <div style={styles.inputWrapper}>
+            {/* FECHA */}
+            <div style={{ flex: 1 }}>
               <label style={styles.labelStyle}>Fecha Nacimiento</label>
-              <input type="date" style={styles.inputStyle} value={paciente.fecha_nacimiento} onChange={e => setPaciente({ ...paciente, fecha_nacimiento: e.target.value })} />
+              <input 
+                type="date" 
+                style={styles.inputStyle} 
+              />
             </div>
-            <div style={styles.inputWrapper}>
+            {/* GÉNERO */}
+            <div style={{ flex: 1 }}>
               <label style={styles.labelStyle}>Género</label>
-              <select style={styles.selectStyle} value={paciente.genero} onChange={e => setPaciente({ ...paciente, genero: e.target.value })} >
+              <select style={styles.selectStyle}>
                 <option value="">Select...</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
               </select>
             </div>
+          </div>
           </div>
         </div>
 
