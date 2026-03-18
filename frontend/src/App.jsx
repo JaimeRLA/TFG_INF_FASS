@@ -61,8 +61,6 @@ const App = () => {
 
 const cargarHistorial = async () => {
   try {
-
-    // 2. Enviamos el médico como parámetro de consulta (Query Param)
     const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
       params: { medico: usuarioLogueado }, 
       headers: { 

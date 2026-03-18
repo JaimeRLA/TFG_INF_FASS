@@ -9,7 +9,7 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Usamos la variable de entorno de Vite para la API
+  // Usar variable de entorno o fallback a la URL de producción
   const API_URL = import.meta.env.VITE_APP_API_URL || 'https://tfg-inf-fass.onrender.com';
 
   const handleSubmit = async (e) => {
@@ -28,7 +28,7 @@ const Login = ({ onLoginSuccess }) => {
           setIsRegister(false);
           setForm({ username: '', password: '' });
         } else {
-          // Enviamos el nombre al App.jsx para gestionar la sesión global
+          // Éxito: notificamos al componente padre (App.js)
           onLoginSuccess(form.username); 
         }
       } else {
@@ -36,7 +36,6 @@ const Login = ({ onLoginSuccess }) => {
       }
     } catch (err) {
       setError("Error de conexión con el servidor de base de datos.");
-      console.error("Login error:", err);
     }
   };
 
@@ -81,10 +80,10 @@ const Login = ({ onLoginSuccess }) => {
           </div>
 
           {/* ALERTAS */}
-          {error && <div style={styles.errorBox}>{error}</div>}
-          {msg && <div style={styles.successBox}>{msg}</div>}
+          {error && <div style={styles.loginErrorBox}>{error}</div>}
+          {msg && <div style={styles.loginSuccessBox}>{msg}</div>}
 
-          <button type="submit" style={styles.loginButtonStyle}>
+          <button type="submit" style={styles.loginButton}>
             {isRegister ? (
               <><UserPlus size={20}/> Crear mi cuenta</>
             ) : (
@@ -95,7 +94,7 @@ const Login = ({ onLoginSuccess }) => {
 
         <button 
           onClick={() => { setIsRegister(!isRegister); setError(""); setMsg(""); }} 
-          style={styles.toggleButtonStyle}
+          style={styles.loginToggleBtn}
         >
           {isRegister ? "¿Ya tiene cuenta? Inicie sesión aquí" : "¿No tiene cuenta todavía? Regístrese"}
         </button>

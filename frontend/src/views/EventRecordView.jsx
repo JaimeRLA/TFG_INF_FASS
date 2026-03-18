@@ -131,7 +131,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           {/* Pregunta 1 */}
           <PreguntaTratamientoLocal id="adrenaline" label="Was adrenaline administered?" />
           
-          {/* Pregunta 2 - ELIMINADO EL RECUADRO GRIS (questionBlock) */}
+          {/* Pregunta 2 */}
           <PreguntaTratamientoLocal id="other_treatment_yn" label="Was any other treatment given?" />
           {evento.other_treatment_yn === 'Yes' && (
             <textarea 
