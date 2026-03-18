@@ -4,7 +4,6 @@ import { HeartPulse, LogOut } from 'lucide-react';
 
 import { styles } from './AppStyles.js';
 import ChatBot from './components/ChatBot';
-import Login from './components/Login';
 
 // Vistas
 import MenuView from './views/MenuView';
@@ -13,6 +12,9 @@ import SeleccionarPacienteView from './views/SeleccionarPacienteView';
 import AntecedentesView from './views/AntecedentesView';
 import EventRecordView from './views/EventRecordView';
 import CalculadoraView from './views/CalculadoraView';
+import Login from './views/Login';
+
+
 
 
 const App = () => {
@@ -35,7 +37,7 @@ const App = () => {
     drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: '', drug_details_extra: ''
   });
 
-  // --- LÓGICA ---
+  const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
   const handleEvento = (campo, valor) => setEvento(prev => ({ ...prev, [campo]: valor }));
   const handleCuestionario = (pregunta, valor) => setCuestionario(prev => ({ ...prev, [pregunta]: valor }));
   const handleSelectChange = (grupoId, valor) => setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
@@ -57,16 +59,12 @@ const App = () => {
   };
 
 
-
-// Y en tus funciones de Axios:
 const cargarHistorial = async () => {
   try {
-    // 1. Obtenemos la llave (asegúrate de que esté en tu .env o usa la cadena directa para probar)
-    const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
 
     // 2. Enviamos el médico como parámetro de consulta (Query Param)
     const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
-      params: { medico: usuarioLogueado }, // <-- Añadimos esto
+      params: { medico: usuarioLogueado }, 
       headers: { 
         'x-tfg-key': TFG_KEY 
       }
@@ -209,12 +207,12 @@ const cargarHistorial = async () => {
         {view === 'perfil' && <MenuView setView={setView} cargarPacientesExistentes={cargarPacientesExistentes} cargarHistorial={cargarHistorial} />}
         
         {view === 'historial_global' && (
-          <HistorialView 
-            listaPacientes={listaPacientes} 
-            seleccionarPacienteExistente={seleccionarParaEditar} 
-            descargarPaciente={descargarPaciente} 
-            eliminarEvaluacion={eliminarEvaluacion} 
-            setView={setView} 
+          <HistorialView
+            listaPacientes={listaPacientes}
+            seleccionarPacienteExistente={seleccionarParaEditar}
+            descargarPaciente={descargarPaciente}
+            eliminarEvaluacion={eliminarEvaluacion}
+            setView={setView}
           />
         )}
         

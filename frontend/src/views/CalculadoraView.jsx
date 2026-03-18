@@ -11,12 +11,11 @@ const CalculadoraView = ({
   resultado, 
   reiniciarApp, 
   setView, 
-  esPacienteExistente // <--- Recibimos la prop aquí
+  esPacienteExistente 
 }) => (
   <main style={styles.calculatorLayout}>
     <section style={{ flex: '1', minWidth: '0' }}>
       
-      {/* MODIFICACIÓN: El botón solo existe si el paciente NO es de la base de datos */}
       {!esPacienteExistente && (
         <button onClick={() => setView('event_record')} style={styles.backBtn}>
           ← Volver a Event Record
