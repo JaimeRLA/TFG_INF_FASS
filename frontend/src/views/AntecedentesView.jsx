@@ -4,17 +4,23 @@ import { styles } from '../AppStyles.js';
 
 const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestionario, validarYPasarAEvento, setView }) => {
   
-  // Componente interno modificado para usar styles.labelStyle
+  // Función para actualizar los campos de identificación (NHC, Fecha, Género)
+  const handlePacienteChange = (e) => {
+    const { name, value } = e.target;
+    setPaciente(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const PreguntaClinicaLocal = ({ id, label }) => (
     <div style={styles.rowYesNo}>
-      {/* Aplicamos el estilo de etiqueta (NHC) a la pregunta */}
       <span style={{ ...styles.labelStyle, fontWeight: '500', flex: 1 }}>{label}</span>
       <div style={{ display: 'flex', gap: '8px' }}>
         {['Yes', 'No'].map(op => (
           <button
             key={op}
             onClick={() => handleCuestionario(id, op)}
-            // Aseguramos que el botón herede la fuente de la app
             style={{
               ...(cuestionario[id] === op ? styles.btnMiniActive : styles.btnMini),
               fontFamily: 'inherit' 
@@ -27,7 +33,6 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
     </div>
   );
 
-  // Estilo común para los subtítulos de sección (como el 2, 3, 6)
   const headerSeccionEstilo = {
     ...styles.labelStyle,
     fontSize: '1rem',
@@ -46,42 +51,57 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
           <ClipboardCheck color="#2563eb" /> Antecedentes del Paciente
         </h3>
 
-        {/* 1. IDENTIFICACIÓN BÁSICA */}
+        {/* 1. IDENTIFICACIÓN BÁSICA - CONECTADA AL ESTADO */}
         <div style={{ marginBottom: '30px' }}>
           <h4 style={styles.secHeader}>1. Identificación Básica</h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '25px', alignItems: 'end' }}>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
-            {/* NHC */}
-            <div style={{ flex: 1 }}>
-              <label style={styles.labelStyle}>NHC / ID</label>
-              <input 
-                type="text" 
-                placeholder="Ej: 123456" 
-                style={styles.inputStyle} 
-              />
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', width: '100%' }}>
+              
+              {/* NHC (Se guarda en paciente.id según tu App.jsx) */}
+              <div style={{ flex: 1 }}>
+                <label style={styles.labelStyle}>NHC / ID</label>
+                <input 
+                  type="text" 
+                  name="id"
+                  value={paciente.id || ''}
+                  onChange={handlePacienteChange}
+                  placeholder="Ej: 123456" 
+                  style={styles.inputStyle} 
+                />
+              </div>
+
+              {/* FECHA (Se guarda en paciente.fecha_nacimiento) */}
+              <div style={{ flex: 1 }}>
+                <label style={styles.labelStyle}>Fecha Nacimiento</label>
+                <input 
+                  type="date" 
+                  name="fecha_nacimiento"
+                  value={paciente.fecha_nacimiento || ''}
+                  onChange={handlePacienteChange}
+                  style={styles.inputStyle} 
+                />
+              </div>
+
+              {/* GÉNERO (Se guarda en paciente.genero) */}
+              <div style={{ flex: 1 }}>
+                <label style={styles.labelStyle}>Género</label>
+                <select 
+                  name="genero"
+                  value={paciente.genero || ''}
+                  onChange={handlePacienteChange}
+                  style={styles.selectStyle}
+                >
+                  <option value="">Select...</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                </select>
+              </div>
+
             </div>
-            {/* FECHA */}
-            <div style={{ flex: 1 }}>
-              <label style={styles.labelStyle}>Fecha Nacimiento</label>
-              <input 
-                type="date" 
-                style={styles.inputStyle} 
-              />
-            </div>
-            {/* GÉNERO */}
-            <div style={{ flex: 1 }}>
-              <label style={styles.labelStyle}>Género</label>
-              <select style={styles.selectStyle}>
-                <option value="">Select...</option>
-                <option value="M">Masculino</option>
-                <option value="F">Femenino</option>
-              </select>
-            </div>
-          </div>
           </div>
         </div>
 
-        {/* CUESTIONARIO CLÍNICO */}
+        {/* RESTO DEL CUESTIONARIO (Ya estaba bien conectado por handleCuestionario) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
           
           <div style={styles.questionBlock}>
@@ -105,7 +125,12 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
               <PreguntaClinicaLocal id="q2_other" label="• Other?" />
             </div>
             {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes' || cuestionario.q2_other === 'Yes') && (
-              <textarea style={styles.detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q2_details', e.target.value)} />
+              <textarea 
+                style={styles.detailInput} 
+                placeholder="Please provide details..." 
+                value={cuestionario.q2_details || ''}
+                onChange={e => handleCuestionario('q2_details', e.target.value)} 
+              />
             )}
           </div>
 
@@ -119,7 +144,12 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
               <PreguntaClinicaLocal id="q3_cream" label="• Eczema creams?" />
             </div>
             {(cuestionario.q3_anti === 'Yes' || cuestionario.q3_eyes === 'Yes' || cuestionario.q3_nasal === 'Yes' || cuestionario.q3_puff === 'Yes' || cuestionario.q3_cream === 'Yes') && (
-              <textarea style={styles.detailInput} placeholder="Please provide details..." onChange={e => handleCuestionario('q3_details', e.target.value)} />
+              <textarea 
+                style={styles.detailInput} 
+                placeholder="Please provide details..." 
+                value={cuestionario.q3_details || ''}
+                onChange={e => handleCuestionario('q3_details', e.target.value)} 
+              />
             )}
           </div>
 
@@ -129,7 +159,14 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
             </div>
             <div style={styles.questionBlock}>
               <PreguntaClinicaLocal id="q5" label="5. Other medications/supplements?" />
-              {cuestionario.q5 === 'Yes' && <textarea style={styles.detailInput} placeholder="Provide details..." onChange={e => handleCuestionario('q5_details', e.target.value)} />}
+              {cuestionario.q5 === 'Yes' && (
+                <textarea 
+                  style={styles.detailInput} 
+                  placeholder="Provide details..." 
+                  value={cuestionario.q5_details || ''}
+                  onChange={e => handleCuestionario('q5_details', e.target.value)} 
+                />
+              )}
             </div>
           </div>
 
@@ -148,17 +185,38 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
 
           <div style={styles.questionBlock}>
             <PreguntaClinicaLocal id="q7" label="7. Do you live with indoor pets?" />
-            {cuestionario.q7 === 'Yes' && <textarea style={styles.detailInput} placeholder="Details..." onChange={e => handleCuestionario('q7_details', e.target.value)} />}
+            {cuestionario.q7 === 'Yes' && (
+              <textarea 
+                style={styles.detailInput} 
+                placeholder="Details..." 
+                value={cuestionario.q7_details || ''}
+                onChange={e => handleCuestionario('q7_details', e.target.value)} 
+              />
+            )}
           </div>
 
           <div style={styles.questionBlock}>
             <PreguntaClinicaLocal id="q9" label="9. Family history of allergies?" />
-            {cuestionario.q9 === 'Yes' && <textarea style={styles.detailInput} placeholder="Details..." onChange={e => handleCuestionario('q9_details', e.target.value)} />}
+            {cuestionario.q9 === 'Yes' && (
+              <textarea 
+                style={styles.detailInput} 
+                placeholder="Details..." 
+                value={cuestionario.q9_details || ''}
+                onChange={e => handleCuestionario('q9_details', e.target.value)} 
+              />
+            )}
           </div>
 
           <div style={styles.questionBlock}>
             <PreguntaClinicaLocal id="q10" label="10. Other medical problems/surgeries?" />
-            {cuestionario.q10 === 'Yes' && <textarea style={styles.detailInput} placeholder="Details..." onChange={e => handleCuestionario('q10_details', e.target.value)} />}
+            {cuestionario.q10 === 'Yes' && (
+              <textarea 
+                style={styles.detailInput} 
+                placeholder="Details..." 
+                value={cuestionario.q10_details || ''}
+                onChange={e => handleCuestionario('q10_details', e.target.value)} 
+              />
+            )}
           </div>
         </div>
 
