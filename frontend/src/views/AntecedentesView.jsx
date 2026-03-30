@@ -14,26 +14,37 @@ import {
 import { styles } from '../AppStyles.js';
 import CryptoJS from 'crypto-js';
 
-const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestionario, validarYPasarAEvento, setView, esPacienteExistente, listaPacientes }) => {
+const AntecedentesView = ({ 
+  paciente, 
+  setPaciente, 
+  cuestionario, 
+  handleCuestionario, 
+  validarYPasarAEvento, 
+  setView, 
+  esPacienteExistente, 
+  listaPacientes 
+}) => {
   
   const [errorNHC, setErrorNHC] = useState('');
   const [errorFecha, setErrorFecha] = useState('');
 
-  // --- RESTRICCIONES DE FECHA ---
+  // --- RESTRICCIONES DE FECHA LÓGICA ---
   const hoy = new Date().toISOString().split("T")[0]; 
   const hace120Anios = new Date();
   hace120Anios.setFullYear(hace120Anios.getFullYear() - 120);
   const fechaMinima = hace120Anios.toISOString().split("T")[0]; 
 
   useEffect(() => {
-    // 1. Validación de NHC duplicado
+    // 1. VALIDACIÓN DE NHC DUPLICADO (Restricción de Identidad)
     if (!esPacienteExistente && paciente.id) {
       const nhcNormalizado = paciente.id.trim();
       const hashIntroducido = CryptoJS.SHA256(nhcNormalizado).toString();
+      
+      // Comparamos el hash local con los nhc_hash que vienen de la DB
       const yaExiste = listaPacientes.some(p => p.nhc_hash === hashIntroducido);
       
       if (yaExiste) {
-        setErrorNHC('Este NHC ya existe. Use "Seleccionar Paciente".');
+        setErrorNHC('Este NHC ya está registrado. Use "Seleccionar Paciente" para añadir eventos.');
       } else {
         setErrorNHC('');
       }
@@ -41,13 +52,13 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
       setErrorNHC('');
     }
 
-    // 2. Validación de FECHA Razonable
+    // 2. VALIDACIÓN DE FECHA RAZONABLE (Restricción Temporal)
     if (!esPacienteExistente && paciente.fecha_nacimiento) {
-      const fechaCargada = paciente.fecha_nacimiento;
-      if (fechaCargada > hoy) {
-        setErrorFecha('La fecha no puede ser futura.');
-      } else if (fechaCargada < fechaMinima) {
-        setErrorFecha('La fecha es demasiado antigua (>120 años).');
+      const fechaSeleccionada = paciente.fecha_nacimiento;
+      if (fechaSeleccionada > hoy) {
+        setErrorFecha('Error: La fecha de nacimiento no puede ser futura.');
+      } else if (fechaSeleccionada < fechaMinima) {
+        setErrorFecha('Error: Fecha fuera de rango clínico (>120 años).');
       } else {
         setErrorFecha('');
       }
@@ -61,8 +72,9 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
     setPaciente(prev => ({ ...prev, [name]: value }));
   };
 
-  const hayErrores = !!errorNHC || !!errorFecha;
+  const hayErroresBloqueantes = !!errorNHC || !!errorFecha;
 
+  // Componente interno para las preguntas de Sí/No
   const PreguntaClinicaLocal = ({ id, label }) => (
     <div style={{
       display: 'flex',
@@ -127,10 +139,11 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
           <p style={{ color: '#64748b', marginTop: '5px' }}>Complete el perfil clínico previo a la evaluación de síntomas</p>
         </div>
 
-        {/* SECCIÓN 1: IDENTIFICACIÓN */}
+        {/* SECCIÓN 1: IDENTIFICACIÓN CON RESTRICCIONES */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={User} title="Identificación del Paciente" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+            {/* INPUT NHC */}
             <div>
               <label style={styles.labelStyle}>NHC / Identificador</label>
               <div style={{ position: 'relative' }}>
@@ -157,6 +170,8 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
                 </div>
               )}
             </div>
+
+            {/* INPUT FECHA */}
             <div>
               <label style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento'}</label>
               {esPacienteExistente ? (
@@ -182,6 +197,7 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
                 </div>
               )}
             </div>
+
             <div>
               <label style={styles.labelStyle}>Género</label>
               <select 
@@ -290,13 +306,14 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
 
         <button 
           onClick={validarYPasarAEvento} 
-          disabled={hayErrores} 
+          disabled={hayErroresBloqueantes} 
           style={{ 
             ...styles.calcBtn, 
             width: '100%', padding: '20px', borderRadius: '15px', fontSize: '1.1rem',
-            backgroundColor: hayErrores ? '#cbd5e1' : '#2563eb',
-            cursor: hayErrores ? 'not-allowed' : 'pointer',
-            opacity: hayErrores ? 0.7 : 1
+            backgroundColor: hayErroresBloqueantes ? '#cbd5e1' : '#2563eb',
+            cursor: hayErroresBloqueantes ? 'not-allowed' : 'pointer',
+            opacity: hayErroresBloqueantes ? 0.7 : 1,
+            boxShadow: hayErroresBloqueantes ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.2)'
           }}
         >
           Continuar a Event Record <ArrowRight size={22} />
