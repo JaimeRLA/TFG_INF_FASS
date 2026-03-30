@@ -228,7 +228,7 @@ const App = () => {
           <EventRecordView 
             evento={evento} 
             handleEvento={handleEvento} 
-            setView={manejarVolverDeEvento} // Pasamos la función contextualizada
+            setView={setView} // <--- Volvemos a pasarle el setView normal
             esPacienteExistente={esPacienteExistente} 
           />
         )}
