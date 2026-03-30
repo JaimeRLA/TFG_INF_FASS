@@ -1,10 +1,9 @@
 import React from 'react';
-import { Activity, ArrowRight, ArrowLeft, XCircle } from 'lucide-react';
+import { Activity, ArrowRight } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 
 const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente }) => {
   
-  // Componente interno para estandarizar las preguntas Yes/No con el estilo de NHC
   const PreguntaTratamientoLocal = ({ id, label }) => (
     <div style={styles.rowYesNo}>
       <span style={{ ...styles.labelStyle, fontWeight: '500', flex: 1 }}>{label}</span>
@@ -29,26 +28,13 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
       
-      {/* BARRA DE NAVEGACIÓN SUPERIOR */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-        {/* Botón Volver: Dinámico según el origen del flujo */}
-        <button 
-          onClick={() => setView(esPacienteExistente ? 'perfil' : 'registro_paciente')} 
-          style={styles.backBtn}
-        >
-          <ArrowLeft size={18} /> {esPacienteExistente ? 'Volver al Menú' : 'Volver a Antecedentes'}
-        </button>
-
-        {/* Botón Cancelar: Solo disponible en flujos de nuevo registro para salir al menú */}
-        {!esPacienteExistente && (
-          <button 
-            onClick={() => { if(window.confirm("¿Deseas cancelar el registro? Se perderán los datos del paciente.")) setView('perfil') }} 
-            style={{ ...styles.backBtn, color: '#ef4444', borderColor: '#fee2e2' }}
-          >
-            <XCircle size={18} /> Cancelar y Salir
-          </button>
-        )}
-      </div>
+      {/* BOTÓN VOLVER CONFIGURADO SEGÚN TU PETICIÓN */}
+      <button 
+        onClick={() => setView(esPacienteExistente ? 'perfil' : 'registro_paciente')} 
+        style={styles.backBtn}
+      >
+        {esPacienteExistente ? '← Cancelar' : '← Volver a Antecedentes'}
+      </button>
 
       <div style={styles.cardStyle}>
         <h3 style={{ ...styles.cardTitle, color: '#000' }}>

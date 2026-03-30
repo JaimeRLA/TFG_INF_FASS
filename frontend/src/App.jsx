@@ -224,11 +224,20 @@ const App = () => {
         
         {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} esPacienteExistente={esPacienteExistente} />}
         
+        // Dentro del return de App.jsx
         {view === 'event_record' && (
           <EventRecordView 
             evento={evento} 
             handleEvento={handleEvento} 
-            setView={setView} // <--- Volvemos a pasarle el setView normal
+            // Si es existente, al cancelar usamos reiniciarApp para limpiar todo
+            // Si es nuevo, simplemente retrocedemos de vista
+            setView={(nuevaVista) => {
+              if (nuevaVista === 'perfil' && esPacienteExistente) {
+                reiniciarApp();
+              } else {
+                setView(nuevaVista);
+              }
+            }} 
             esPacienteExistente={esPacienteExistente} 
           />
         )}
