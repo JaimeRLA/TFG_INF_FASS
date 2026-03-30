@@ -37,6 +37,10 @@ def init_db():
     try:
         cursor = conn.cursor()
         # TABLA 1: PACIENTES (Identidad Pseudonimizada)
+        # AÑADE ESTO SOLO UNA VEZ Y DESPLIEGA
+        cursor.execute("DROP TABLE IF EXISTS registros CASCADE;")
+        cursor.execute("DROP TABLE IF EXISTS pacientes CASCADE;")
+        conn.commit()
         cursor.execute('''CREATE TABLE IF NOT EXISTS pacientes (
             id SERIAL PRIMARY KEY,
             nhc_hash TEXT UNIQUE,
