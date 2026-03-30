@@ -37,6 +37,8 @@ def init_db():
     try:
         cursor = conn.cursor()
         # TABLA 1: PACIENTES (Identidad Pseudonimizada)
+        cursor.execute("DROP TABLE IF EXISTS registros CASCADE;")
+        cursor.execute("DROP TABLE IF EXISTS pacientes CASCADE;")
         cursor.execute('''CREATE TABLE IF NOT EXISTS pacientes (
             id SERIAL PRIMARY KEY,
             nhc_hash TEXT UNIQUE,
@@ -278,7 +280,7 @@ async def get_hash(nhc: str):
     hash_obj = hashlib.sha256(nhc.encode())
     return {"hash": hash_obj.hexdigest()[:12]} # Ajusta el largo si usas otro
 
-    
+
 @app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")
