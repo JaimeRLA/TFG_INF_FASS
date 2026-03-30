@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { ClipboardList, Trash2, ShieldCheck, Download, Search, Fingerprint, Calendar, User } from 'lucide-react';
+import { ClipboardList, Trash2, ShieldCheck, Download, Search, Fingerprint, Calendar, User, Clock } from 'lucide-react'; // Añadido Clock
 import { styles } from '../AppStyles.js';
 import CryptoJS from 'crypto-js';
 
 const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargarPaciente, eliminarEvaluacion, setView }) => {
   const [busqueda, setBusqueda] = useState('');
 
-  // LÓGICA DE FILTRADO (Igual que en Selección de Paciente)
   const pacientesFiltrados = listaPacientes.filter(p => {
     const term = busqueda.trim();
     if (!term) return true;
@@ -36,7 +35,7 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                 Historial Clínico Pseudonimizado
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>
-                    Puede buscar pacientes introduciendo su <strong>NHC real</strong> o fragmentos del identificador Hash.
+                    Puede buscar eventos de pacientes introduciendo su <strong>NHC real</strong>.
                 </p>
             </div>
           </div>
@@ -58,7 +57,7 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
           </div>
         </div>
 
-        {/* BARRA DE BÚSQUEDA - Texto corregido a color oscuro */}
+        {/* BARRA DE BÚSQUEDA */}
         <div style={{ position: 'relative', marginBottom: '25px' }}>
           <Search 
             style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
@@ -77,8 +76,8 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
               fontSize: '1rem',
               outline: 'none',
               boxSizing: 'border-box',
-              backgroundColor: '#ffffff', // Fondo blanco para contraste
-              color: '#1e293b',          // TEXTO OSCURO PARA QUE SE VEA
+              backgroundColor: '#ffffff',
+              color: '#1e293b',
               transition: 'all 0.2s'
             }}
             onFocus={(e) => {
@@ -124,8 +123,11 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                   <div style={{ display: 'flex', gap: '15px', fontSize: '0.85rem', color: '#64748b', marginBottom: '8px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={14}/> {p.genero}</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14}/> {p.rango_edad}</span>
-                    <span>•</span>
-                    <span style={{ fontWeight: '500' }}>Evaluado: {new Date(p.fecha).toLocaleDateString()}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Clock size={14}/> 
+                      {/* Mostramos fecha y hora formateada */}
+                      {new Date(p.fecha).toLocaleDateString()} - {new Date(p.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
                   
                   <div style={{ 
@@ -179,9 +181,7 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
       <div style={{ marginTop: '25px', padding: '15px', backgroundColor: '#fff7ed', borderRadius: '12px', border: '1px dashed #ea580c' }}>
         <p style={{ fontSize: '0.75rem', color: '#7c2d12', margin: 0, lineHeight: '1.5' }}>
           <strong>Nota de Seguridad:</strong> Este sistema implementa medidas de seudonimización técnica. 
-          Los identificadores originales (NHC) han sido transformados mediante funciones hash irreversibles (SHA-256) 
-          y las fechas de nacimiento han sido minimizadas a rangos etarios según las directrices del EDPB 2025. 
-          El buscador permite la localización mediante hashing local en el cliente sin transmitir el NHC original.
+          Los identificadores originales (NHC) han sido transformados mediante funciones hash irreversibles (SHA-256).
         </p>
       </div>
     </div>

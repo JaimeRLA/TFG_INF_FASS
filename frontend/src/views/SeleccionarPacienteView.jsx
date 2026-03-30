@@ -44,7 +44,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                 Localizar Paciente
               </h3>
               <p style={{ fontSize: '0.95rem', color: '#64748b', margin: '4px 0 0' }}>
-                Introduzca el <strong>NHC real</strong> para realizar una búsqueda inversa.
+                Introduzca el <strong>NHC real</strong> para realizar una búsqueda de paciente.
               </p>
             </div>
           </div>
