@@ -224,7 +224,6 @@ const App = () => {
         
         {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} esPacienteExistente={esPacienteExistente} />}
         
-        // Dentro del return de App.jsx
         {view === 'event_record' && (
           <EventRecordView 
             evento={evento} 

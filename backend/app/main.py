@@ -268,6 +268,17 @@ async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_
     finally:
         conn.close()
 
+
+import hashlib
+
+@app.get("/get_hash/{nhc}")
+async def get_hash(nhc: str):
+    # Usamos la misma lógica de hashing que en el registro
+    # Si usaste un "salt" en el registro, inclúyelo aquí también
+    hash_obj = hashlib.sha256(nhc.encode())
+    return {"hash": hash_obj.hexdigest()[:12]} # Ajusta el largo si usas otro
+
+    
 @app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")
