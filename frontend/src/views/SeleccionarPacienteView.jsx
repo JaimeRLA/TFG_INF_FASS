@@ -34,7 +34,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
         {/* Cabecera con el icono del Menú */}
         <div style={{ marginBottom: '30px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '15px' }}>
           <div style={{ backgroundColor: '#eff6ff', padding: '12px', borderRadius: '12px' }}>
-            <Search color="#2563eb" size={32} />
+            <Users color="#16a34a" size={32} />
           </div>
           <div>
             <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>
@@ -112,7 +112,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                   <div style={{ backgroundColor: '#f1f5f9', padding: '10px', borderRadius: '10px' }}>
-                    <Fingerprint size={24} color="#64748b" />
+                    <Fingerprint size={24} color="#16a34a" />
                   </div>
                   <div>
                     <div style={{ fontWeight: '700', color: '#1e293b', fontFamily: 'monospace', fontSize: '1.1rem' }}>
