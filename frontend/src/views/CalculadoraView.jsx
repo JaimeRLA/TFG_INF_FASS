@@ -68,7 +68,7 @@ const CalculadoraView = ({
           }}
           title="Volver a Event Record"
         >
-          ←
+          ← Volver
         </button>
 
         <div style={{ ...styles.cardStyle, padding: '35px' }}>

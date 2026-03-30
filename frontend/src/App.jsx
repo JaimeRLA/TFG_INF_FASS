@@ -234,6 +234,7 @@ const App = () => {
             validarYPasarAEvento={validarYPasarAEvento} 
             setView={setView} 
             esPacienteExistente={esPacienteExistente} 
+            listaPacientes={listaPacientes} // <--- AÑADE ESTA LÍNEA
           />
         )}
         
