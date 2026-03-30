@@ -5,8 +5,7 @@ import {
   CheckCircle2, 
   FileText,
   UserCheck,
-  XCircle,
-  ChevronLeft // Cambiado a ChevronLeft para un look más moderno
+  XCircle
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import { SECCIONES_SINTOMAS } from '../data/sintomas';
@@ -54,26 +53,23 @@ const CalculadoraView = ({
       {/* COLUMNA IZQUIERDA: CALCULADORA */}
       <section style={{ flex: '1', minWidth: '0' }}>
         
-        {/* BOTÓN VOLVER ICONO: Siempre visible en flujo de nuevo registro */}
-        {!esPacienteExistente && (
-          <button 
-            onClick={() => setView('event_record')} 
-            style={{
-                ...styles.backBtn,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                padding: 0,
-                marginBottom: '15px'
-            }}
-            title="Volver a Event Record"
-          >
-            <ChevronLeft size={24} />
-          </button>
-        )}
+        {/* BOTÓN VOLVER: Visible siempre que estemos en el flujo de nueva evaluación o nuevo registro */}
+        <button 
+          onClick={() => setView('event_record')} 
+          style={{
+              ...styles.backBtn,
+              fontSize: '1.5rem',
+              padding: '5px 15px',
+              marginBottom: '15px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1
+          }}
+          title="Volver a Event Record"
+        >
+          ←
+        </button>
 
         <div style={{ ...styles.cardStyle, padding: '35px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
@@ -93,6 +89,11 @@ const CalculadoraView = ({
                    NHC: {paciente.id ? paciente.id.substring(0,10) : '---'}
                  </span>
                </div>
+               {esPacienteExistente && (
+                 <span style={{ fontSize: '10px', color: '#16a34a', fontWeight: '800', display: 'block', marginTop: '5px' }}>
+                   ● PACIENTE RECURRENTE
+                 </span>
+               )}
             </div>
           </div>
 
