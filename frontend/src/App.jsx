@@ -220,8 +220,14 @@ const App = () => {
           />
         )}
         
-        {view === 'seleccionar_paciente' && <SeleccionarPacienteView pacientesFiltrados={pacientesFiltrados} setFiltroBusqueda={setFiltroBusqueda} seleccionarPacienteExistente={seleccionarPacienteExistente} setView={setView} />}
-        
+        {view === 'seleccionar_paciente' && (
+          <SeleccionarPacienteView 
+            listaPacientes={listaPacientes} // Le pasamos la lista completa
+            setFiltroBusqueda={setFiltroBusqueda} 
+            seleccionarPacienteExistente={seleccionarPacienteExistente} 
+            setView={setView} 
+          />
+        )}        
         {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} esPacienteExistente={esPacienteExistente} />}
         
         {view === 'event_record' && (

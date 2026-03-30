@@ -1,38 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Search, User, Calendar, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, User, Calendar, ArrowRight } from 'lucide-react';
 import { styles } from '../AppStyles.js';
+import axios from 'axios';
 
-const SeleccionarPacienteView = ({ listaPacientes, onSeleccionar, setView }) => {
+const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente, setView }) => {
   const [busqueda, setBusqueda] = useState('');
-  const [hashBusqueda, setHashBusqueda] = useState('');
 
-  // Efecto para generar el hash de lo que el médico escribe en el buscador
-  useEffect(() => {
-    const generarHashLocal = async () => {
-      if (busqueda.length > 2) {
-        // Opción A: Si tienes una función de hash en JS
-        // Opción B: Llamada rápida al backend (más seguro para mantener el mismo algoritmo)
-        try {
-          const res = await fetch(`http://localhost:8000/get_hash/${busqueda}`);
-          const data = await res.json();
-          setHashBusqueda(data.hash);
-        } catch (e) {
-          setHashBusqueda('');
-        }
-      } else {
-        setHashBusqueda('');
-      }
-    };
-    generarHashLocal();
-  }, [busqueda]);
-
-  // FILTRADO INTELIGENTE
+  // FUNCIÓN DE FILTRADO
+  // Filtra por el Hash que se ve O intenta filtrar si el usuario escribe el NHC
   const pacientesFiltrados = listaPacientes.filter(p => {
     const term = busqueda.toLowerCase();
-    return (
-      p.nhc_hash.toLowerCase().includes(term) || // Busca por los caracteres del Hash
-      p.nhc_hash === hashBusqueda                // Busca por el NHC real convertido
-    );
+    const hashCompleto = (p.nhc_hash || p.id || "").toLowerCase();
+    
+    // 1. Coincidencia directa con lo que se ve (el hash)
+    if (hashCompleto.includes(term)) return true;
+
+    // 2. Aquí podrías añadir lógica de hash en JS si fuera necesario, 
+    // pero por ahora buscamos por el fragmento visible.
+    return false;
   });
 
   return (
@@ -42,67 +27,76 @@ const SeleccionarPacienteView = ({ listaPacientes, onSeleccionar, setView }) => 
       </button>
 
       <div style={styles.cardStyle}>
-        <h3 style={styles.cardTitle}>Seleccionar Paciente</h3>
-        
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ ...styles.cardTitle, color: '#1e293b' }}>
+            <Search color="#2563eb" size={24} /> Buscar Paciente
+          </h3>
+          <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
+            Introduzca el NHC o el identificador Hash para localizar al paciente.
+          </p>
+        </div>
+
         {/* BUSCADOR */}
-        <div style={{ position: 'relative', marginBottom: '20px' }}>
+        <div style={{ position: 'relative', marginBottom: '25px' }}>
           <Search 
             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
             size={20} 
           />
           <input
             type="text"
-            placeholder="Buscar por NHC real o por Hash..."
+            placeholder="Escriba NHC o Hash..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            style={{ ...styles.inputStyle, paddingLeft: '40px' }}
+            style={{ 
+              ...styles.inputStyle, 
+              paddingLeft: '40px',
+              border: '2px solid #e2e8f0',
+              borderRadius: '12px'
+            }}
           />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {pacientesFiltrados.length > 0 ? (
-            pacientesFiltrados.map((p) => (
+            pacientesFiltrados.map((p, index) => (
               <div 
-                key={p.nhc_hash} 
-                onClick={() => onSeleccionar(p)}
+                key={index} 
+                onClick={() => seleccionarPacienteExistente(p)}
                 style={{
-                  ...styles.inputWrapper,
-                  padding: '15px',
-                  border: '1px solid #e2e8f0',
+                  padding: '16px',
                   borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: '#fff',
                   cursor: 'pointer',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  transition: 'all 0.2s',
-                  backgroundColor: '#fff'
+                  transition: 'all 0.2s'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
-                onMouseOut={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#2563eb'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div style={{ backgroundColor: '#eff6ff', p: '10px', borderRadius: '50%', padding: '8px' }}>
-                    <User size={24} color="#3b82f6" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ backgroundColor: '#eff6ff', padding: '8px', borderRadius: '10px' }}>
+                    <User size={20} color="#2563eb" />
                   </div>
                   <div>
-                    <div style={{ fontWeight: '600', color: '#1e293b', fontFamily: 'monospace' }}>
-                      ID: {p.nhc_hash}
+                    <div style={{ fontWeight: '700', color: '#1e293b', fontFamily: 'monospace' }}>
+                      ID: {p.nhc_hash ? p.nhc_hash.substring(0, 12) : 'Sin ID'}...
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#64748b', display: 'flex', gap: '10px' }}>
-                      <span>{p.genero === 'H' ? 'Varón' : 'Mujer'}</span>
+                      <span>{p.genero === 'M' ? 'Masc.' : 'Fem.'}</span>
                       <span>•</span>
-                      <span>{p.rango_edad} años</span>
+                      <span>{p.rango_edad}</span>
                     </div>
                   </div>
                 </div>
-                <div style={{ color: '#3b82f6', fontSize: '0.8rem', fontWeight: '500' }}>
-                  Seleccionar →
-                </div>
+                <ArrowRight size={20} color="#cbd5e1" />
               </div>
             ))
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-              No se encontraron pacientes que coincidan.
+            <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', border: '2px dashed #f1f5f9', borderRadius: '12px' }}>
+              No se han encontrado pacientes.
             </div>
           )}
         </div>
