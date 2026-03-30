@@ -17,33 +17,53 @@ import CryptoJS from 'crypto-js';
 const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestionario, validarYPasarAEvento, setView, esPacienteExistente, listaPacientes }) => {
   
   const [errorNHC, setErrorNHC] = useState('');
+  const [errorFecha, setErrorFecha] = useState(''); // Estado para el error de fecha
 
   // --- RESTRICCIONES DE FECHA ---
-  const hoy = new Date().toISOString().split("T")[0]; // Fecha máxima: Hoy
+  const hoy = new Date().toISOString().split("T")[0]; 
   const hace120Anios = new Date();
   hace120Anios.setFullYear(hace120Anios.getFullYear() - 120);
-  const fechaMinima = hace120Anios.toISOString().split("T")[0]; // Fecha mínima: hace 120 años
+  const fechaMinima = hace120Anios.toISOString().split("T")[0]; 
 
   useEffect(() => {
+    // 1. Validación de NHC duplicado
     if (!esPacienteExistente && paciente.id) {
       const nhcNormalizado = paciente.id.trim();
       const hashIntroducido = CryptoJS.SHA256(nhcNormalizado).toString();
       const yaExiste = listaPacientes.some(p => p.nhc_hash === hashIntroducido);
       
       if (yaExiste) {
-        setErrorNHC('Este NHC ya existe. Use "Seleccionar Paciente" para añadir un evento a este paciente.');
+        setErrorNHC('Este NHC ya existe. Use "Seleccionar Paciente".');
       } else {
         setErrorNHC('');
       }
     } else {
       setErrorNHC('');
     }
-  }, [paciente.id, listaPacientes, esPacienteExistente]);
+
+    // 2. Validación de FECHA Razonable
+    if (!esPacienteExistente && paciente.fecha_nacimiento) {
+      const fechaCargada = paciente.fecha_nacimiento;
+      if (fechaCargada > hoy) {
+        setErrorFecha('La fecha no puede ser futura.');
+      } else if (fechaCargada < fechaMinima) {
+        setErrorFecha('La fecha es demasiado antigua (>120 años).');
+      } else {
+        setErrorFecha('');
+      }
+    } else {
+      setErrorFecha('');
+    }
+
+  }, [paciente.id, paciente.fecha_nacimiento, listaPacientes, esPacienteExistente, hoy, fechaMinima]);
 
   const handlePacienteChange = (e) => {
     const { name, value } = e.target;
     setPaciente(prev => ({ ...prev, [name]: value }));
   };
+
+  // Determinar si hay algún error bloqueante
+  const hayErrores = !!errorNHC || !!errorFecha;
 
   const PreguntaClinicaLocal = ({ id, label }) => (
     <div style={{
@@ -113,6 +133,7 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={User} title="Identificación del Paciente" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+            {/* NHC */}
             <div>
               <label style={styles.labelStyle}>NHC / Identificador</label>
               <div style={{ position: 'relative' }}>
@@ -139,22 +160,36 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
                 </div>
               )}
             </div>
+
+            {/* FECHA DE NACIMIENTO */}
             <div>
               <label style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento'}</label>
               {esPacienteExistente ? (
                 <input type="text" disabled value={paciente.rango_edad || ''} style={{ ...styles.inputStyle, backgroundColor: '#f8fafc' }} />
               ) : (
-                <input 
-                  type="date" 
-                  name="fecha_nacimiento" 
-                  value={paciente.fecha_nacimiento || ''} 
-                  onChange={handlePacienteChange} 
-                  max={hoy}            // Restringe a fechas futuras
-                  min={fechaMinima}     // Restringe a más de 120 años
-                  style={styles.inputStyle} 
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="date" 
+                    name="fecha_nacimiento" 
+                    value={paciente.fecha_nacimiento || ''} 
+                    onChange={handlePacienteChange} 
+                    max={hoy} 
+                    min={fechaMinima}
+                    style={{ 
+                      ...styles.inputStyle,
+                      borderColor: errorFecha ? '#ef4444' : '#e2e8f0',
+                      borderWidth: errorFecha ? '2px' : '1px'
+                    }} 
+                  />
+                </div>
+              )}
+              {errorFecha && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
+                  <AlertCircle size={14} /> {errorFecha}
+                </div>
               )}
             </div>
+
             <div>
               <label style={styles.labelStyle}>Género</label>
               <select 
@@ -172,7 +207,8 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
           </div>
         </div>
 
-        {/* ... Resto de secciones (Alergias, Medicación, etc.) se mantienen igual ... */}
+        {/* ... Resto de secciones (Alergias, Medicación, etc.) ... */}
+        {/* SECCIÓN 2: ALERGIAS */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={ShieldAlert} title="Alergias y Reacciones Conocidas" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -180,45 +216,22 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
             <PreguntaClinicaLocal id="q2_foods" label="Suspected allergy to Foods?" />
             <PreguntaClinicaLocal id="q2_insects" label="Suspected allergy to Insects/Ticks?" />
             <PreguntaClinicaLocal id="q2_meds" label="Suspected allergy to Medications?" />
-            
-            {(cuestionario.q1 === 'Yes' || cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes') && (
-              <textarea 
-                style={{ ...styles.detailInput, border: '1px solid #2563eb', backgroundColor: '#f0f7ff' }} 
-                placeholder="Details about allergens and previous reactions..." 
-                value={cuestionario.q1_details || cuestionario.q2_details || ''}
-                onChange={e => handleCuestionario('q1_details', e.target.value)} 
-                maxLength={500}
-              />
-            )}
           </div>
         </div>
-
-        <div style={{ marginBottom: '45px' }}>
-          <SectionHeader icon={Pill} title="Medicación y Tratamientos" />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 40px' }}>
-            <PreguntaClinicaLocal id="q3_anti" label="Antihistamines?" />
-            <PreguntaClinicaLocal id="q3_nasal" label="Nasal sprays?" />
-            <PreguntaClinicaLocal id="q3_puff" label="Asthma puffers?" />
-            <PreguntaClinicaLocal id="q4" label="Prescribed adrenaline?" />
-            <PreguntaClinicaLocal id="q5" label="Other supplements?" />
-          </div>
-        </div>
-
-        {/* Mantenemos el resto de Secciones 4 y 5 iguales... */}
 
         <button 
           onClick={validarYPasarAEvento} 
-          disabled={!!errorNHC} 
+          disabled={hayErrores} 
           style={{ 
             ...styles.calcBtn, 
             width: '100%', 
             padding: '20px', 
             borderRadius: '15px', 
             fontSize: '1.1rem',
-            boxShadow: errorNHC ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.2)',
-            backgroundColor: errorNHC ? '#cbd5e1' : '#2563eb',
-            cursor: errorNHC ? 'not-allowed' : 'pointer',
-            opacity: errorNHC ? 0.7 : 1
+            boxShadow: hayErrores ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.2)',
+            backgroundColor: hayErrores ? '#cbd5e1' : '#2563eb',
+            cursor: hayErrores ? 'not-allowed' : 'pointer',
+            opacity: hayErrores ? 0.7 : 1
           }}
         >
           Continuar a Event Record <ArrowRight size={22} />
