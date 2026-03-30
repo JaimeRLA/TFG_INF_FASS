@@ -24,8 +24,6 @@ const App = () => {
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
   const [editandoId, setEditandoId] = useState(null);
 
-  // El estado 'paciente' mantiene 'fecha_nacimiento' para envíos nuevos, 
-  // pero acepta 'rango_edad' para pacientes cargados del historial.
   const [paciente, setPaciente] = useState({ id: '', fecha_nacimiento: '', rango_edad: '', genero: '' });
   
   const [cuestionario, setCuestionario] = useState({});
@@ -86,21 +84,19 @@ const App = () => {
     }
   };
 
-  // REGISTRAR NUEVO EVENTO PARA PACIENTE EXISTENTE
   const seleccionarPacienteExistente = (p) => {
     setEditandoId(null); 
     setEsPacienteExistente(true); 
     setPaciente({
-      id: p.id || p.nhc_hash || '', // Ahora recibimos el hash como identificador
+      id: p.id || p.nhc_hash || '', 
       rango_edad: p.rango_edad || '', 
       genero: p.genero || '',
-      fecha_nacimiento: '' // No se requiere para existentes (minimización)
+      fecha_nacimiento: '' 
     });
     setResultado(null);
     setView('event_record'); 
   };
 
-  // EDITAR REPORTE EXISTENTE
   const seleccionarParaEditar = (p) => {
     setEditandoId(p.id); 
     setEsPacienteExistente(false); 
@@ -136,8 +132,7 @@ const App = () => {
   };
 
   const validarYPasarAEvento = async () => {
-    // Si es nuevo, validamos fecha_nacimiento. Si es existente, validamos que tenga id/hash.
-    const identificadorOk = esPacienteExistente ? paciente.id : paciente.id;
+    const identificadorOk = paciente.id;
     const edadOk = esPacienteExistente ? paciente.rango_edad : paciente.fecha_nacimiento;
 
     if (!identificadorOk || !edadOk || !paciente.genero) {
@@ -145,6 +140,17 @@ const App = () => {
       return;
     }
     setView('event_record');
+  };
+
+  // --- NUEVA FUNCIÓN DE NAVEGACIÓN CONTEXTUAL ---
+  const manejarVolverDeEvento = () => {
+    if (esPacienteExistente) {
+      // Si el paciente ya existe, al "cancelar" el evento volvemos al menú principal
+      reiniciarApp();
+    } else {
+      // Si es un flujo de nuevo paciente, permitimos volver atrás para corregir antecedentes
+      setView('registro_paciente');
+    }
   };
 
   const enviarEvaluacion = async () => {
@@ -155,7 +161,7 @@ const App = () => {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
         id: editandoId, 
         paciente_id: paciente.id,
-        fecha_nacimiento: paciente.fecha_nacimiento, // El backend lo convertirá a rango si es nuevo
+        fecha_nacimiento: paciente.fecha_nacimiento, 
         genero: paciente.genero,
         respuestas: cuestionario,
         evento: evento,
@@ -174,7 +180,6 @@ const App = () => {
   };
 
   const descargarPaciente = (p) => {
-    // Cabeceras actualizadas para reflejar pseudonimización
     const encabezados = "NHC_Hash,Rango_Edad,Genero,nFASS,oFASS,Risk,Fecha_Evaluacion\n";
     const fila = `${p.nhc_hash},${p.rango_edad},${p.genero},${p.nfass},${p.ofass_grade},${p.risk_level},${p.fecha}\n`;
     const blob = new Blob([encabezados + fila], { type: 'text/csv' });
@@ -186,7 +191,6 @@ const App = () => {
   };
 
   const pacientesFiltrados = listaPacientes.filter(p => {
-      // El filtro ahora busca sobre el hash o ID
       const val = p.nhc_hash || p.id || "";
       return val.toString().toLowerCase().includes(filtroBusqueda.toLowerCase());
   });
@@ -224,7 +228,7 @@ const App = () => {
           <EventRecordView 
             evento={evento} 
             handleEvento={handleEvento} 
-            setView={setView} 
+            setView={manejarVolverDeEvento} // Pasamos la función contextualizada
             esPacienteExistente={esPacienteExistente} 
           />
         )}
