@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, User, Calendar, ArrowRight, Fingerprint } from 'lucide-react';
+import { Search, Users,User, Calendar, ArrowRight, Fingerprint } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import CryptoJS from 'crypto-js'; 
 
