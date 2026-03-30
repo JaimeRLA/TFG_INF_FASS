@@ -6,7 +6,7 @@ import {
   FileText,
   UserCheck,
   XCircle,
-  ArrowLeft 
+  ChevronLeft // Cambiado a ChevronLeft para un look más moderno
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import { SECCIONES_SINTOMAS } from '../data/sintomas';
@@ -45,17 +45,33 @@ const CalculadoraView = ({
       display: 'flex', 
       flexDirection: 'row', 
       gap: '40px', 
-      maxWidth: '1500px', // Aumentamos el máximo total
+      maxWidth: '1500px', 
       margin: '0 auto', 
       padding: '20px',
-      alignItems: 'flex-start' // Vital para que el sticky funcione
+      alignItems: 'flex-start' 
     }}>
       
-      {/* COLUMNA IZQUIERDA: CALCULADORA (Scrollable) */}
+      {/* COLUMNA IZQUIERDA: CALCULADORA */}
       <section style={{ flex: '1', minWidth: '0' }}>
+        
+        {/* BOTÓN VOLVER ICONO: Siempre visible en flujo de nuevo registro */}
         {!esPacienteExistente && (
-          <button onClick={() => setView('event_record')} style={styles.backBtn}>
-            <ArrowLeft size={18} /> Volver a Event Record
+          <button 
+            onClick={() => setView('event_record')} 
+            style={{
+                ...styles.backBtn,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                padding: 0,
+                marginBottom: '15px'
+            }}
+            title="Volver a Event Record"
+          >
+            <ChevronLeft size={24} />
           </button>
         )}
 
@@ -115,17 +131,16 @@ const CalculadoraView = ({
         </div>
       </section>
 
-      {/* COLUMNA DERECHA: RESULTADOS (FIJA AL HACER SCROLL) */}
+      {/* COLUMNA DERECHA: RESULTADOS (FIJA) */}
       <aside style={{ 
         width: '500px', 
         minWidth: '500px', 
         position: 'sticky', 
-        top: '20px', // Se queda a 20px del borde superior al bajar
-        alignSelf: 'flex-start' // Crucial para que sticky funcione dentro de un flex
+        top: '20px', 
+        alignSelf: 'flex-start' 
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* BOTÓN FINALIZAR: Arriba para que no lo tape el chat */}
           <button 
             onClick={reiniciarApp} 
             style={{ 
