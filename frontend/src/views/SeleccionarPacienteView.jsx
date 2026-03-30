@@ -38,7 +38,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
           </p>
         </div>
 
-        {/* BUSCADOR ESTILIZADO */}
+        {/* BUSCADOR */}
         <div style={{ position: 'relative', marginBottom: '30px' }}>
           <Search 
             style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
