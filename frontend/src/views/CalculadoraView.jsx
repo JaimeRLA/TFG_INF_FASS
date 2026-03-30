@@ -144,7 +144,8 @@ const CalculadoraView = ({
       </section>
 
       {/* PANEL LATERAL DE RESULTADOS */}
-      <aside style={{ ...styles.asideStyle, width: '380px' }}>
+      // En CalculadoraView.jsx
+      <aside style={{ ...styles.asideStyle, width: '480px', minWidth: '480px' }}> 
         <div style={{ position: 'sticky', top: '20px' }}>
           {resultado ? (
             <div style={{ animation: 'slideInRight 0.4s ease' }}>
