@@ -143,61 +143,65 @@ const CalculadoraView = ({
         </div>
       </section>
 
-      {/* PANEL LATERAL DE RESULTADOS */}
-      <aside style={{ ...styles.asideStyle, width: '380px' }}>
-        <div style={{ position: 'sticky', top: '20px' }}>
-          {resultado ? (
-            <div style={{ animation: 'slideInRight 0.4s ease' }}>
-              <ResultadoCard resultado={resultado} />
-              <div style={{ 
-                marginTop: '15px', 
-                padding: '12px', 
-                backgroundColor: '#ecfdf5', 
-                borderRadius: '10px', 
-                border: '1px solid #d1fae5',
-                display: 'flex',
-                gap: '8px',
-                alignItems: 'center'
-              }}>
-                <CheckCircle2 size={16} color="#059669" />
-                <span style={{ fontSize: '0.8rem', color: '#065f46', fontWeight: '600' }}>
-                  Evaluación guardada automáticamente.
-                </span>
-              </div>
-            </div>
-          ) : (
+      {/* PANEL LATERAL DE RESULTADOS - ENSANCHADO A 500px */}
+    <aside style={{ ...styles.asideStyle, width: '500px', minWidth: '500px' }}>
+      <div style={{ position: 'sticky', top: '20px' }}>
+        {resultado ? (
+          <div style={{ animation: 'slideInRight 0.4s ease' }}>
+            <ResultadoCard resultado={resultado} />
             <div style={{ 
-              ...styles.emptyCard, 
-              padding: '60px 20px', 
-              border: '2px dashed #e2e8f0',
-              backgroundColor: '#fff',
-              color: '#94a3b8',
+              marginTop: '15px', 
+              padding: '12px', 
+              backgroundColor: '#ecfdf5', 
+              borderRadius: '10px', 
+              border: '1px solid #d1fae5',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '15px'
-            }}>
-              <FileText size={40} strokeWidth={1} />
-              <p style={{ margin: 0, fontWeight: '500' }}>Esperando datos clínicos...</p>
-            </div>
-          )}
-          
-          <button 
-            onClick={reiniciarApp} 
-            style={{ 
-              ...styles.newEvalBtn, 
-              marginTop: '20px',
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               gap: '8px',
-              backgroundColor: '#1e293b'
-            }}
-          >
-            <AlertCircle size={18} /> Finalizar Sesión
-          </button>
-        </div>
-      </aside>
+              alignItems: 'center'
+            }}>
+              <CheckCircle2 size={16} color="#059669" />
+              <span style={{ fontSize: '0.8rem', color: '#065f46', fontWeight: '600' }}>
+                Evaluación guardada automáticamente.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ 
+            ...styles.emptyCard, 
+            padding: '80px 20px', 
+            border: '2px dashed #e2e8f0',
+            backgroundColor: '#fff',
+            color: '#94a3b8',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '15px'
+          }}>
+            <FileText size={40} strokeWidth={1} />
+            <p style={{ margin: 0, fontWeight: '500' }}>Esperando datos clínicos...</p>
+          </div>
+        )}
+        
+        {/* BOTÓN CON Z-INDEX PARA QUE EL ASISTENTE NO LO TAPE */}
+        <button 
+          onClick={reiniciarApp} 
+          style={{ 
+            ...styles.newEvalBtn, 
+            marginTop: '25px',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            backgroundColor: '#1e293b',
+            position: 'relative', // Necesario para el zIndex
+            zIndex: 9999,         // Por encima del asistente
+            cursor: 'pointer'
+          }}
+        >
+          <AlertCircle size={18} /> Finalizar y Guardar Sesión
+        </button>
+      </div>
+    </aside>
     </main>
   );
 };

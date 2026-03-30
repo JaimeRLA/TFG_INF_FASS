@@ -31,7 +31,15 @@ export const styles = {
   logoutBtn: { background: 'none', border: 'none', color: '#be123c', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' },
   emptyCard: { padding: '50px', textAlign: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1', borderRadius: '20px', backgroundColor: '#fff' },
   newEvalBtn: { width: '100%', marginTop: '10px', padding: '12px', border: '2px solid #2563eb', color: '#2563eb', borderRadius: '12px', background: 'none', fontWeight: 'bold', cursor: 'pointer' },
-  calculatorLayout: { display: 'flex', gap: '30px', alignItems: 'flex-start' },
+  // En tu AppStyles.js busca calculatorLayout
+  calculatorLayout: {
+    display: 'flex',
+    gap: '50px',            // Aumentamos el hueco entre columnas
+    alignItems: 'flex-start',
+    width: '100%',          // Que use todo el ancho disponible
+    maxWidth: '1400px',     // Ampliamos el máximo para que quepa la tarjeta de 500px
+    margin: '0 auto'
+  },
   asideStyle: { width: '400px', flexShrink: '0', position: 'sticky', top: '20px' },
   questionBlock: { padding: '15px', backgroundColor: '#fbfcfd', borderRadius: '12px', border: '1px solid #f1f5f9' },
   gridQuestions: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 30px' },
