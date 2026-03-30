@@ -9,32 +9,25 @@ import {
   Activity, 
   ShieldAlert,
   Home,
-  AlertCircle // Icono de error
+  AlertCircle 
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import CryptoJS from 'crypto-js';
 
-const AntecedentesView = ({ 
-  paciente, 
-  setPaciente, 
-  cuestionario, 
-  handleCuestionario, 
-  validarYPasarAEvento, 
-  setView, 
-  esPacienteExistente,
-  listaPacientes // <-- Asegúrate de recibir esto desde App.jsx
-}) => {
+const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestionario, validarYPasarAEvento, setView, esPacienteExistente, listaPacientes }) => {
   
   const [errorNHC, setErrorNHC] = useState('');
 
-  // Lógica de validación de NHC duplicado
+  // --- RESTRICCIONES DE FECHA ---
+  const hoy = new Date().toISOString().split("T")[0]; // Fecha máxima: Hoy
+  const hace120Anios = new Date();
+  hace120Anios.setFullYear(hace120Anios.getFullYear() - 120);
+  const fechaMinima = hace120Anios.toISOString().split("T")[0]; // Fecha mínima: hace 120 años
+
   useEffect(() => {
-    // Solo validamos si es un registro NUEVO (no editando) y hay algo escrito
     if (!esPacienteExistente && paciente.id) {
       const nhcNormalizado = paciente.id.trim();
-      // Generamos el hash para comparar con lo que hay en la base de datos
       const hashIntroducido = CryptoJS.SHA256(nhcNormalizado).toString();
-      
       const yaExiste = listaPacientes.some(p => p.nhc_hash === hashIntroducido);
       
       if (yaExiste) {
@@ -130,6 +123,7 @@ const AntecedentesView = ({
                   value={paciente.id || ''}
                   onChange={handlePacienteChange}
                   placeholder="Ej: 123456" 
+                  maxLength={20}
                   style={{ 
                     ...styles.inputStyle, 
                     backgroundColor: esPacienteExistente ? '#f8fafc' : '#fff',
@@ -139,7 +133,6 @@ const AntecedentesView = ({
                 />
                 {esPacienteExistente && <Lock size={16} style={{ position: 'absolute', right: 12, top: 14, color: '#94a3b8' }} />}
               </div>
-              {/* MENSAJE DE ERROR DINÁMICO */}
               {errorNHC && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
                   <AlertCircle size={14} /> {errorNHC}
@@ -151,7 +144,15 @@ const AntecedentesView = ({
               {esPacienteExistente ? (
                 <input type="text" disabled value={paciente.rango_edad || ''} style={{ ...styles.inputStyle, backgroundColor: '#f8fafc' }} />
               ) : (
-                <input type="date" name="fecha_nacimiento" value={paciente.fecha_nacimiento || ''} onChange={handlePacienteChange} style={styles.inputStyle} />
+                <input 
+                  type="date" 
+                  name="fecha_nacimiento" 
+                  value={paciente.fecha_nacimiento || ''} 
+                  onChange={handlePacienteChange} 
+                  max={hoy}            // Restringe a fechas futuras
+                  min={fechaMinima}     // Restringe a más de 120 años
+                  style={styles.inputStyle} 
+                />
               )}
             </div>
             <div>
@@ -171,8 +172,7 @@ const AntecedentesView = ({
           </div>
         </div>
 
-        {/* ... (Las secciones de Alergias, Medicación, etc., se mantienen igual que tu código original) ... */}
-        {/* SECCIÓN 2: ALERGIAS CONOCIDAS */}
+        {/* ... Resto de secciones (Alergias, Medicación, etc.) se mantienen igual ... */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={ShieldAlert} title="Alergias y Reacciones Conocidas" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -187,6 +187,7 @@ const AntecedentesView = ({
                 placeholder="Details about allergens and previous reactions..." 
                 value={cuestionario.q1_details || cuestionario.q2_details || ''}
                 onChange={e => handleCuestionario('q1_details', e.target.value)} 
+                maxLength={500}
               />
             )}
           </div>
@@ -203,9 +204,11 @@ const AntecedentesView = ({
           </div>
         </div>
 
+        {/* Mantenemos el resto de Secciones 4 y 5 iguales... */}
+
         <button 
           onClick={validarYPasarAEvento} 
-          disabled={!!errorNHC} // Bloqueamos el botón si el NHC está repetido
+          disabled={!!errorNHC} 
           style={{ 
             ...styles.calcBtn, 
             width: '100%', 
