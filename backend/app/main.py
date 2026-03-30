@@ -78,16 +78,19 @@ init_db()
 def get_age_range(dob_str):
     """Convierte fecha exacta en rango de edad (Minimización de datos)"""
     try:
-        if not "-" in dob_str and not dob_str.isdigit():
-             birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
-             today = datetime.today()
-             age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-             if age < 18: return "Pediatría (<18)"
-             if age < 30: return "18-29"
-             if age < 50: return "30-49"
-             if age < 70: return "50-69"
-             return "70+"
-        return dob_str
+        # Si ya es un rango, lo devolvemos
+        if "-" in dob_str or "+" in dob_str or "Pediatría" in dob_str:
+            return dob_str
+            
+        birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
+        today = datetime.today()
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        
+        if age < 18: return "Pediatría (<18)"
+        if age < 30: return "18-29"
+        if age < 50: return "30-49"
+        if age < 70: return "50-69"
+        return "70+"
     except:
         return dob_str if dob_str else "No especificado"
 
@@ -224,7 +227,7 @@ async def calculate(request: EvaluacionRequest):
             """, (nhc_pseudo, rango_edad, genero_c, request.medico))
             int_paciente_id = cursor.fetchone()[0]
 
-        # --- PASO 4: GUARDADO DE EVALUACIÓN (UPDATE SI EXISTE ID, INSERT SI NO) ---
+        # --- PASO 4: GUARDADO DE EVALUACIÓN ---
         id_final = None
         if request.id and int(request.id) > 0:
             id_final = int(request.id)
@@ -246,7 +249,6 @@ async def calculate(request: EvaluacionRequest):
             id_final = cursor.fetchone()[0]
 
         conn.commit()
-        # Devolvemos id_registro para que el frontend lo use en los siguientes clics de "Calcular"
         return {**resultado, "success": True, "id_registro": id_final}
     except Exception as e:
         if conn: conn.rollback()
@@ -276,7 +278,6 @@ async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_
 
 @app.get("/get_hash/{nhc}")
 async def get_hash(nhc: str):
-    """Devuelve el hash SHA256 completo para facilitar búsquedas"""
     hash_obj = hashlib.sha256(nhc.encode())
     return {"hash": hash_obj.hexdigest()}
 

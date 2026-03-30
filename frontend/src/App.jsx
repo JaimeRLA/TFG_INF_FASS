@@ -58,7 +58,7 @@ const App = () => {
 
   const cargarHistorial = async () => {
     try {
-      const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
+      const res = await axios.get(`https://tfg-inf-fass-1.onrender.com/history`, {
         params: { medico: usuarioLogueado }, 
         headers: { 'x-tfg-key': TFG_KEY }
       });
@@ -73,7 +73,7 @@ const App = () => {
   const cargarPacientesExistentes = async () => {
     try {
       setFiltroBusqueda(''); 
-      const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
+      const res = await axios.get(`https://tfg-inf-fass-1.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
         headers: { 'x-tfg-key': TFG_KEY }
       });
       setListaPacientes(res.data);
@@ -123,7 +123,7 @@ const App = () => {
     if (!id_db) return;
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
     try {
-      await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
+      await axios.delete(`https://tfg-inf-fass-1.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
         headers: { 'x-tfg-key': TFG_KEY }
       });
       alert("Registro eliminado con éxito.");
@@ -142,24 +142,13 @@ const App = () => {
     setView('event_record');
   };
 
-  // --- NUEVA FUNCIÓN DE NAVEGACIÓN CONTEXTUAL ---
-  const manejarVolverDeEvento = () => {
-    if (esPacienteExistente) {
-      // Si el paciente ya existe, al "cancelar" el evento volvemos al menú principal
-      reiniciarApp();
-    } else {
-      // Si es un flujo de nuevo paciente, permitimos volver atrás para corregir antecedentes
-      setView('registro_paciente');
-    }
-  };
-
-    const enviarEvaluacion = async () => {
+  const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
     
     if (!paciente.id) return alert("Error: Falta ID del paciente.");
     if (listaIds.length === 0) return alert("Por favor, seleccione al menos un síntoma.");
 
-    // Preparamos el ID: Si es 0 o vacío, mandamos null para que el backend haga INSERT
+    // Preparamos el ID: Si ya existe (por haber calculado antes o venir de historial), lo enviamos para UPDATE
     const idParaEnviar = (editandoId && editandoId > 0) ? parseInt(editandoId) : null;
 
     console.log("Enviando evaluación...", { id: idParaEnviar, paciente: paciente.id });
@@ -168,6 +157,7 @@ const App = () => {
       const res = await axios.post('https://tfg-inf-fass-1.onrender.com/calculate', {
         id: idParaEnviar, 
         paciente_id: paciente.id,
+        // Usamos fecha si es nuevo, o el rango si ya venía de la DB
         fecha_nacimiento: paciente.fecha_nacimiento || paciente.rango_edad, 
         genero: paciente.genero,
         respuestas: cuestionario,
@@ -178,17 +168,17 @@ const App = () => {
       
       if (res.data.success) {
         setResultado(res.data);
-        // Guardamos el ID que nos devuelve el servidor para el próximo clic
+        // CRUCIAL: Guardamos el id_registro retornado para que el próximo clic sobreescriba esta evaluación
         if (res.data.id_registro) {
           setEditandoId(res.data.id_registro);
-          console.log("ID de registro guardado:", res.data.id_registro);
+          console.log("ID de registro guardado para persistencia:", res.data.id_registro);
         }
       } else {
         alert("Error del servidor: " + res.data.message);
       }
     } catch (err) { 
-      console.error("Error completo:", err);
-      alert("Error de conexión. Revisa la consola del navegador."); 
+      console.error("Error en la petición:", err);
+      alert("Error crítico: " + (err.response?.data?.detail || "Fallo de conexión con el backend")); 
     }
   };
 
@@ -202,11 +192,6 @@ const App = () => {
     a.setAttribute('download', `Pseudonimo_${p.nhc_hash.substring(0,8)}_evaluacion.csv`);
     a.click();
   };
-
-  const pacientesFiltrados = listaPacientes.filter(p => {
-      const val = p.nhc_hash || p.id || "";
-      return val.toString().toLowerCase().includes(filtroBusqueda.toLowerCase());
-  });
 
   if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
 
@@ -235,21 +220,30 @@ const App = () => {
         
         {view === 'seleccionar_paciente' && (
           <SeleccionarPacienteView 
-            listaPacientes={listaPacientes} // Le pasamos la lista completa
-            setFiltroBusqueda={setFiltroBusqueda} 
+            listaPacientes={listaPacientes}
             seleccionarPacienteExistente={seleccionarPacienteExistente} 
             setView={setView} 
           />
         )}        
-        {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} esPacienteExistente={esPacienteExistente} />}
+        
+        {view === 'registro_paciente' && (
+          <AntecedentesView 
+            paciente={paciente} 
+            setPaciente={setPaciente} 
+            cuestionario={cuestionario} 
+            handleCuestionario={handleCuestionario} 
+            validarYPasarAEvento={validarYPasarAEvento} 
+            setView={setView} 
+            esPacienteExistente={esPacienteExistente} 
+          />
+        )}
         
         {view === 'event_record' && (
           <EventRecordView 
             evento={evento} 
             handleEvento={handleEvento} 
-            // Si es existente, al cancelar usamos reiniciarApp para limpiar todo
-            // Si es nuevo, simplemente retrocedemos de vista
             setView={(nuevaVista) => {
+              // Navegación contextual: si cancelamos un paciente cargado, limpiamos todo.
               if (nuevaVista === 'perfil' && esPacienteExistente) {
                 reiniciarApp();
               } else {
