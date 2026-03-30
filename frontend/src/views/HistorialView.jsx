@@ -26,14 +26,19 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
       
       <div style={styles.cardStyle}>
         {/* CABECERA */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ backgroundColor: '#fff7ed', padding: '10px', borderRadius: '10px' }}>
               <ClipboardList color="#ea580c" size={28} />
             </div>
-            <h3 style={{ ...styles.cardTitle, color: '#1e293b', margin: 0 }}>
-              Historial Clínico Pseudonimizado
-            </h3>
+            <div>
+                <h3 style={{ ...styles.cardTitle, color: '#1e293b', margin: 0 }}>
+                Historial Clínico Pseudonimizado
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>
+                    Puede buscar pacientes introduciendo su <strong>NHC real</strong> o fragmentos del identificador Hash.
+                </p>
+            </div>
           </div>
           
           <div style={{ 
@@ -41,18 +46,19 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
             alignItems: 'center', 
             gap: '5px', 
             fontSize: '0.75rem', 
-            color: '#059669', 
-            backgroundColor: '#ecfdf5', 
+            color: '#ea580c', 
+            backgroundColor: '#fff7ed', 
             padding: '6px 14px', 
             borderRadius: '20px',
-            border: '1px solid #d1fae5',
-            fontWeight: '600'
+            border: '1px solid #ffedd5',
+            fontWeight: '700',
+            whiteSpace: 'nowrap'
           }}>
             <ShieldCheck size={14} /> RGPD: Datos Protegidos
           </div>
         </div>
 
-        {/* BARRA DE BÚSQUEDA */}
+        {/* BARRA DE BÚSQUEDA - Texto corregido a color oscuro */}
         <div style={{ position: 'relative', marginBottom: '25px' }}>
           <Search 
             style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
@@ -71,17 +77,16 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
               fontSize: '1rem',
               outline: 'none',
               boxSizing: 'border-box',
-              backgroundColor: '#f8fafc',
+              backgroundColor: '#ffffff', // Fondo blanco para contraste
+              color: '#1e293b',          // TEXTO OSCURO PARA QUE SE VEA
               transition: 'all 0.2s'
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = '#2563eb';
-              e.target.style.backgroundColor = '#fff';
-              e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.05)';
+              e.target.style.borderColor = '#ea580c';
+              e.target.style.boxShadow = '0 0 0 4px rgba(234, 88, 12, 0.05)';
             }}
             onBlur={(e) => {
               e.target.style.borderColor = '#e2e8f0';
-              e.target.style.backgroundColor = '#f8fafc';
             }}
           />
         </div>
@@ -107,7 +112,7 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
               }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <Fingerprint size={18} color="#2563eb" />
+                    <Fingerprint size={18} color="#ea580c" />
                     <strong style={{ color: '#1e293b', fontFamily: 'monospace', fontSize: '1.05rem' }}>
                       ID: {p.nhc_hash ? p.nhc_hash.substring(0, 16) : 'N/A'}...
                     </strong>
@@ -126,9 +131,9 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                   <div style={{ 
                     display: 'inline-block',
                     fontSize: '0.85rem', 
-                    color: '#2563eb', 
+                    color: '#ea580c', 
                     fontWeight: '700',
-                    backgroundColor: '#eff6ff',
+                    backgroundColor: '#fff7ed',
                     padding: '4px 10px',
                     borderRadius: '6px'
                   }}>
@@ -145,7 +150,7 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                   </button>
                   <button 
                     onClick={() => descargarPaciente(p)} 
-                    style={{ ...styles.actionBtnBlue, display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+                    style={{ ...styles.actionBtnBlue, display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#2563eb' }}
                   >
                     <Download size={14} /> CSV
                   </button>
@@ -171,12 +176,12 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
       </div>
 
       {/* PIE DE SEGURIDAD */}
-      <div style={{ marginTop: '25px', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
+      <div style={{ marginTop: '25px', padding: '15px', backgroundColor: '#fff7ed', borderRadius: '12px', border: '1px dashed #ea580c' }}>
+        <p style={{ fontSize: '0.75rem', color: '#7c2d12', margin: 0, lineHeight: '1.5' }}>
           <strong>Nota de Seguridad:</strong> Este sistema implementa medidas de seudonimización técnica. 
           Los identificadores originales (NHC) han sido transformados mediante funciones hash irreversibles (SHA-256) 
           y las fechas de nacimiento han sido minimizadas a rangos etarios según las directrices del EDPB 2025. 
-          El buscador permite la localización mediante hashing local en el cliente.
+          El buscador permite la localización mediante hashing local en el cliente sin transmitir el NHC original.
         </p>
       </div>
     </div>

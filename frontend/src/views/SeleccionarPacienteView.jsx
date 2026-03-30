@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Users,User, Calendar, ArrowRight, Fingerprint } from 'lucide-react';
+import { Search, User, Calendar, ArrowRight, Fingerprint, Users, ShieldCheck } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import CryptoJS from 'crypto-js'; 
 
@@ -7,22 +7,24 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
   const [busqueda, setBusqueda] = useState('');
 
   // LÓGICA DE FILTRADO INTELIGENTE
-  const pacientesFiltrados = listaPacientes.filter(p => {
+  const pacientesFiltrados = (listaPacientes || []).filter(p => {
     const term = busqueda.trim();
     if (!term) return true;
 
-    // Calculamos el hash de lo que el usuario está escribiendo para comparar
-    const hashDeBusqueda = CryptoJS.SHA256(term).toString();
-    const hashEnDB = (p.nhc_hash || p.id || "").toLowerCase();
+    try {
+      const hashDeBusqueda = CryptoJS.SHA256(term).toString();
+      const hashEnDB = (p.nhc_hash || p.id || "").toLowerCase();
 
-    return (
-      hashEnDB.includes(term.toLowerCase()) || 
-      hashEnDB === hashDeBusqueda               
-    );
+      return (
+        hashEnDB.includes(term.toLowerCase()) || 
+        hashEnDB === hashDeBusqueda               
+      );
+    } catch (e) {
+      return (p.nhc_hash || "").toLowerCase().includes(term.toLowerCase());
+    }
   });
 
   return (
-    /* He subido el maxWidth a 1000px para que no sea tan estrecho */
     <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.3s ease' }}>
       
       <button onClick={() => setView('perfil')} style={styles.backBtn}>
@@ -31,22 +33,40 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
 
       <div style={{ ...styles.cardStyle, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
         
-        {/* Cabecera con el icono del Menú */}
-        <div style={{ marginBottom: '30px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ backgroundColor: '#eff6ff', padding: '12px', borderRadius: '12px' }}>
-            <Users color="#16a34a" size={32} />
+        {/* Cabecera con Icono Verde y Etiqueta RGPD */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ backgroundColor: '#f0fdf4', padding: '12px', borderRadius: '12px' }}>
+              <Users color="#16a34a" size={32} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>
+                Localizar Paciente
+              </h3>
+              <p style={{ fontSize: '0.95rem', color: '#64748b', margin: '4px 0 0' }}>
+                Introduzca el <strong>NHC real</strong> para realizar una búsqueda inversa.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>
-              Localizar Paciente
-            </h3>
-            <p style={{ fontSize: '0.95rem', color: '#64748b', margin: '4px 0 0' }}>
-              Introduzca el <strong>NHC real</strong> para realizar una búsqueda inversa en la base de datos.
-            </p>
+
+          {/* ETIQUETA RGPD VERDE */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '5px', 
+            fontSize: '0.75rem', 
+            color: '#16a34a', 
+            backgroundColor: '#f0fdf4', 
+            padding: '6px 14px', 
+            borderRadius: '20px',
+            border: '1px solid #dcfce7',
+            fontWeight: '700'
+          }}>
+            <ShieldCheck size={14} /> RGPD: Datos Protegidos
           </div>
         </div>
 
-        {/* BUSCADOR - Ahora con fondo blanco y borde suave */}
+        {/* BUSCADOR */}
         <div style={{ position: 'relative', marginBottom: '35px' }}>
           <Search 
             style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
@@ -66,22 +86,15 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
               outline: 'none',
               transition: 'all 0.2s ease',
               boxSizing: 'border-box',
-              backgroundColor: '#ffffff', // Aseguramos fondo blanco
-              color: '#1e293b',
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+              backgroundColor: '#ffffff', 
+              color: '#1e293b'
             }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#2563eb';
-              e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '#e2e8f0';
-              e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)';
-            }}
+            onFocus={(e) => e.target.style.borderColor = '#16a34a'}
+            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
           />
         </div>
 
-        {/* LISTADO DE RESULTADOS */}
+        {/* LISTADO - Huellas Azules */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px' }}>
           {pacientesFiltrados.length > 0 ? (
             pacientesFiltrados.map((p, index) => (
@@ -100,23 +113,22 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#2563eb';
-                    e.currentTarget.style.backgroundColor = '#f8faff';
-                    e.currentTarget.style.transform = 'translateX(5px)';
+                    e.currentTarget.style.borderColor = '#16a34a';
+                    e.currentTarget.style.backgroundColor = '#f0fdf4';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = '#f1f5f9';
                     e.currentTarget.style.backgroundColor = '#fff';
-                    e.currentTarget.style.transform = 'translateX(0)';
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <div style={{ backgroundColor: '#f1f5f9', padding: '10px', borderRadius: '10px' }}>
-                    <Fingerprint size={24} color="#16a34a" />
+                  {/* HUELLA AZUL */}
+                  <div style={{ backgroundColor: '#eff6ff', padding: '10px', borderRadius: '10px' }}>
+                    <Fingerprint size={24} color="#2563eb" />
                   </div>
                   <div>
                     <div style={{ fontWeight: '700', color: '#1e293b', fontFamily: 'monospace', fontSize: '1.1rem' }}>
-                      ID: {p.id ? p.id.substring(0, 16) : '---'}...
+                      ID: {p.nhc_hash ? p.nhc_hash.substring(0, 16) : (p.id ? String(p.id).substring(0,16) : '---')}...
                     </div>
                     <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '6px', display: 'flex', gap: '15px' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -128,7 +140,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontWeight: '600' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontWeight: '600' }}>
                   <span>Seleccionar</span>
                   <ArrowRight size={20} />
                 </div>
@@ -143,7 +155,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
               borderRadius: '16px', 
               border: '2px dashed #e2e8f0' 
             }}>
-              <p style={{ fontSize: '1.1rem', margin: 0 }}>No hay pacientes que coincidan con "{busqueda}"</p>
+              <p style={{ fontSize: '1.1rem', margin: 0 }}>No hay pacientes que coincidan.</p>
             </div>
           )}
         </div>
