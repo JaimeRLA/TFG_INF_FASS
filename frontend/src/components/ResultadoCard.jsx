@@ -1,145 +1,200 @@
 import React from 'react';
-import { ShieldCheck, AlertTriangle, Activity, CheckCircle, AlertCircle } from 'lucide-react';
+import { 
+  Activity, 
+  Stethoscope, 
+  CheckCircle2, 
+  AlertCircle,
+  FileText,
+  UserCheck,
+  XCircle // Importamos XCircle para el botón de cerrar
+} from 'lucide-react';
+import { styles } from '../AppStyles.js';
+import { SECCIONES_SINTOMAS } from '../data/sintomas';
+import ResultadoCard from '../components/ResultadoCard';
 
-const ResultadoCard = ({ resultado }) => {
-  // 1. Seguridad: Si no hay resultado o datos clave, no renderizamos nada (evita el gris)
-  if (!resultado || resultado.ofass_grade === undefined) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-        Cargando resultados...
-      </div>
-    );
-  }
+const CalculadoraView = ({ 
+  paciente, 
+  handleSelectChange, 
+  enviarEvaluacion, 
+  resultado, 
+  reiniciarApp, 
+  setView, 
+  esPacienteExistente 
+}) => {
 
-  // 2. Normalizamos el grado a número
-  const grado = parseInt(resultado.ofass_grade) || 0;
-  
-  // 3. Configuración de colores y etiquetas
-  const getConfig = (g) => {
-    if (g >= 4) return { 
-      bg: '#fff1f2', border: '#fecdd3', text: '#be123c', 
-      label: 'CRÍTICO', icon: <AlertTriangle size={20} /> 
-    };
-    if (g === 3) return { 
-      bg: '#fffbeb', border: '#fef3c7', text: '#b45309', 
-      label: 'MODERADO', icon: <AlertCircle size={20} /> 
-    };
-    return { 
-      bg: '#f0fdf4', border: '#bbf7d0', text: '#166534', 
-      label: 'LEVE', icon: <CheckCircle size={20} /> 
-    };
-  };
-
-  const config = getConfig(grado);
+  const SectionHeader = ({ icon: Icon, title }) => (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      marginBottom: '20px',
+      padding: '10px 15px',
+      backgroundColor: '#eff6ff',
+      borderLeft: '4px solid #2563eb',
+      borderRadius: '0 8px 8px 0'
+    }}>
+      <Icon size={20} color="#2563eb" />
+      <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#1e40af', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {title}
+      </h4>
+    </div>
+  );
 
   return (
-    <div style={{ 
-      backgroundColor: config.bg, 
-      padding: '30px 20px', 
-      borderRadius: '24px', 
-      border: `2px solid ${config.border}`, 
-      textAlign: 'center', 
-      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-      position: 'relative'
-    }}>
-      {/* Etiqueta Superior */}
-      <div style={{ 
-        display: 'inline-flex', 
-        alignItems: 'center', 
-        gap: '6px',
-        backgroundColor: '#fff', 
-        padding: '5px 12px', 
-        borderRadius: '20px', 
-        fontSize: '0.7rem', 
-        fontWeight: '800', 
-        color: config.text,
-        border: `1px solid ${config.border}`,
-        marginBottom: '15px'
-      }}>
-        {config.icon} {config.label}
-      </div>
-
-      <p style={{ textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.1em', color: config.text, opacity: 0.7, fontSize: '0.65rem', margin: 0 }}>
-        Clasificación oFASS
-      </p>
+    <main style={{ ...styles.calculatorLayout, maxWidth: '1400px', margin: '0 auto', animation: 'fadeIn 0.5s ease', display: 'flex', gap: '30px' }}>
       
-      {/* GRADO GIGANTE */}
-      <h2 style={{ 
-        fontSize: '7rem', 
-        margin: '5px 0', 
-        fontWeight: '900', 
-        lineHeight: 1, 
-        color: '#0f172a',
-        letterSpacing: '-3px'
-      }}>
-        {grado}
-      </h2>
-      
-      <p style={{ 
-        fontSize: '1.2rem', 
-        fontWeight: '800', 
-        marginBottom: '20px', 
-        color: config.text,
-        lineHeight: 1.2
-      }}>
-        {resultado.ofass_category || 'Categoría no definida'}
-      </p>
-      
-      {/* Índice nFASS */}
-      <div style={{ 
-        backgroundColor: '#fff', 
-        padding: '12px', 
-        borderRadius: '16px', 
-        border: `1px solid #e2e8f0`, 
-        marginBottom: '20px'
-      }}>
-        <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: '600' }}>
-           ÍNDICE NFASS
-        </div>
-        <strong style={{ fontSize: '2rem', color: '#1e293b', fontWeight: '900' }}>
-          {resultado.nfass || '0.0'}
-        </strong>
-      </div>
+      {/* SECCIÓN IZQUIERDA: FORMULARIO */}
+      <section style={{ flex: '1', minWidth: '0' }}>
+        {!esPacienteExistente && (
+          <button onClick={() => setView('event_record')} style={styles.backBtn}>
+            ← Volver a Event Record
+          </button>
+        )}
 
-      {/* Evidencia Científica */}
-      <div style={{ 
-        textAlign: 'left', 
-        backgroundColor: 'rgba(255,255,255,0.6)', 
-        padding: '15px', 
-        borderRadius: '15px', 
-        fontSize: '0.75rem', 
-        color: '#334155' 
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: '#2563eb', fontWeight: '800' }}>
-          <ShieldCheck size={14} /> VALIDACIÓN CIENTÍFICA
-        </div>
-        <ul style={{ paddingLeft: '15px', margin: 0, lineHeight: 1.4 }}>
-          <li>Correlación EuroPrevall: <strong>p {'<'} 0.001</strong></li>
-          <li>{grado >= 4 ? "Monitorización hemodinámica necesaria." : "Seguimiento clínico estándar."}</li>
-        </ul>
-      </div>
+        <div style={{ ...styles.cardStyle, padding: '35px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ backgroundColor: '#eff6ff', padding: '12px', borderRadius: '12px' }}>
+                <Stethoscope color="#2563eb" size={28} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Evaluación de Síntomas</h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>Seleccione los hallazgos clínicos observados</p>
+              </div>
+            </div>
+            
+            <div style={{ textAlign: 'right' }}>
+               <div style={{ 
+                 backgroundColor: '#f1f5f9', 
+                 padding: '6px 12px', 
+                 borderRadius: '10px', 
+                 border: '1px solid #e2e8f0',
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: '6px'
+               }}>
+                 <UserCheck size={14} color="#64748b" />
+                 <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#334155', fontFamily: 'monospace' }}>
+                   {paciente.id.substring(0,10)}...
+                 </span>
+               </div>
+            </div>
+          </div>
 
-      {/* Alerta Roja Crítica */}
-      {grado >= 4 && (
-        <div style={{ 
-          marginTop: '15px', 
-          padding: '12px', 
-          backgroundColor: '#be123c', 
-          color: '#fff', 
-          borderRadius: '15px', 
-          display: 'flex', 
-          gap: '10px', 
-          alignItems: 'center', 
-          textAlign: 'left'
-        }}>
-          <AlertTriangle size={24} />
-          <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: '600' }}>
-            Requiere intervención inmediata.
-          </p>
+          {SECCIONES_SINTOMAS.map((sec, idx) => (
+            <div key={idx} style={{ marginBottom: '40px' }}>
+              <SectionHeader icon={Activity} title={sec.titulo} />
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                gap: '20px',
+                padding: '0 5px'
+              }}>
+                {sec.grupos.map(grupo => (
+                  <div key={grupo.id_base} style={{
+                    padding: '15px',
+                    borderRadius: '12px',
+                    border: '1px solid #f1f5f9',
+                    backgroundColor: '#f8fafc'
+                  }}>
+                    <label style={{ ...styles.labelStyle, marginBottom: '10px', display: 'block', fontSize: '0.9rem' }}>
+                      {grupo.label}
+                    </label>
+                    <select 
+                      style={{ ...styles.selectStyle, backgroundColor: '#fff' }} 
+                      onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}
+                    >
+                      <option value="">-- No observado --</option>
+                      {grupo.options.map(opt => (
+                        <option key={opt.id} value={opt.id}>{opt.text}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          
+          <button 
+            onClick={enviarEvaluacion} 
+            style={{ 
+              ...styles.calcBtn, 
+              width: '100%', 
+              padding: '20px', 
+              borderRadius: '15px',
+              backgroundColor: '#2563eb',
+              boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)',
+              marginTop: '20px'
+            }}
+          >
+            {resultado ? 'Actualizar Cálculo Gravedad' : 'Calcular Puntuación nFASS'}
+          </button>
         </div>
-      )}
-    </div>
+      </section>
+
+      {/* PANEL LATERAL DE RESULTADOS - ENSANCHADO Y CON BOTÓN ARRIBA */}
+      <aside style={{ width: '450px', minWidth: '450px' }}>
+        <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* BOTÓN "FINALIZAR" MOVIDO ARRIBA: Para evitar que el chat lo tape */}
+          <button 
+            onClick={reiniciarApp} 
+            style={{ 
+              ...styles.newEvalBtn, 
+              backgroundColor: '#1e293b',
+              margin: 0,
+              padding: '15px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <XCircle size={20} /> Finalizar y Guardar Sesión
+          </button>
+
+          {resultado ? (
+            <div style={{ animation: 'slideInRight 0.4s ease' }}>
+              <ResultadoCard resultado={resultado} />
+              <div style={{ 
+                marginTop: '15px', 
+                padding: '15px', 
+                backgroundColor: '#ecfdf5', 
+                borderRadius: '12px', 
+                border: '1px solid #d1fae5',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                <CheckCircle2 size={16} color="#059669" />
+                <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: '700' }}>
+                  Evaluación sincronizada correctamente.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              padding: '80px 20px', 
+              border: '2px dashed #e2e8f0',
+              borderRadius: '24px',
+              backgroundColor: '#fff',
+              color: '#94a3b8',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px',
+              alignItems: 'center'
+            }}>
+              <FileText size={48} strokeWidth={1} />
+              <p style={{ margin: 0, fontWeight: '600' }}>Esperando datos clínicos...</p>
+            </div>
+          )}
+        </div>
+      </aside>
+    </main>
   );
 };
 
-export default ResultadoCard;
+export default CalculadoraView;
