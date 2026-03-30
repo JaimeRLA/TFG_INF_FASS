@@ -6,7 +6,7 @@ import {
   AlertCircle,
   FileText,
   UserCheck,
-  XCircle // Importamos XCircle para el botón de cerrar
+  XCircle // Icono para el botón de cerrar
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import { SECCIONES_SINTOMAS } from '../data/sintomas';
@@ -41,9 +41,9 @@ const CalculadoraView = ({
   );
 
   return (
-    <main style={{ ...styles.calculatorLayout, maxWidth: '1400px', margin: '0 auto', animation: 'fadeIn 0.5s ease', display: 'flex', gap: '30px' }}>
+    <main style={{ ...styles.calculatorLayout, maxWidth: '1350px', margin: '0 auto', animation: 'fadeIn 0.5s ease', display: 'flex', gap: '30px' }}>
       
-      {/* SECCIÓN IZQUIERDA: FORMULARIO */}
+      {/* COLUMNA IZQUIERDA: CALCULADORA */}
       <section style={{ flex: '1', minWidth: '0' }}>
         {!esPacienteExistente && (
           <button onClick={() => setView('event_record')} style={styles.backBtn}>
@@ -132,27 +132,33 @@ const CalculadoraView = ({
         </div>
       </section>
 
-      {/* PANEL LATERAL DE RESULTADOS - ENSANCHADO Y CON BOTÓN ARRIBA */}
-      <aside style={{ width: '450px', minWidth: '450px' }}>
+      {/* COLUMNA DERECHA: RESULTADOS (Ensanchada a 460px) */}
+      <aside style={{ width: '460px', minWidth: '460px' }}>
         <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* BOTÓN "FINALIZAR" MOVIDO ARRIBA: Para evitar que el chat lo tape */}
+          {/* BOTÓN FINALIZAR: Posicionado arriba para que el chat de la esquina inferior no lo tape */}
           <button 
             onClick={reiniciarApp} 
             style={{ 
-              ...styles.newEvalBtn, 
+              padding: '16px',
+              borderRadius: '16px',
+              border: 'none',
               backgroundColor: '#1e293b',
-              margin: 0,
-              padding: '15px',
+              color: '#fff',
+              fontWeight: '700',
+              fontSize: '1rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              transition: 'transform 0.2s'
             }}
+            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
           >
-            <XCircle size={20} /> Finalizar y Guardar Sesión
+            <XCircle size={22} /> Finalizar Sesión Clínica
           </button>
 
           {resultado ? (
@@ -168,16 +174,16 @@ const CalculadoraView = ({
                 gap: '8px',
                 alignItems: 'center'
               }}>
-                <CheckCircle2 size={16} color="#059669" />
+                <CheckCircle2 size={18} color="#059669" />
                 <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: '700' }}>
-                  Evaluación sincronizada correctamente.
+                  Datos guardados en el historial del paciente.
                 </span>
               </div>
             </div>
           ) : (
             <div style={{ 
-              padding: '80px 20px', 
-              border: '2px dashed #e2e8f0',
+              padding: '100px 20px', 
+              border: '2px dashed #cbd5e1',
               borderRadius: '24px',
               backgroundColor: '#fff',
               color: '#94a3b8',
@@ -187,8 +193,8 @@ const CalculadoraView = ({
               gap: '15px',
               alignItems: 'center'
             }}>
-              <FileText size={48} strokeWidth={1} />
-              <p style={{ margin: 0, fontWeight: '600' }}>Esperando datos clínicos...</p>
+              <FileText size={50} strokeWidth={1} />
+              <p style={{ margin: 0, fontWeight: '600' }}>Seleccione síntomas para ver el resultado</p>
             </div>
           )}
         </div>
