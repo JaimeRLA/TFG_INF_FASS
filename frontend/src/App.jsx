@@ -155,14 +155,20 @@ const App = () => {
 
     const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
+    
     if (!paciente.id) return alert("Error: Falta ID del paciente.");
+    if (listaIds.length === 0) return alert("Por favor, seleccione al menos un síntoma.");
+
+    // Preparamos el ID: Si es 0 o vacío, mandamos null para que el backend haga INSERT
+    const idParaEnviar = (editandoId && editandoId > 0) ? parseInt(editandoId) : null;
+
+    console.log("Enviando evaluación...", { id: idParaEnviar, paciente: paciente.id });
 
     try {
       const res = await axios.post('https://tfg-inf-fass-1.onrender.com/calculate', {
-        // Si editandoId tiene valor, el backend hará UPDATE en lugar de INSERT
-        id: editandoId, 
+        id: idParaEnviar, 
         paciente_id: paciente.id,
-        fecha_nacimiento: paciente.fecha_nacimiento, 
+        fecha_nacimiento: paciente.fecha_nacimiento || paciente.rango_edad, 
         genero: paciente.genero,
         respuestas: cuestionario,
         evento: evento,
@@ -170,20 +176,19 @@ const App = () => {
         medico: usuarioLogueado
       });
       
-      if (res.data.success === false) {
-        alert(res.data.message);
-      } else {
+      if (res.data.success) {
         setResultado(res.data);
-        
-        // --- ESTA ES LA CLAVE ---
-        // Si el backend nos devuelve un id_registro (nuevo o existente),
-        // lo guardamos en editandoId. El próximo clic en "Calcular" usará este ID.
+        // Guardamos el ID que nos devuelve el servidor para el próximo clic
         if (res.data.id_registro) {
           setEditandoId(res.data.id_registro);
+          console.log("ID de registro guardado:", res.data.id_registro);
         }
+      } else {
+        alert("Error del servidor: " + res.data.message);
       }
     } catch (err) { 
-      alert("Error en el cálculo. Revisa la conexión con el servidor."); 
+      console.error("Error completo:", err);
+      alert("Error de conexión. Revisa la consola del navegador."); 
     }
   };
 
