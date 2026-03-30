@@ -36,9 +36,6 @@ def init_db():
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        # NOTA: He mantenido tus DROP TABLE temporales para limpieza de pruebas
-        cursor.execute("DROP TABLE IF EXISTS registros CASCADE;")
-        cursor.execute("DROP TABLE IF EXISTS pacientes CASCADE;")
         
         # TABLA 1: PACIENTES (Identidad Pseudonimizada)
         cursor.execute('''CREATE TABLE IF NOT EXISTS pacientes (

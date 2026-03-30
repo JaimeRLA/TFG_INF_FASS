@@ -153,12 +153,13 @@ const App = () => {
     }
   };
 
-  const enviarEvaluacion = async () => {
+    const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
     if (!paciente.id) return alert("Error: Falta ID del paciente.");
 
     try {
-      const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
+      const res = await axios.post('https://tfg-inf-fass-1.onrender.com/calculate', {
+        // Si editandoId tiene valor, el backend hará UPDATE en lugar de INSERT
         id: editandoId, 
         paciente_id: paciente.id,
         fecha_nacimiento: paciente.fecha_nacimiento, 
@@ -173,6 +174,13 @@ const App = () => {
         alert(res.data.message);
       } else {
         setResultado(res.data);
+        
+        // --- ESTA ES LA CLAVE ---
+        // Si el backend nos devuelve un id_registro (nuevo o existente),
+        // lo guardamos en editandoId. El próximo clic en "Calcular" usará este ID.
+        if (res.data.id_registro) {
+          setEditandoId(res.data.id_registro);
+        }
       }
     } catch (err) { 
       alert("Error en el cálculo. Revisa la conexión con el servidor."); 
