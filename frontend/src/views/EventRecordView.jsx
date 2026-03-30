@@ -4,7 +4,7 @@ import { styles } from '../AppStyles.js';
 
 const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente }) => {
   
-  // Componente interno para estandarizar las preguntas Yes/No
+  // Componente interno para estandarizar las preguntas Yes/No con el estilo de NHC
   const PreguntaTratamientoLocal = ({ id, label }) => (
     <div style={styles.rowYesNo}>
       <span style={{ ...styles.labelStyle, fontWeight: '500', flex: 1 }}>{label}</span>
@@ -29,8 +29,9 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
       
+      {/* BARRA DE NAVEGACIÓN SUPERIOR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-        {/* BOTÓN VOLVER: Si es nuevo va a antecedentes, si es existente va al menú */}
+        {/* Botón Volver: Dinámico según el origen del flujo */}
         <button 
           onClick={() => setView(esPacienteExistente ? 'perfil' : 'registro_paciente')} 
           style={styles.backBtn}
@@ -38,10 +39,10 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           <ArrowLeft size={18} /> {esPacienteExistente ? 'Volver al Menú' : 'Volver a Antecedentes'}
         </button>
 
-        {/* BOTÓN CANCELAR: Solo aparece si NO es paciente existente (porque en existente el botón principal ya te saca) */}
+        {/* Botón Cancelar: Solo disponible en flujos de nuevo registro para salir al menú */}
         {!esPacienteExistente && (
           <button 
-            onClick={() => { if(window.confirm("¿Cancelar registro? Se perderán los datos introducidos.")) setView('perfil') }} 
+            onClick={() => { if(window.confirm("¿Deseas cancelar el registro? Se perderán los datos del paciente.")) setView('perfil') }} 
             style={{ ...styles.backBtn, color: '#ef4444', borderColor: '#fee2e2' }}
           >
             <XCircle size={18} /> Cancelar y Salir
@@ -75,11 +76,21 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
           <div style={styles.inputWrapper}>
             <label style={styles.labelStyle}>Date and time of reaction:</label>
-            <input type="datetime-local" style={styles.inputStyle} value={evento.reaccion_fecha || ''} onChange={e => handleEvento('reaccion_fecha', e.target.value)} />
+            <input 
+              type="datetime-local" 
+              style={styles.inputStyle} 
+              value={evento.reaccion_fecha || ''} 
+              onChange={e => handleEvento('reaccion_fecha', e.target.value)} 
+            />
           </div>
           <div style={styles.inputWrapper}>
             <label style={styles.labelStyle}>Duration of symptoms:</label>
-            <input style={styles.inputStyle} value={evento.duration || ''} placeholder="e.g. 30 mins, 2 hours" onChange={e => handleEvento('duration', e.target.value)} />
+            <input 
+              style={styles.inputStyle} 
+              value={evento.duration || ''} 
+              placeholder="e.g. 30 mins, 2 hours" 
+              onChange={e => handleEvento('duration', e.target.value)} 
+            />
           </div>
         </div>
 
