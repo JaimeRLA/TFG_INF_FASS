@@ -1,93 +1,186 @@
-import React from 'react';
-import { ClipboardList, Trash2, ShieldCheck, Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { ClipboardList, Trash2, ShieldCheck, Download, Search, Fingerprint, Calendar, User } from 'lucide-react';
 import { styles } from '../AppStyles.js';
+import CryptoJS from 'crypto-js';
 
-const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargarPaciente, eliminarEvaluacion, setView }) => (
-  <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-    <button onClick={() => setView('perfil')} style={styles.backBtn}>← Volver al Menú</button>
-    
-    <div style={styles.cardStyle}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3 style={{ ...styles.cardTitle, color: '#000', margin: 0 }}>
-          <ClipboardList color="#ea580c" /> Historial Clínico Pseudonimizado
-        </h3>
-        {/* Etiqueta visual de seguridad para el TFG */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '5px', 
-          fontSize: '0.75rem', 
-          color: '#059669', 
-          backgroundColor: '#ecfdf5', 
-          padding: '4px 12px', 
-          borderRadius: '20px',
-          border: '1px solid #d1fae5'
-        }}>
-          <ShieldCheck size={14} /> RGPD: Datos Protegidos
+const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargarPaciente, eliminarEvaluacion, setView }) => {
+  const [busqueda, setBusqueda] = useState('');
+
+  // LÓGICA DE FILTRADO (Igual que en Selección de Paciente)
+  const pacientesFiltrados = listaPacientes.filter(p => {
+    const term = busqueda.trim();
+    if (!term) return true;
+
+    const hashDeBusqueda = CryptoJS.SHA256(term).toString();
+    const hashEnDB = (p.nhc_hash || "").toLowerCase();
+
+    return (
+      hashEnDB.includes(term.toLowerCase()) || 
+      hashEnDB === hashDeBusqueda
+    );
+  });
+
+  return (
+    <div style={{ maxWidth: '1100px', margin: '0 auto', animation: 'fadeIn 0.3s ease' }}>
+      <button onClick={() => setView('perfil')} style={styles.backBtn}>← Volver al Menú</button>
+      
+      <div style={styles.cardStyle}>
+        {/* CABECERA */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ backgroundColor: '#fff7ed', padding: '10px', borderRadius: '10px' }}>
+              <ClipboardList color="#ea580c" size={28} />
+            </div>
+            <h3 style={{ ...styles.cardTitle, color: '#1e293b', margin: 0 }}>
+              Historial Clínico Pseudonimizado
+            </h3>
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '5px', 
+            fontSize: '0.75rem', 
+            color: '#059669', 
+            backgroundColor: '#ecfdf5', 
+            padding: '6px 14px', 
+            borderRadius: '20px',
+            border: '1px solid #d1fae5',
+            fontWeight: '600'
+          }}>
+            <ShieldCheck size={14} /> RGPD: Datos Protegidos
+          </div>
+        </div>
+
+        {/* BARRA DE BÚSQUEDA */}
+        <div style={{ position: 'relative', marginBottom: '25px' }}>
+          <Search 
+            style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
+            size={20} 
+          />
+          <input
+            type="text"
+            placeholder="Filtrar por NHC real o fragmento de ID..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            style={{ 
+              width: '100%',
+              padding: '14px 14px 14px 48px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              fontSize: '1rem',
+              outline: 'none',
+              boxSizing: 'border-box',
+              backgroundColor: '#f8fafc',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#2563eb';
+              e.target.style.backgroundColor = '#fff';
+              e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.05)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#e2e8f0';
+              e.target.style.backgroundColor = '#f8fafc';
+            }}
+          />
+        </div>
+
+        {/* LISTADO DE EVALUACIONES */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {pacientesFiltrados.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '50px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+               <p style={{ color: '#64748b', margin: 0 }}>No se han encontrado registros coincidentes.</p>
+            </div>
+          ) : (
+            pacientesFiltrados.map((p, index) => (
+              <div key={index} style={{
+                ...styles.itemPacienteStyle,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '20px',
+                backgroundColor: '#fff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '14px',
+                transition: 'all 0.2s'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <Fingerprint size={18} color="#2563eb" />
+                    <strong style={{ color: '#1e293b', fontFamily: 'monospace', fontSize: '1.05rem' }}>
+                      ID: {p.nhc_hash ? p.nhc_hash.substring(0, 16) : 'N/A'}...
+                    </strong>
+                    <span style={{ fontSize: '0.6rem', backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '10px', color: '#64748b', fontWeight: '800', border: '1px solid #e2e8f0' }}>
+                      PROTECTED
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '15px', fontSize: '0.85rem', color: '#64748b', marginBottom: '8px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={14}/> {p.genero}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14}/> {p.rango_edad}</span>
+                    <span>•</span>
+                    <span style={{ fontWeight: '500' }}>Evaluado: {new Date(p.fecha).toLocaleDateString()}</span>
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'inline-block',
+                    fontSize: '0.85rem', 
+                    color: '#2563eb', 
+                    fontWeight: '700',
+                    backgroundColor: '#eff6ff',
+                    padding: '4px 10px',
+                    borderRadius: '6px'
+                  }}>
+                    Resultado: nFASS {p.nfass} | oFASS Grado {p.ofass_grade} ({p.risk_level})
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => seleccionarPacienteExistente(p)} 
+                    style={{ ...styles.actionBtnGray, padding: '8px 16px' }}
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    onClick={() => descargarPaciente(p)} 
+                    style={{ ...styles.actionBtnBlue, display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+                  >
+                    <Download size={14} /> CSV
+                  </button>
+                  <button 
+                    onClick={() => eliminarEvaluacion(p.id)} 
+                    style={{ 
+                      ...styles.actionBtnRed, 
+                      padding: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px'
+                    }} 
+                    title="Eliminar Registro"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {listaPacientes.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>No se han encontrado registros para este facultativo.</p>
-        ) : (
-          listaPacientes.map((p, index) => (
-            <div key={index} style={styles.itemPacienteStyle}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <strong style={{ color: '#1e293b', fontFamily: 'monospace' }}>
-                    ID: {p.nhc_hash ? p.nhc_hash.substring(0, 12) : 'N/A'}...
-                  </strong>
-                  <span style={{ fontSize: '0.65rem', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', color: '#64748b', fontWeight: 'bold' }}>
-                    HASH-SHA256
-                  </span>
-                </div>
-                
-                <p style={{ margin: '8px 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                  <strong>Paciente:</strong> {p.genero} | <strong>Rango Edad:</strong> {p.rango_edad} | 
-                  <strong> Fecha Eval:</strong> {new Date(p.fecha).toLocaleDateString()}
-                </p>
-                
-                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#2563eb', fontWeight: '600' }}>
-                  Resultado: nFASS {p.nfass} | oFASS Grado {p.ofass_grade} ({p.risk_level})
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button 
-                  onClick={() => seleccionarPacienteExistente(p)} 
-                  style={styles.actionBtnGray}
-                >
-                  Editar
-                </button>
-                <button 
-                  onClick={() => descargarPaciente(p)} 
-                  style={{ ...styles.actionBtnBlue, display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <Download size={14} /> CSV
-                </button>
-                <button 
-                  onClick={() => eliminarEvaluacion(p.id)} 
-                  style={styles.actionBtnRed} 
-                  title="Eliminar Registro"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      <div style={{ marginTop: '25px', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, lineHeight: '1.4' }}>
+      {/* PIE DE SEGURIDAD */}
+      <div style={{ marginTop: '25px', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
           <strong>Nota de Seguridad:</strong> Este sistema implementa medidas de seudonimización técnica. 
-          Los identificadores originales (NHC) han sido transformados mediante funciones hash irreversibles 
-          y las fechas de nacimiento han sido minimizadas a rangos etarios según las directrices del EDPB 2025.
+          Los identificadores originales (NHC) han sido transformados mediante funciones hash irreversibles (SHA-256) 
+          y las fechas de nacimiento han sido minimizadas a rangos etarios según las directrices del EDPB 2025. 
+          El buscador permite la localización mediante hashing local en el cliente.
         </p>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default HistorialView;
