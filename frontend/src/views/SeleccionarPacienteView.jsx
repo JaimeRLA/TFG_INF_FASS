@@ -124,7 +124,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                   {/* HUELLA AZUL */}
                   <div style={{ backgroundColor: '#eff6ff', padding: '10px', borderRadius: '10px' }}>
-                    <Fingerprint size={24} color="#2563eb" />
+                    <Fingerprint size={24} color="#16a34a" />
                   </div>
                   <div>
                     <div style={{ fontWeight: '700', color: '#1e293b', fontFamily: 'monospace', fontSize: '1.1rem' }}>

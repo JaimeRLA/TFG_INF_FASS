@@ -36,9 +36,11 @@ def init_db():
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        # TABLA 1: PACIENTES (Identidad Pseudonimizada)
+        # NOTA: He mantenido tus DROP TABLE temporales para limpieza de pruebas
         cursor.execute("DROP TABLE IF EXISTS registros CASCADE;")
         cursor.execute("DROP TABLE IF EXISTS pacientes CASCADE;")
+        
+        # TABLA 1: PACIENTES (Identidad Pseudonimizada)
         cursor.execute('''CREATE TABLE IF NOT EXISTS pacientes (
             id SERIAL PRIMARY KEY,
             nhc_hash TEXT UNIQUE,
@@ -79,7 +81,6 @@ init_db()
 def get_age_range(dob_str):
     """Convierte fecha exacta en rango de edad (Minimización de datos)"""
     try:
-        # Si recibimos ya un rango (porque el paciente existe), lo devolvemos tal cual
         if not "-" in dob_str and not dob_str.isdigit():
              birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
              today = datetime.today()
@@ -95,7 +96,6 @@ def get_age_range(dob_str):
 
 def generate_pseudonym(nhc):
     """Genera un hash irreversible del NHC (Pseudonimización)"""
-    # Si ya parece un hash (64 caracteres), no lo re-hasheamos
     if len(str(nhc)) == 64:
         return str(nhc)
     return hashlib.sha256(str(nhc).encode()).hexdigest()
@@ -126,6 +126,7 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
         conn.close()
 
 # --- ENDPOINTS DE AUTENTICACIÓN ---
+
 @app.post("/register")
 async def register(request: LoginRequest):
     conn = get_connection()
@@ -217,7 +218,6 @@ async def calculate(request: EvaluacionRequest):
         
         if res_paciente:
             int_paciente_id = res_paciente[0]
-            # Opcional: Actualizar el rango de edad si ha cambiado (ej. el paciente cumple años)
             cursor.execute(f"UPDATE pacientes SET rango_edad = {placeholder} WHERE id = {placeholder}", (rango_edad, int_paciente_id))
         else:
             cursor.execute(f"""
@@ -227,8 +227,10 @@ async def calculate(request: EvaluacionRequest):
             """, (nhc_pseudo, rango_edad, genero_c, request.medico))
             int_paciente_id = cursor.fetchone()[0]
 
-        # --- PASO 4: GUARDADO DE EVALUACIÓN ---
+        # --- PASO 4: GUARDADO DE EVALUACIÓN (UPDATE SI EXISTE ID, INSERT SI NO) ---
+        id_final = None
         if request.id and int(request.id) > 0:
+            id_final = int(request.id)
             query = f"""UPDATE registros SET 
                         paciente_id={placeholder}, medico={placeholder}, respuestas_json={placeholder}, 
                         evento_json={placeholder}, sintomas={placeholder}, nfass={placeholder}, 
@@ -236,16 +238,19 @@ async def calculate(request: EvaluacionRequest):
                         WHERE id={placeholder}"""
             cursor.execute(query, (int_paciente_id, request.medico, respuestas_c, evento_c, 
                                    sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
-                                   resultado["ofass_category"], resultado["risk_level"], int(request.id)))
+                                   resultado["ofass_category"], resultado["risk_level"], id_final))
         else:
             query = f"""INSERT INTO registros (paciente_id, medico, respuestas_json, evento_json, 
                         sintomas, nfass, ofass_grade, ofass_category, risk_level) 
-                        VALUES ({','.join([placeholder]*9)})"""
+                        VALUES ({','.join([placeholder]*9)}) RETURNING id"""
             cursor.execute(query, (int_paciente_id, request.medico, respuestas_c, evento_c, 
                                    sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
                                    resultado["ofass_category"], resultado["risk_level"]))
+            id_final = cursor.fetchone()[0]
+
         conn.commit()
-        return {**resultado, "success": True}
+        # Devolvemos id_registro para que el frontend lo use en los siguientes clics de "Calcular"
+        return {**resultado, "success": True, "id_registro": id_final}
     except Exception as e:
         if conn: conn.rollback()
         return {"success": False, "message": f"Error persistencia: {str(e)}"}
@@ -270,16 +275,13 @@ async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_
     finally:
         conn.close()
 
-
-import hashlib
+# --- UTILIDADES ADICIONALES ---
 
 @app.get("/get_hash/{nhc}")
 async def get_hash(nhc: str):
-    # Usamos la misma lógica de hashing que en el registro
-    # Si usaste un "salt" en el registro, inclúyelo aquí también
+    """Devuelve el hash SHA256 completo para facilitar búsquedas"""
     hash_obj = hashlib.sha256(nhc.encode())
-    return {"hash": hash_obj.hexdigest()[:12]} # Ajusta el largo si usas otro
-
+    return {"hash": hash_obj.hexdigest()}
 
 @app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
