@@ -35,7 +35,10 @@ const App = () => {
     drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: '', drug_details_extra: ''
   });
 
+  // URL del Backend - Asegúrate de que coincida con tu Render
+  const BASE_URL = "https://tfg-inf-fass.onrender.com";
   const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
+
   const handleEvento = (campo, valor) => setEvento(prev => ({ ...prev, [campo]: valor }));
   const handleCuestionario = (pregunta, valor) => setCuestionario(prev => ({ ...prev, [pregunta]: valor }));
   const handleSelectChange = (grupoId, valor) => setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
@@ -58,29 +61,30 @@ const App = () => {
 
   const cargarHistorial = async () => {
     try {
-      const res = await axios.get(`https://tfg-inf-fass-1.onrender.com/history`, {
+      const res = await axios.get(`${BASE_URL}/history`, {
         params: { medico: usuarioLogueado }, 
         headers: { 'x-tfg-key': TFG_KEY }
       });
       setListaPacientes(res.data);
       setView('historial_global');
     } catch (err) { 
-      console.error("Error detalle:", err.response);
-      alert("Error al cargar el historial clínico."); 
+      console.error("Error historial:", err.response?.data || err.message);
+      alert("Error al cargar el historial: " + (err.response?.data?.detail || "Fallo de conexión")); 
     }
   };
 
   const cargarPacientesExistentes = async () => {
     try {
       setFiltroBusqueda(''); 
-      const res = await axios.get(`https://tfg-inf-fass-1.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
+      const res = await axios.get(`${BASE_URL}/pacientes_unicos`, {
+        params: { medico: usuarioLogueado },
         headers: { 'x-tfg-key': TFG_KEY }
       });
       setListaPacientes(res.data);
       setView('seleccionar_paciente');
     } catch (err) { 
-      console.error(err);
-      alert("Error al cargar pacientes únicos."); 
+      console.error("Error pacientes:", err.response?.data || err.message);
+      alert("Error al cargar pacientes: " + (err.response?.data?.detail || "Fallo de conexión")); 
     }
   };
 
@@ -88,7 +92,7 @@ const App = () => {
     setEditandoId(null); 
     setEsPacienteExistente(true); 
     setPaciente({
-      id: p.id || p.nhc_hash || '', 
+      id: p.nhc_hash || p.id || '', // Priorizamos nhc_hash para pacientes existentes
       rango_edad: p.rango_edad || '', 
       genero: p.genero || '',
       fecha_nacimiento: '' 
@@ -123,7 +127,8 @@ const App = () => {
     if (!id_db) return;
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
     try {
-      await axios.delete(`https://tfg-inf-fass-1.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
+      await axios.delete(`${BASE_URL}/evaluacion/${id_db}`, {
+        params: { medico: usuarioLogueado },
         headers: { 'x-tfg-key': TFG_KEY }
       });
       alert("Registro eliminado con éxito.");
@@ -148,16 +153,12 @@ const App = () => {
     if (!paciente.id) return alert("Error: Falta ID del paciente.");
     if (listaIds.length === 0) return alert("Por favor, seleccione al menos un síntoma.");
 
-    // Preparamos el ID: Si ya existe (por haber calculado antes o venir de historial), lo enviamos para UPDATE
     const idParaEnviar = (editandoId && editandoId > 0) ? parseInt(editandoId) : null;
 
-    console.log("Enviando evaluación...", { id: idParaEnviar, paciente: paciente.id });
-
     try {
-      const res = await axios.post('https://tfg-inf-fass-1.onrender.com/calculate', {
+      const res = await axios.post(`${BASE_URL}/calculate`, {
         id: idParaEnviar, 
         paciente_id: paciente.id,
-        // Usamos fecha si es nuevo, o el rango si ya venía de la DB
         fecha_nacimiento: paciente.fecha_nacimiento || paciente.rango_edad, 
         genero: paciente.genero,
         respuestas: cuestionario,
@@ -168,17 +169,15 @@ const App = () => {
       
       if (res.data.success) {
         setResultado(res.data);
-        // CRUCIAL: Guardamos el id_registro retornado para que el próximo clic sobreescriba esta evaluación
         if (res.data.id_registro) {
           setEditandoId(res.data.id_registro);
-          console.log("ID de registro guardado para persistencia:", res.data.id_registro);
         }
       } else {
         alert("Error del servidor: " + res.data.message);
       }
     } catch (err) { 
       console.error("Error en la petición:", err);
-      alert("Error crítico: " + (err.response?.data?.detail || "Fallo de conexión con el backend")); 
+      alert("Error crítico: " + (err.response?.data?.detail || "Fallo de conexión")); 
     }
   };
 
@@ -243,7 +242,6 @@ const App = () => {
             evento={evento} 
             handleEvento={handleEvento} 
             setView={(nuevaVista) => {
-              // Navegación contextual: si cancelamos un paciente cargado, limpiamos todo.
               if (nuevaVista === 'perfil' && esPacienteExistente) {
                 reiniciarApp();
               } else {

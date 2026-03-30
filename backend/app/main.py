@@ -78,7 +78,7 @@ init_db()
 def get_age_range(dob_str):
     """Convierte fecha exacta en rango de edad (Minimización de datos)"""
     try:
-        # Si ya es un rango, lo devolvemos
+        # Si ya es un rango, lo devolvemos para evitar errores
         if "-" in dob_str or "+" in dob_str or "Pediatría" in dob_str:
             return dob_str
             
@@ -111,13 +111,15 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
+        # Obtenemos los datos únicos de los pacientes registrados por el médico
         query = f"SELECT nhc_hash, rango_edad, genero FROM pacientes WHERE medico = {placeholder}"
         cursor.execute(query, (medico,))
         
         pacientes = []
         for row in cursor.fetchall():
             pacientes.append({
-                "id": row[0], 
+                "id": row[0], # Enviamos el hash como ID para que el frontend lo maneje
+                "nhc_hash": row[0],
                 "rango_edad": row[1],
                 "genero": decrypt_data(row[2])
             })
@@ -212,7 +214,7 @@ async def calculate(request: EvaluacionRequest):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # --- PASO 3: GESTIÓN DEL PACIENTE (BUSCAR O CREAR) ---
+        # --- PASO 3: GESTIÓN DEL PACIENTE ---
         cursor.execute(f"SELECT id FROM pacientes WHERE nhc_hash = {placeholder}", (nhc_pseudo,))
         res_paciente = cursor.fetchone()
         
@@ -229,26 +231,32 @@ async def calculate(request: EvaluacionRequest):
 
         # --- PASO 4: GUARDADO DE EVALUACIÓN ---
         id_final = None
-        if request.id and int(request.id) > 0:
+        # Si recibimos un ID válido, actualizamos (UPDATE), si no, creamos (INSERT)
+        if request.id and str(request.id).isdigit() and int(request.id) > 0:
             id_final = int(request.id)
             query = f"""UPDATE registros SET 
                         paciente_id={placeholder}, medico={placeholder}, respuestas_json={placeholder}, 
                         evento_json={placeholder}, sintomas={placeholder}, nfass={placeholder}, 
                         ofass_grade={placeholder}, ofass_category={placeholder}, risk_level={placeholder}
                         WHERE id={placeholder}"""
-            cursor.execute(query, (int_paciente_id, request.medico, respuestas_c, evento_c, 
-                                   sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
-                                   resultado["ofass_category"], resultado["risk_level"], id_final))
+            cursor.execute(query, (
+                int_paciente_id, request.medico, respuestas_c, evento_c, 
+                sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
+                resultado["ofass_category"], resultado["risk_level"], id_final
+            ))
         else:
             query = f"""INSERT INTO registros (paciente_id, medico, respuestas_json, evento_json, 
                         sintomas, nfass, ofass_grade, ofass_category, risk_level) 
                         VALUES ({','.join([placeholder]*9)}) RETURNING id"""
-            cursor.execute(query, (int_paciente_id, request.medico, respuestas_c, evento_c, 
-                                   sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
-                                   resultado["ofass_category"], resultado["risk_level"]))
+            cursor.execute(query, (
+                int_paciente_id, request.medico, respuestas_c, evento_c, 
+                sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
+                resultado["ofass_category"], resultado["risk_level"]
+            ))
             id_final = cursor.fetchone()[0]
 
         conn.commit()
+        # Devolvemos el ID generado para que el Frontend lo guarde y evite duplicados al recalcular
         return {**resultado, "success": True, "id_registro": id_final}
     except Exception as e:
         if conn: conn.rollback()
@@ -278,6 +286,7 @@ async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_
 
 @app.get("/get_hash/{nhc}")
 async def get_hash(nhc: str):
+    """Devuelve el hash SHA256 completo para el buscador del frontend"""
     hash_obj = hashlib.sha256(nhc.encode())
     return {"hash": hash_obj.hexdigest()}
 
