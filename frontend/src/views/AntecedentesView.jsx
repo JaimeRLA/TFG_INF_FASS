@@ -1,10 +1,10 @@
 import React from 'react';
-import { ClipboardCheck, ArrowRight } from 'lucide-react';
+import { ClipboardCheck, ArrowRight, Lock } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 
-const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestionario, validarYPasarAEvento, setView }) => {
+const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestionario, validarYPasarAEvento, setView, esPacienteExistente }) => {
   
-  // Función para actualizar los campos de identificación (NHC, Fecha, Género)
+  // Función para actualizar los campos de identificación
   const handlePacienteChange = (e) => {
     const { name, value } = e.target;
     setPaciente(prev => ({
@@ -51,45 +51,73 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
           <ClipboardCheck color="#2563eb" /> Antecedentes del Paciente
         </h3>
 
-        {/* 1. IDENTIFICACIÓN BÁSICA - CONECTADA AL ESTADO */}
+        {/* 1. IDENTIFICACIÓN BÁSICA - ADAPTADA A PSEUDONIMIZACIÓN */}
         <div style={{ marginBottom: '30px' }}>
-          <h4 style={styles.secHeader}>1. Identificación Básica</h4>
+          <h4 style={styles.secHeader}>
+            1. Identificación {esPacienteExistente ? '(Modo Pseudónimo)' : 'Básica'}
+          </h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '25px', alignItems: 'end' }}>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', width: '100%' }}>
               
-              {/* NHC (Se guarda en paciente.id según tu App.jsx) */}
+              {/* NHC / HASH */}
               <div style={{ flex: 1 }}>
-                <label style={styles.labelStyle}>NHC / ID</label>
-                <input 
-                  type="text" 
-                  name="id"
-                  value={paciente.id || ''}
-                  onChange={handlePacienteChange}
-                  placeholder="Ej: 123456" 
-                  style={styles.inputStyle} 
-                />
+                <label style={styles.labelStyle}>
+                  {esPacienteExistente ? 'NHC (Hash Irreversible)' : 'NHC / ID'}
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="text" 
+                    name="id"
+                    disabled={esPacienteExistente}
+                    value={paciente.id || ''}
+                    onChange={handlePacienteChange}
+                    placeholder={esPacienteExistente ? "" : "Ej: 123456"} 
+                    style={{
+                      ...styles.inputStyle,
+                      backgroundColor: esPacienteExistente ? '#f8fafc' : '#fff',
+                      color: esPacienteExistente ? '#64748b' : '#000',
+                      paddingRight: esPacienteExistente ? '35px' : '10px'
+                    }} 
+                  />
+                  {esPacienteExistente && <Lock size={16} style={{ position: 'absolute', right: 10, top: 12, color: '#94a3b8' }} />}
+                </div>
               </div>
 
-              {/* FECHA (Se guarda en paciente.fecha_nacimiento) */}
+              {/* FECHA O RANGO DE EDAD */}
               <div style={{ flex: 1 }}>
-                <label style={styles.labelStyle}>Fecha Nacimiento</label>
-                <input 
-                  type="date" 
-                  name="fecha_nacimiento"
-                  value={paciente.fecha_nacimiento || ''}
-                  onChange={handlePacienteChange}
-                  style={styles.inputStyle} 
-                />
+                <label style={styles.labelStyle}>
+                  {esPacienteExistente ? 'Rango de Edad' : 'Fecha Nacimiento'}
+                </label>
+                {esPacienteExistente ? (
+                  <input 
+                    type="text"
+                    disabled
+                    value={paciente.rango_edad || 'No disponible'}
+                    style={{ ...styles.inputStyle, backgroundColor: '#f8fafc', color: '#64748b' }}
+                  />
+                ) : (
+                  <input 
+                    type="date" 
+                    name="fecha_nacimiento"
+                    value={paciente.fecha_nacimiento || ''}
+                    onChange={handlePacienteChange}
+                    style={styles.inputStyle} 
+                  />
+                )}
               </div>
 
-              {/* GÉNERO (Se guarda en paciente.genero) */}
+              {/* GÉNERO */}
               <div style={{ flex: 1 }}>
                 <label style={styles.labelStyle}>Género</label>
                 <select 
                   name="genero"
                   value={paciente.genero || ''}
                   onChange={handlePacienteChange}
-                  style={styles.selectStyle}
+                  disabled={esPacienteExistente}
+                  style={{
+                    ...styles.selectStyle,
+                    backgroundColor: esPacienteExistente ? '#f8fafc' : '#fff'
+                  }}
                 >
                   <option value="">Select...</option>
                   <option value="M">Masculino</option>
@@ -99,9 +127,14 @@ const AntecedentesView = ({ paciente, setPaciente, cuestionario, handleCuestiona
 
             </div>
           </div>
+          {esPacienteExistente && (
+            <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>
+              * Los datos de identidad están protegidos mediante seudonimización. El NHC original no es recuperable.
+            </p>
+          )}
         </div>
 
-        {/* RESTO DEL CUESTIONARIO (Ya estaba bien conectado por handleCuestionario) */}
+        {/* CUESTIONARIO CLÍNICO */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
           
           <div style={styles.questionBlock}>

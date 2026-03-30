@@ -14,9 +14,6 @@ import EventRecordView from './views/EventRecordView';
 import CalculadoraView from './views/CalculadoraView';
 import Login from './views/Login';
 
-
-
-
 const App = () => {
   // --- ESTADOS ---
   const [esPacienteExistente, setEsPacienteExistente] = useState(false);
@@ -27,7 +24,10 @@ const App = () => {
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
   const [editandoId, setEditandoId] = useState(null);
 
-  const [paciente, setPaciente] = useState({ id: '', fecha_nacimiento: '', genero: '' });
+  // El estado 'paciente' mantiene 'fecha_nacimiento' para envíos nuevos, 
+  // pero acepta 'rango_edad' para pacientes cargados del historial.
+  const [paciente, setPaciente] = useState({ id: '', fecha_nacimiento: '', rango_edad: '', genero: '' });
+  
   const [cuestionario, setCuestionario] = useState({});
   const [seleccionados, setSeleccionados] = useState({});
   const [evento, setEvento] = useState({
@@ -45,7 +45,7 @@ const App = () => {
   const reiniciarApp = () => {
     setEsPacienteExistente(false); 
     setEditandoId(null);
-    setPaciente({ id: '', fecha_nacimiento: '', genero: '' });
+    setPaciente({ id: '', fecha_nacimiento: '', rango_edad: '', genero: '' });
     setCuestionario({});
     setSeleccionados({});
     setEvento({
@@ -58,58 +58,55 @@ const App = () => {
     setView('perfil');
   };
 
-
-const cargarHistorial = async () => {
-  try {
-    const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
-      params: { medico: usuarioLogueado }, 
-      headers: { 
-        'x-tfg-key': TFG_KEY 
-      }
-    });
-    
-    setListaPacientes(res.data);
-    setView('historial_global');
-  } catch (err) { 
-    console.error("Error detalle:", err.response);
-    alert("Error al cargar SU historial. Acceso denegado."); 
-  }
-};
+  const cargarHistorial = async () => {
+    try {
+      const res = await axios.get(`https://tfg-inf-fass.onrender.com/history`, {
+        params: { medico: usuarioLogueado }, 
+        headers: { 'x-tfg-key': TFG_KEY }
+      });
+      setListaPacientes(res.data);
+      setView('historial_global');
+    } catch (err) { 
+      console.error("Error detalle:", err.response);
+      alert("Error al cargar el historial clínico."); 
+    }
+  };
 
   const cargarPacientesExistentes = async () => {
     try {
       setFiltroBusqueda(''); 
       const res = await axios.get(`https://tfg-inf-fass.onrender.com/pacientes_unicos?medico=${usuarioLogueado}`, {
-        headers: { 'x-tfg-key': 'Clave_Secreta_App_2024' }
+        headers: { 'x-tfg-key': TFG_KEY }
       });
       setListaPacientes(res.data);
       setView('seleccionar_paciente');
     } catch (err) { 
       console.error(err);
-      alert("Error al cargar pacientes. Acceso denegado por seguridad."); 
+      alert("Error al cargar pacientes únicos."); 
     }
   };
 
-  // REGISTRAR NUEVO EVENTO (BLOQUEA VOLVER)
+  // REGISTRAR NUEVO EVENTO PARA PACIENTE EXISTENTE
   const seleccionarPacienteExistente = (p) => {
     setEditandoId(null); 
     setEsPacienteExistente(true); 
     setPaciente({
-      id: p.id || p.nhc || '',
-      fecha_nacimiento: p.fecha_nacimiento || '',
-      genero: p.genero || ''
+      id: p.id || p.nhc_hash || '', // Ahora recibimos el hash como identificador
+      rango_edad: p.rango_edad || '', 
+      genero: p.genero || '',
+      fecha_nacimiento: '' // No se requiere para existentes (minimización)
     });
     setResultado(null);
     setView('event_record'); 
   };
 
-  // EDITAR REPORTE (PERMITE VOLVER)
+  // EDITAR REPORTE EXISTENTE
   const seleccionarParaEditar = (p) => {
     setEditandoId(p.id); 
     setEsPacienteExistente(false); 
     setPaciente({
-      id: p.nhc || '',
-      fecha_nacimiento: p.fecha_nacimiento || '',
+      id: p.nhc_hash || '', 
+      rango_edad: p.rango_edad || '', 
       genero: p.genero || ''
     });
     setEvento(p.evento_json || {});
@@ -130,19 +127,21 @@ const cargarHistorial = async () => {
     if (!id_db) return;
     if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
     try {
-      const res = await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
+      await axios.delete(`https://tfg-inf-fass.onrender.com/evaluacion/${id_db}?medico=${usuarioLogueado}`, {
         headers: { 'x-tfg-key': TFG_KEY }
       });
-      if (res.data.success || res.status === 200) {
-        alert("Registro eliminado.");
-        cargarHistorial();
-      }
+      alert("Registro eliminado con éxito.");
+      cargarHistorial();
     } catch (err) { alert("Error al borrar el registro."); }
   };
 
   const validarYPasarAEvento = async () => {
-    if (!paciente.id || !paciente.fecha_nacimiento || !paciente.genero) {
-      alert("NHC, Fecha de Nacimiento y Género son obligatorios.");
+    // Si es nuevo, validamos fecha_nacimiento. Si es existente, validamos que tenga id/hash.
+    const identificadorOk = esPacienteExistente ? paciente.id : paciente.id;
+    const edadOk = esPacienteExistente ? paciente.rango_edad : paciente.fecha_nacimiento;
+
+    if (!identificadorOk || !edadOk || !paciente.genero) {
+      alert("NHC/ID, Edad/Fecha y Género son campos obligatorios.");
       return;
     }
     setView('event_record');
@@ -156,7 +155,7 @@ const cargarHistorial = async () => {
       const res = await axios.post('https://tfg-inf-fass.onrender.com/calculate', {
         id: editandoId, 
         paciente_id: paciente.id,
-        fecha_nacimiento: paciente.fecha_nacimiento,
+        fecha_nacimiento: paciente.fecha_nacimiento, // El backend lo convertirá a rango si es nuevo
         genero: paciente.genero,
         respuestas: cuestionario,
         evento: evento,
@@ -175,19 +174,22 @@ const cargarHistorial = async () => {
   };
 
   const descargarPaciente = (p) => {
-    const encabezados = "NHC,Fecha_Nac,Genero,nFASS,oFASS,Risk,Fecha_Evaluacion\n";
-    const fila = `${p.nhc},${p.fecha_nacimiento},${p.genero},${p.nfass},${p.ofass_grade},${p.risk_level},${p.fecha}\n`;
+    // Cabeceras actualizadas para reflejar pseudonimización
+    const encabezados = "NHC_Hash,Rango_Edad,Genero,nFASS,oFASS,Risk,Fecha_Evaluacion\n";
+    const fila = `${p.nhc_hash},${p.rango_edad},${p.genero},${p.nfass},${p.ofass_grade},${p.risk_level},${p.fecha}\n`;
     const blob = new Blob([encabezados + fila], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.setAttribute('href', url);
-    a.setAttribute('download', `NHC_${p.nhc}_evaluacion.csv`);
+    a.setAttribute('download', `Pseudonimo_${p.nhc_hash.substring(0,8)}_evaluacion.csv`);
     a.click();
   };
 
-  const pacientesFiltrados = listaPacientes.filter(p =>
-    p.id && p.id.toString().toLowerCase().includes(filtroBusqueda.toLowerCase())
-  );
+  const pacientesFiltrados = listaPacientes.filter(p => {
+      // El filtro ahora busca sobre el hash o ID
+      const val = p.nhc_hash || p.id || "";
+      return val.toString().toLowerCase().includes(filtroBusqueda.toLowerCase());
+  });
 
   if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
 
@@ -215,7 +217,8 @@ const cargarHistorial = async () => {
         )}
         
         {view === 'seleccionar_paciente' && <SeleccionarPacienteView pacientesFiltrados={pacientesFiltrados} setFiltroBusqueda={setFiltroBusqueda} seleccionarPacienteExistente={seleccionarPacienteExistente} setView={setView} />}
-        {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} />}
+        
+        {view === 'registro_paciente' && <AntecedentesView paciente={paciente} setPaciente={setPaciente} cuestionario={cuestionario} handleCuestionario={handleCuestionario} validarYPasarAEvento={validarYPasarAEvento} setView={setView} esPacienteExistente={esPacienteExistente} />}
         
         {view === 'event_record' && (
           <EventRecordView 
@@ -225,6 +228,7 @@ const cargarHistorial = async () => {
             esPacienteExistente={esPacienteExistente} 
           />
         )}
+        
         {view === 'calculadora' && (
           <CalculadoraView 
             paciente={paciente} 

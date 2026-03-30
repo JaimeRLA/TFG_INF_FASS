@@ -7,11 +7,11 @@ class LoginRequest(BaseModel):
     password: str
 
 class EvaluacionRequest(BaseModel):
-    id: Optional[int] = None  # Puede ser None si es un registro nuevo
-    paciente_id: str
-    fecha_nacimiento: str
+    id: Optional[int] = None           # ID de la EVALUACIÓN (para el UPDATE)
+    paciente_id: str                   # Aquí el Frontend enviará el NHC (si es nuevo) o el HASH (si ya existe)
+    fecha_nacimiento: Optional[str] = None  # Opcional, porque si el paciente ya existe, no la volvemos a enviar
     genero: str
     medico: str
-    respuestas: Dict          # Los Antecedentes (q1, q2...)
-    evento: Dict              # Detalles de la reacción
-    sintomas: List[str]       # Lista de IDs de síntomas seleccionados
+    respuestas: Dict                   # Los Antecedentes (q1, q2...)
+    evento: Dict                       # Detalles de la reacción
+    sintomas: List[str]                # Lista de IDs de síntomas seleccionados
