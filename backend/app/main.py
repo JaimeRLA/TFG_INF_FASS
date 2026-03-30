@@ -77,20 +77,25 @@ init_db()
 def get_age_range(dob_str):
     """Convierte fecha exacta en rango de edad (Minimización de datos)"""
     try:
-        birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
-        today = datetime.today()
-        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-        
-        if age < 18: return "Pediatría (<18)"
-        if age < 30: return "18-29"
-        if age < 50: return "30-49"
-        if age < 70: return "50-69"
-        return "70+"
+        # Si recibimos ya un rango (porque el paciente existe), lo devolvemos tal cual
+        if not "-" in dob_str and not dob_str.isdigit():
+             birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
+             today = datetime.today()
+             age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+             if age < 18: return "Pediatría (<18)"
+             if age < 30: return "18-29"
+             if age < 50: return "30-49"
+             if age < 70: return "50-69"
+             return "70+"
+        return dob_str
     except:
-        return "No especificado"
+        return dob_str if dob_str else "No especificado"
 
 def generate_pseudonym(nhc):
     """Genera un hash irreversible del NHC (Pseudonimización)"""
+    # Si ya parece un hash (64 caracteres), no lo re-hasheamos
+    if len(str(nhc)) == 64:
+        return str(nhc)
     return hashlib.sha256(str(nhc).encode()).hexdigest()
 
 # --- ENDPOINTS DE PACIENTES ---
@@ -110,7 +115,7 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
         pacientes = []
         for row in cursor.fetchall():
             pacientes.append({
-                "id": row[0], # El hash actúa como ID para el frontend
+                "id": row[0], 
                 "rango_edad": row[1],
                 "genero": decrypt_data(row[2])
             })
@@ -118,7 +123,7 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
     finally:
         conn.close()
 
-# --- ENDPOINTS DE AUTENTICACIÓN (Sin cambios) ---
+# --- ENDPOINTS DE AUTENTICACIÓN ---
 @app.post("/register")
 async def register(request: LoginRequest):
     conn = get_connection()
@@ -161,7 +166,6 @@ async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # JOIN entre registros y pacientes para recuperar datos pseudonimizados
         query = f"""
             SELECT r.*, p.nhc_hash, p.rango_edad, p.genero 
             FROM registros r
@@ -177,7 +181,6 @@ async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
         resultados = []
         for row in rows:
             reg = dict(zip(columns, row))
-            # Descifrado de la clínica (La identidad es el Hash, no se descifra)
             reg["genero"] = decrypt_data(reg["genero"])
             reg["respuestas_json"] = json.loads(decrypt_data(reg["respuestas_json"]))
             reg["evento_json"] = json.loads(decrypt_data(reg["evento_json"]))
@@ -206,17 +209,23 @@ async def calculate(request: EvaluacionRequest):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # 3. Gestión del Paciente (Separado)
-        cursor.execute(f"""
-            INSERT INTO pacientes (nhc_hash, rango_edad, genero, medico)
-            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
-            ON CONFLICT (nhc_hash) DO UPDATE SET rango_edad = EXCLUDED.rango_edad
-            RETURNING id
-        """, (nhc_pseudo, rango_edad, genero_c, request.medico))
+        # --- PASO 3: GESTIÓN DEL PACIENTE (BUSCAR O CREAR) ---
+        cursor.execute(f"SELECT id FROM pacientes WHERE nhc_hash = {placeholder}", (nhc_pseudo,))
+        res_paciente = cursor.fetchone()
         
-        int_paciente_id = cursor.fetchone()[0]
+        if res_paciente:
+            int_paciente_id = res_paciente[0]
+            # Opcional: Actualizar el rango de edad si ha cambiado (ej. el paciente cumple años)
+            cursor.execute(f"UPDATE pacientes SET rango_edad = {placeholder} WHERE id = {placeholder}", (rango_edad, int_paciente_id))
+        else:
+            cursor.execute(f"""
+                INSERT INTO pacientes (nhc_hash, rango_edad, genero, medico)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+                RETURNING id
+            """, (nhc_pseudo, rango_edad, genero_c, request.medico))
+            int_paciente_id = cursor.fetchone()[0]
 
-        # 4. Guardado de Evaluación
+        # --- PASO 4: GUARDADO DE EVALUACIÓN ---
         if request.id and int(request.id) > 0:
             query = f"""UPDATE registros SET 
                         paciente_id={placeholder}, medico={placeholder}, respuestas_json={placeholder}, 
@@ -240,8 +249,6 @@ async def calculate(request: EvaluacionRequest):
         return {"success": False, "message": f"Error persistencia: {str(e)}"}
     finally:
         conn.close()
-
-# --- OTROS ENDPOINTS (Sin cambios significativos en lógica) ---
 
 @app.delete("/evaluacion/{id_evaluacion}")
 async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_key: str = Header(None)):
