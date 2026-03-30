@@ -1,12 +1,12 @@
 import React from 'react';
 import { 
   Activity, 
-  ArrowLeft, 
   Stethoscope, 
   CheckCircle2, 
   AlertCircle,
   FileText,
-  UserCheck
+  UserCheck,
+  XCircle // Icono para el botón de cerrar
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import { SECCIONES_SINTOMAS } from '../data/sintomas';
@@ -22,7 +22,6 @@ const CalculadoraView = ({
   esPacienteExistente 
 }) => {
 
-  // Componente para las cabeceras de sección azul
   const SectionHeader = ({ icon: Icon, title }) => (
     <div style={{
       display: 'flex',
@@ -42,10 +41,10 @@ const CalculadoraView = ({
   );
 
   return (
-    <main style={{ ...styles.calculatorLayout, maxWidth: '1200px', margin: '0 auto', animation: 'fadeIn 0.5s ease' }}>
+    <main style={{ ...styles.calculatorLayout, maxWidth: '1350px', margin: '0 auto', animation: 'fadeIn 0.5s ease', display: 'flex', gap: '30px' }}>
       
+      {/* COLUMNA IZQUIERDA: CALCULADORA */}
       <section style={{ flex: '1', minWidth: '0' }}>
-        
         {!esPacienteExistente && (
           <button onClick={() => setView('event_record')} style={styles.backBtn}>
             ← Volver a Event Record
@@ -53,7 +52,6 @@ const CalculadoraView = ({
         )}
 
         <div style={{ ...styles.cardStyle, padding: '35px' }}>
-          {/* CABECERA DE LA CALCULADORA */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <div style={{ backgroundColor: '#eff6ff', padding: '12px', borderRadius: '12px' }}>
@@ -61,7 +59,7 @@ const CalculadoraView = ({
               </div>
               <div>
                 <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Evaluación de Síntomas</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>Seleccione los hallazgos clínicos observados en la reacción</p>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>Seleccione los hallazgos clínicos observados</p>
               </div>
             </div>
             
@@ -80,22 +78,15 @@ const CalculadoraView = ({
                    {paciente.id.substring(0,10)}...
                  </span>
                </div>
-               {esPacienteExistente && (
-                 <span style={{ fontSize: '10px', color: '#16a34a', fontWeight: '800', display: 'block', marginTop: '5px' }}>
-                   ● PACIENTE RECURRENTE
-                 </span>
-               )}
             </div>
           </div>
 
-          {/* LISTADO DE SECCIONES DE SINTOMAS */}
           {SECCIONES_SINTOMAS.map((sec, idx) => (
             <div key={idx} style={{ marginBottom: '40px' }}>
               <SectionHeader icon={Activity} title={sec.titulo} />
-              
               <div style={{ 
                 display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
                 gap: '20px',
                 padding: '0 5px'
               }}>
@@ -104,8 +95,7 @@ const CalculadoraView = ({
                     padding: '15px',
                     borderRadius: '12px',
                     border: '1px solid #f1f5f9',
-                    backgroundColor: '#f8fafc',
-                    transition: 'all 0.2s'
+                    backgroundColor: '#f8fafc'
                   }}>
                     <label style={{ ...styles.labelStyle, marginBottom: '10px', display: 'block', fontSize: '0.9rem' }}>
                       {grupo.label}
@@ -131,7 +121,6 @@ const CalculadoraView = ({
               ...styles.calcBtn, 
               width: '100%', 
               padding: '20px', 
-              fontSize: '1.1rem',
               borderRadius: '15px',
               backgroundColor: '#2563eb',
               boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)',
@@ -143,65 +132,73 @@ const CalculadoraView = ({
         </div>
       </section>
 
-      {/* PANEL LATERAL DE RESULTADOS - ENSANCHADO A 500px */}
-    <aside style={{ ...styles.asideStyle, width: '500px', minWidth: '500px' }}>
-      <div style={{ position: 'sticky', top: '20px' }}>
-        {resultado ? (
-          <div style={{ animation: 'slideInRight 0.4s ease' }}>
-            <ResultadoCard resultado={resultado} />
-            <div style={{ 
-              marginTop: '15px', 
-              padding: '12px', 
-              backgroundColor: '#ecfdf5', 
-              borderRadius: '10px', 
-              border: '1px solid #d1fae5',
+      {/* COLUMNA DERECHA: RESULTADOS (Ensanchada a 460px) */}
+      <aside style={{ width: '460px', minWidth: '460px' }}>
+        <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* BOTÓN FINALIZAR: Posicionado arriba para que el chat de la esquina inferior no lo tape */}
+          <button 
+            onClick={reiniciarApp} 
+            style={{ 
+              padding: '16px',
+              borderRadius: '16px',
+              border: 'none',
+              backgroundColor: '#1e293b',
+              color: '#fff',
+              fontWeight: '700',
+              fontSize: '1rem',
               display: 'flex',
-              gap: '8px',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+          >
+            <XCircle size={22} /> Finalizar Sesión Clínica
+          </button>
+
+          {resultado ? (
+            <div style={{ animation: 'slideInRight 0.4s ease' }}>
+              <ResultadoCard resultado={resultado} />
+              <div style={{ 
+                marginTop: '15px', 
+                padding: '15px', 
+                backgroundColor: '#ecfdf5', 
+                borderRadius: '12px', 
+                border: '1px solid #d1fae5',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                <CheckCircle2 size={18} color="#059669" />
+                <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: '700' }}>
+                  Datos guardados en el historial del paciente.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              padding: '100px 20px', 
+              border: '2px dashed #cbd5e1',
+              borderRadius: '24px',
+              backgroundColor: '#fff',
+              color: '#94a3b8',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px',
               alignItems: 'center'
             }}>
-              <CheckCircle2 size={16} color="#059669" />
-              <span style={{ fontSize: '0.8rem', color: '#065f46', fontWeight: '600' }}>
-                Evaluación guardada automáticamente.
-              </span>
+              <FileText size={50} strokeWidth={1} />
+              <p style={{ margin: 0, fontWeight: '600' }}>Seleccione síntomas para ver el resultado</p>
             </div>
-          </div>
-        ) : (
-          <div style={{ 
-            ...styles.emptyCard, 
-            padding: '80px 20px', 
-            border: '2px dashed #e2e8f0',
-            backgroundColor: '#fff',
-            color: '#94a3b8',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '15px'
-          }}>
-            <FileText size={40} strokeWidth={1} />
-            <p style={{ margin: 0, fontWeight: '500' }}>Esperando datos clínicos...</p>
-          </div>
-        )}
-        
-        {/* BOTÓN CON Z-INDEX PARA QUE EL ASISTENTE NO LO TAPE */}
-        <button 
-          onClick={reiniciarApp} 
-          style={{ 
-            ...styles.newEvalBtn, 
-            marginTop: '25px',
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            backgroundColor: '#1e293b',
-            position: 'relative', // Necesario para el zIndex
-            zIndex: 9999,         // Por encima del asistente
-            cursor: 'pointer'
-          }}
-        >
-          <AlertCircle size={18} /> Finalizar y Guardar Sesión
-        </button>
-      </div>
-    </aside>
+          )}
+        </div>
+      </aside>
     </main>
   );
 };
