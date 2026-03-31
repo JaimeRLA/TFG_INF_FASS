@@ -16,19 +16,28 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
   
   const [errorFecha, setErrorFecha] = useState('');
 
-  // --- RESTRICCIÓN DE TIEMPO ---
-  const ahoraJS = new Date();
-  const ahoraString = ahoraJS.toLocaleString("sv-SE").replace(" ", "T").substring(0, 16);
+  // --- RESTRICCIÓN DE TIEMPO DINÁMICA ---
+  // Función para obtener la hora actual exacta en formato compatible con input datetime-local
+  const getAhoraString = () => {
+    const ahoraJS = new Date();
+    // Ajustamos a la zona horaria local manualmente para evitar desfases de UTC
+    const offset = ahoraJS.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(ahoraJS - offset)).toISOString().slice(0, 16);
+    return localISOTime;
+  };
 
   useEffect(() => {
+    const ahora = getAhoraString();
+    
     if (evento.reaccion_fecha) {
-      if (evento.reaccion_fecha > ahoraString) {
+      // Si la fecha seleccionada es mayor que "ahora"
+      if (evento.reaccion_fecha > ahora) {
         setErrorFecha('La fecha y hora de la reacción no pueden ser futuras.');
       } else {
         setErrorFecha('');
       }
     }
-  }, [evento.reaccion_fecha, ahoraString]);
+  }, [evento.reaccion_fecha]); // Se ejecuta cada vez que cambia la fecha del evento
 
   // Componente interno para las preguntas de Sí/No
   const PreguntaTratamientoLocal = ({ id, label }) => (
@@ -112,15 +121,16 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
                 style={{
                     ...styles.inputStyle,
                     borderColor: errorFecha ? '#ef4444' : '#e2e8f0',
-                    borderWidth: errorFecha ? '2px' : '1px'
+                    borderWidth: errorFecha ? '2px' : '1px',
+                    backgroundColor: errorFecha ? '#fff1f2' : '#fff'
                 }} 
                 value={evento.reaccion_fecha || ''} 
-                max={ahoraString}
+                max={getAhoraString()} // Bloquea selección en el calendario
                 onChange={e => handleEvento('reaccion_fecha', e.target.value)} 
               />
               {errorFecha && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
-                  <AlertCircle size={14} /> {errorFecha}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.8rem', marginTop: '8px', fontWeight: '700' }}>
+                  <AlertCircle size={16} /> {errorFecha}
                 </div>
               )}
             </div>
@@ -187,22 +197,29 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
+        {/* BOTÓN FINAL DE VISTA */}
         <button 
           onClick={() => setView('calculadora')} 
-          disabled={!!errorFecha}
+          disabled={!!errorFecha} // BLOQUEO FÍSICO DEL BOTÓN
           style={{ 
             ...styles.calcBtn, 
             width: '100%', 
             padding: '20px', 
             borderRadius: '15px', 
             fontSize: '1.1rem',
-            backgroundColor: errorFecha ? '#cbd5e1' : '#ef4444',
-            boxShadow: errorFecha ? 'none' : '0 10px 15px -3px rgba(239, 68, 68, 0.2)',
+            // CAMBIO DE COLOR SI HAY ERROR
+            backgroundColor: errorFecha ? '#fda4af' : '#ef4444', 
+            boxShadow: errorFecha ? 'none' : '0 10px 15px -3px rgba(239, 68, 68, 0.3)',
             cursor: errorFecha ? 'not-allowed' : 'pointer',
-            opacity: errorFecha ? 0.7 : 1
+            opacity: errorFecha ? 0.8 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px'
           }}
         >
-          Continuar a Evaluación de Síntomas <ArrowRight size={22} />
+          {errorFecha ? 'Corrija la fecha para continuar' : 'Continuar a Evaluación de Síntomas'} 
+          {!errorFecha && <ArrowRight size={22} />}
         </button>
       </div>
     </div>
