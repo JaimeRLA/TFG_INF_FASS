@@ -14,6 +14,10 @@ import { styles } from '../AppStyles.js';
 
 const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente }) => {
   
+  // --- RESTRICCIÓN DE TIEMPO ---
+  // Generamos la fecha y hora actual en formato YYYY-MM-DDTHH:mm para el atributo 'max'
+  const ahora = new Date().toLocaleString("sv-SE").replace(" ", "T").substring(0, 16);
+
   // Componente interno para las preguntas de Sí/No (Estilo coherente)
   const PreguntaTratamientoLocal = ({ id, label }) => (
     <div style={{
@@ -114,6 +118,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
                 type="datetime-local" 
                 style={styles.inputStyle} 
                 value={evento.reaccion_fecha || ''} 
+                max={ahora} // RESTRICCIÓN: No permite seleccionar fechas futuras
                 onChange={e => handleEvento('reaccion_fecha', e.target.value)} 
               />
             </div>
