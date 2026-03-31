@@ -35,7 +35,6 @@ const App = () => {
     drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: '', drug_details_extra: ''
   });
 
-  // URL del Backend
   const BASE_URL = "https://tfg-inf-fass.onrender.com";
   const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
 
@@ -180,57 +179,113 @@ const App = () => {
 
   const generarReportePDF = (p) => {
     const printWindow = window.open('', '_blank');
+    const ev = p.evento_json || {};
+    const resp = p.respuestas_json || {};
+    const sints = p.sintomas || [];
+
     const htmlContent = `
       <html>
         <head>
           <title>Reporte Clínico - ${p.nhc_hash.substring(0,8)}</title>
           <style>
-            body { font-family: sans-serif; padding: 40px; color: #1e293b; line-height: 1.5; }
-            .header { border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; }
-            .title { color: #2563eb; font-size: 24px; font-weight: bold; margin: 0; }
-            .section { margin-bottom: 25px; padding: 15px; background: #f8fafc; border-radius: 8px; }
-            .section-title { font-weight: bold; text-transform: uppercase; font-size: 14px; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .label { font-weight: bold; color: #475569; }
-            .result-box { text-align: center; padding: 20px; border: 2px solid #2563eb; border-radius: 12px; margin-top: 20px; }
-            .nfass { font-size: 32px; color: #2563eb; font-weight: bold; }
-            @media print { .no-print { display: none; } }
+            body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #1e293b; line-height: 1.5; }
+            .header { border-bottom: 3px solid #2563eb; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+            .title { color: #2563eb; font-size: 26px; font-weight: bold; margin: 0; }
+            .badge { background: #eff6ff; color: #2563eb; padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; border: 1px solid #bfdbfe; }
+            .section { margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+            .section-title { background: #f8fafc; padding: 8px 15px; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0; font-size: 13px; text-transform: uppercase; }
+            .content { padding: 15px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+            .label { display: block; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+            .value { font-size: 14px; color: #0f172a; font-weight: 500; }
+            .result-container { display: flex; gap: 15px; margin-top: 10px; }
+            .result-card { flex: 1; text-align: center; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0; }
+            .result-card.highlight { border-color: #2563eb; background: #f0f7ff; }
+            .big-number { font-size: 30px; font-weight: 800; color: #2563eb; margin: 5px 0; }
+            .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+            @media print { button { display: none; } }
           </style>
         </head>
         <body>
           <div class="header">
             <div>
-              <h1 class="title">FASS System - Informe de Evaluación</h1>
-              <p>ID Evaluación: ${p.id} | Fecha: ${new Date(p.fecha).toLocaleString()}</p>
+              <h1 class="title">FASS System - Informe Clínico</h1>
+              <p style="margin:4px 0;">ID Registro: ${p.id} | Fecha Informe: ${new Date().toLocaleString()}</p>
+            </div>
+            <div class="badge">CONFIDENCIAL</div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">1. Identificación del Paciente</div>
+            <div class="content">
+              <div class="grid">
+                <div><span class="label">NHC (Hash)</span><span class="value" style="font-family:monospace;">${p.nhc_hash}</span></div>
+                <div><span class="label">Género</span><span class="value">${p.genero === 'M' ? 'Masculino' : 'Femenino'}</span></div>
+                <div><span class="label">Rango Edad</span><span class="value">${p.rango_edad}</span></div>
+              </div>
             </div>
           </div>
 
           <div class="section">
-            <div class="section-title">Datos del Paciente (Pseudonimizado)</div>
-            <div class="grid">
-              <div><span class="label">NHC Hash:</span> ${p.nhc_hash}</div>
-              <div><span class="label">Género:</span> ${p.genero === 'M' ? 'Masculino' : 'Femenino'}</div>
-              <div><span class="label">Rango de Edad:</span> ${p.rango_edad}</div>
-              <div><span class="label">Médico Responsable:</span> ${usuarioLogueado}</div>
+            <div class="section-title">2. Detalles de la Reacción (Event Record)</div>
+            <div class="content">
+              <div class="grid">
+                <div><span class="label">Fecha Evento</span><span class="value">${ev.reaccion_fecha || '-'}</span></div>
+                <div><span class="label">Duración</span><span class="value">${ev.duration || '-'}</span></div>
+                <div><span class="label">Ubicación</span><span class="value">${ev.location || '-'}</span></div>
+                <div><span class="label">Actividad</span><span class="value">${ev.activity || '-'}</span></div>
+                <div><span class="label">Adrenalina</span><span class="value">${ev.adrenaline || 'No'}</span></div>
+                <div><span class="label">Ambulancia</span><span class="value">${ev.ambulance || 'No'}</span></div>
+              </div>
+              <div style="margin-top:10px;">
+                <span class="label">Disparadores Sospechados</span>
+                <span class="value">${[ev.trigger_food, ev.trigger_drug, ev.trigger_insect].filter(Boolean).join(', ') || 'Desconocido'}</span>
+              </div>
             </div>
           </div>
 
           <div class="section">
-            <div class="section-title">Resultados de Gravedad</div>
-            <div class="result-box">
-              <div>Puntuación nFASS</div>
-              <div class="nfass">${p.nfass} Puntos</div>
-              <div style="margin-top:10px; font-weight:bold;">Grado oFASS: ${p.ofass_grade} | Nivel de Riesgo: ${p.risk_level}</div>
+            <div class="section-title">3. Síntomas Registrados</div>
+            <div class="content">
+              <span class="value">${sints.join(' • ') || 'No hay síntomas registrados individualmente'}</span>
+              <div style="margin-top:10px; padding-top:10px; border-top: 1px dashed #e2e8f0;">
+                <span class="label">Notas adicionales</span>
+                <span class="value">${ev.other_info || 'Sin observaciones.'}</span>
+              </div>
             </div>
           </div>
 
-          <div class="section">
-            <div class="section-title">Notas de Seguridad</div>
-            <p style="font-size: 11px; color: #94a3b8;">Este documento cumple con la normativa RGPD vigente. Los datos identificativos reales no se almacenan en este reporte impreso para garantizar la privacidad del paciente.</p>
+          <div class="section" style="border:none;">
+            <div class="section-title" style="background:#1e293b; color:white; border-radius:10px 10px 0 0;">4. Evaluación de Gravedad</div>
+            <div class="result-container">
+              <div class="result-card highlight">
+                <span class="label">Scoring nFASS</span>
+                <div class="big-number">${p.nfass}</div>
+                <span class="value">Puntos</span>
+              </div>
+              <div class="result-card">
+                <span class="label">Grado oFASS</span>
+                <div class="big-number" style="color:#0f172a;">${p.ofass_grade}</div>
+                <span class="value">Gravedad</span>
+              </div>
+              <div class="result-card">
+                <span class="label">Nivel Riesgo</span>
+                <div class="big-number" style="color:${p.risk_level === 'Alto' ? '#ef4444' : '#10b981'}; font-size:22px;">${p.risk_level.toUpperCase()}</div>
+                <span class="value">Prioridad</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>Este documento es un reporte técnico generado por nFASS v2.0. Requiere validación y firma facultativa.</p>
+            <br/><br/>
+            <p>Firma del Médico (${usuarioLogueado}): __________________________________________</p>
           </div>
           
           <script>
-            window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };
+            window.onload = function() { 
+              setTimeout(() => { window.print(); window.onafterprint = function() { window.close(); }; }, 500); 
+            };
           </script>
         </body>
       </html>
