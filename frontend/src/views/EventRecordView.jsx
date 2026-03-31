@@ -16,25 +16,30 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
   
   const [errorFecha, setErrorFecha] = useState('');
 
-  // Función para obtener el tiempo actual con formato YYYY-MM-DDTHH:mm
-  const getAhoraLocal = () => {
+  // --- RESTRICCIONES DE TIEMPO ---
+  const getLimitesFecha = () => {
     const d = new Date();
-    // Añadimos un pequeño margen de 1 minuto al futuro para evitar que los segundos bloqueen el input
-    d.setMinutes(d.getMinutes() + 1); 
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    // Límite Superior: Ahora (con 1 min de margen)
+    const futuro = new Date(d.getTime() + 60000);
+    const ahoraString = futuro.toISOString().slice(0, 16);
+
+    // Límite Inferior: Hace 120 años
+    const pasado = new Date();
+    pasado.setFullYear(pasado.getFullYear() - 120);
+    const minimoString = pasado.toISOString().slice(0, 16);
+
+    return { ahoraString, minimoString };
   };
 
   useEffect(() => {
+    const { ahoraString, minimoString } = getLimitesFecha();
+    
     if (evento.reaccion_fecha) {
-      const limite = getAhoraLocal();
-      // Comparación de strings ISO
-      if (evento.reaccion_fecha > limite) {
+      if (evento.reaccion_fecha > ahoraString) {
         setErrorFecha('La fecha y hora de la reacción no pueden ser futuras.');
+      } else if (evento.reaccion_fecha < minimoString) {
+        setErrorFecha('La fecha es demasiado antigua (>120 años).');
       } else {
         setErrorFecha('');
       }
@@ -147,7 +152,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
-        {/* SECCIÓN 2, 3 y 4 (Omitidas para brevedad, mantenlas igual) */}
+        {/* SECCIÓN 2: DISPARADORES */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={Target} title="Suspected Triggers" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
@@ -157,6 +162,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
+        {/* SECCIÓN 3: CONTEXTO */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={MapPin} title="Environment & Activity" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
@@ -179,6 +185,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
+        {/* SECCIÓN 4: MANEJO */}
         <div style={{ marginBottom: '40px' }}>
           <SectionHeader icon={Stethoscope} title="Management & Treatment" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
