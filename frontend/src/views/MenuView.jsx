@@ -40,22 +40,14 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial }) => {
   ];
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '60px auto', padding: '0 20px' }}>
-      {/* CABECERA DE BIENVENIDA */}
-      <div style={{ marginBottom: '50px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.4rem', fontWeight: '850', color: '#1e293b', marginBottom: '10px', letterSpacing: '-1px' }}>
-          Gestión de Anafilaxia
-        </h1>
-        <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: '500' }}>
-          Plataforma de Soporte Clínico nFASS v2.0
-        </p>
-      </div>
-
-      {/* GRID DE OPCIONES */}
+    <div style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 20px' }}>
+      
+      {/* GRID DE OPCIONES (Sin título superior) */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-        gap: '30px' 
+        gap: '30px',
+        marginTop: '20px' 
       }}>
         {menuOptions.map((opt) => (
           <div 
@@ -69,7 +61,7 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial }) => {
               justifyContent: 'space-between',
               padding: '40px 30px',
               backgroundColor: '#ffffff',
-              borderRadius: '28px', // Bordes más suaves
+              borderRadius: '28px',
               border: hoveredCard === opt.id ? `2px solid ${opt.color}` : '2px solid #f1f5f9',
               boxShadow: hoveredCard === opt.id 
                 ? '0 20px 25px -5px rgba(0, 0, 0, 0.08)' 
@@ -80,7 +72,6 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial }) => {
             }}
           >
             <div>
-              {/* Icono envuelto en su círculo de color original */}
               <div style={{ 
                 ...styles.avatarStyle,
                 width: '70px',
@@ -138,6 +129,13 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial }) => {
             </button>
           </div>
         ))}
+      </div>
+
+      {/* PIE DE PÁGINA PROFESIONAL */}
+      <div style={{ marginTop: '60px', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '30px' }}>
+        <p style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          Plataforma de Soporte de Decisiones Clínicas • nFASS v2.0
+        </p>
       </div>
     </div>
   );
