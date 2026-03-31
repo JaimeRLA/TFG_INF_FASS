@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
   ArrowRight, 
@@ -14,11 +14,23 @@ import { styles } from '../AppStyles.js';
 
 const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente }) => {
   
-  // --- RESTRICCIÓN DE TIEMPO ---
-  // Generamos la fecha y hora actual en formato YYYY-MM-DDTHH:mm para el atributo 'max'
-  const ahora = new Date().toLocaleString("sv-SE").replace(" ", "T").substring(0, 16);
+  const [errorFecha, setErrorFecha] = useState('');
 
-  // Componente interno para las preguntas de Sí/No (Estilo coherente)
+  // --- RESTRICCIÓN DE TIEMPO ---
+  const ahoraJS = new Date();
+  const ahoraString = ahoraJS.toLocaleString("sv-SE").replace(" ", "T").substring(0, 16);
+
+  useEffect(() => {
+    if (evento.reaccion_fecha) {
+      if (evento.reaccion_fecha > ahoraString) {
+        setErrorFecha('La fecha y hora de la reacción no pueden ser futuras.');
+      } else {
+        setErrorFecha('');
+      }
+    }
+  }, [evento.reaccion_fecha, ahoraString]);
+
+  // Componente interno para las preguntas de Sí/No
   const PreguntaTratamientoLocal = ({ id, label }) => (
     <div style={{
       display: 'flex',
@@ -52,7 +64,6 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
     </div>
   );
 
-  // Componente para las cabeceras de sección (Borde rojo para Event Record)
   const SectionHeader = ({ icon: Icon, title }) => (
     <div style={{
       display: 'flex',
@@ -90,24 +101,6 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           <p style={{ color: '#64748b', marginTop: '5px' }}>Detalles clínicos de la reacción actual</p>
         </div>
 
-        {esPacienteExistente && (
-          <div style={{ 
-            backgroundColor: '#eff6ff', 
-            border: '1px solid #bfdbfe', 
-            padding: '12px 18px', 
-            borderRadius: '12px', 
-            marginBottom: '30px',
-            fontSize: '0.9rem',
-            color: '#1e40af',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <Lock size={18} />
-            <strong>Perfil verificado:</strong> El historial previo ha sido cargado correctamente.
-          </div>
-        )}
-
         {/* SECCIÓN 1: TIEMPO Y DURACIÓN */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={Clock} title="Timeline of Reaction" />
@@ -116,11 +109,20 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
               <label style={styles.labelStyle}>Date and time of reaction:</label>
               <input 
                 type="datetime-local" 
-                style={styles.inputStyle} 
+                style={{
+                    ...styles.inputStyle,
+                    borderColor: errorFecha ? '#ef4444' : '#e2e8f0',
+                    borderWidth: errorFecha ? '2px' : '1px'
+                }} 
                 value={evento.reaccion_fecha || ''} 
-                max={ahora} // RESTRICCIÓN: No permite seleccionar fechas futuras
+                max={ahoraString}
                 onChange={e => handleEvento('reaccion_fecha', e.target.value)} 
               />
+              {errorFecha && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
+                  <AlertCircle size={14} /> {errorFecha}
+                </div>
+              )}
             </div>
             <div>
               <label style={styles.labelStyle}>Duration of symptoms:</label>
@@ -142,25 +144,6 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
             <div><label style={styles.labelStyle}>Insects or Ticks:</label><input style={styles.inputStyle} value={evento.trigger_insect || ''} onChange={e => handleEvento('trigger_insect', e.target.value)} placeholder="Name" /></div>
             <div><label style={styles.labelStyle}>Drug/s (Medication):</label><input style={styles.inputStyle} value={evento.trigger_drug || ''} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Name" /></div>
           </div>
-
-          {evento.trigger_drug && (
-            <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', color: '#2563eb' }}>
-                <Pill size={18} />
-                <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Drug Allergy Details</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <input style={styles.inputStyle} placeholder="Reason prescribed" value={evento.drug_reason || ''} onChange={e => handleEvento('drug_reason', e.target.value)} />
-                <input style={styles.inputStyle} placeholder="Form (capsule, IV...)" value={evento.drug_form || ''} onChange={e => handleEvento('drug_form', e.target.value)} />
-                <input style={styles.inputStyle} placeholder="Other drugs taken" value={evento.drug_other || ''} onChange={e => handleEvento('drug_other', e.target.value)} />
-                <select style={styles.selectStyle} value={evento.drug_onset || ''} onChange={e => handleEvento('drug_onset', e.target.value)}>
-                  <option value="">Time of onset...</option>
-                  <option value="within 1-2 hours">within 1-2 hours</option>
-                  <option value="after 2 hours">after 2 hours</option>
-                </select>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* SECCIÓN 3: CONTEXTO */}
@@ -204,26 +187,19 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
-        <div style={{ marginBottom: '40px' }}>
-          <SectionHeader icon={AlertCircle} title="Additional Notes" />
-          <textarea 
-            style={styles.detailInput} 
-            value={evento.other_info || ''} 
-            placeholder="Any other relevant clinical information..."
-            onChange={e => handleEvento('other_info', e.target.value)} 
-          />
-        </div>
-
         <button 
           onClick={() => setView('calculadora')} 
+          disabled={!!errorFecha}
           style={{ 
             ...styles.calcBtn, 
             width: '100%', 
             padding: '20px', 
             borderRadius: '15px', 
             fontSize: '1.1rem',
-            backgroundColor: '#ef4444',
-            boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.2)'
+            backgroundColor: errorFecha ? '#cbd5e1' : '#ef4444',
+            boxShadow: errorFecha ? 'none' : '0 10px 15px -3px rgba(239, 68, 68, 0.2)',
+            cursor: errorFecha ? 'not-allowed' : 'pointer',
+            opacity: errorFecha ? 0.7 : 1
           }}
         >
           Continuar a Evaluación de Síntomas <ArrowRight size={22} />
