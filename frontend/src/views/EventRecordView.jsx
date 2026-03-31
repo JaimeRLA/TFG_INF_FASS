@@ -16,30 +16,31 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
   
   const [errorFecha, setErrorFecha] = useState('');
 
-  // --- RESTRICCIÓN DE TIEMPO DINÁMICA ---
-  // Función para obtener la hora actual exacta en formato compatible con input datetime-local
-  const getAhoraString = () => {
-    const ahoraJS = new Date();
-    // Ajustamos a la zona horaria local manualmente para evitar desfases de UTC
-    const offset = ahoraJS.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(ahoraJS - offset)).toISOString().slice(0, 16);
-    return localISOTime;
+  // Función para obtener el tiempo actual con formato YYYY-MM-DDTHH:mm
+  const getAhoraLocal = () => {
+    const d = new Date();
+    // Añadimos un pequeño margen de 1 minuto al futuro para evitar que los segundos bloqueen el input
+    d.setMinutes(d.getMinutes() + 1); 
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   useEffect(() => {
-    const ahora = getAhoraString();
-    
     if (evento.reaccion_fecha) {
-      // Si la fecha seleccionada es mayor que "ahora"
-      if (evento.reaccion_fecha > ahora) {
+      const limite = getAhoraLocal();
+      // Comparación de strings ISO
+      if (evento.reaccion_fecha > limite) {
         setErrorFecha('La fecha y hora de la reacción no pueden ser futuras.');
       } else {
         setErrorFecha('');
       }
     }
-  }, [evento.reaccion_fecha]); // Se ejecuta cada vez que cambia la fecha del evento
+  }, [evento.reaccion_fecha]);
 
-  // Componente interno para las preguntas de Sí/No
   const PreguntaTratamientoLocal = ({ id, label }) => (
     <div style={{
       display: 'flex',
@@ -122,14 +123,14 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
                     ...styles.inputStyle,
                     borderColor: errorFecha ? '#ef4444' : '#e2e8f0',
                     borderWidth: errorFecha ? '2px' : '1px',
-                    backgroundColor: errorFecha ? '#fff1f2' : '#fff'
+                    backgroundColor: errorFecha ? '#fff1f2' : '#fff',
+                    outline: errorFecha ? 'none' : 'initial'
                 }} 
                 value={evento.reaccion_fecha || ''} 
-                max={getAhoraString()} // Bloquea selección en el calendario
                 onChange={e => handleEvento('reaccion_fecha', e.target.value)} 
               />
               {errorFecha && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.8rem', marginTop: '8px', fontWeight: '700' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontSize: '0.85rem', marginTop: '8px', fontWeight: 'bold' }}>
                   <AlertCircle size={16} /> {errorFecha}
                 </div>
               )}
@@ -146,7 +147,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
-        {/* SECCIÓN 2: DISPARADORES */}
+        {/* SECCIÓN 2, 3 y 4 (Omitidas para brevedad, mantenlas igual) */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={Target} title="Suspected Triggers" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
@@ -156,7 +157,6 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
-        {/* SECCIÓN 3: CONTEXTO */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={MapPin} title="Environment & Activity" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
@@ -179,7 +179,6 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           </div>
         </div>
 
-        {/* SECCIÓN 4: MANEJO */}
         <div style={{ marginBottom: '40px' }}>
           <SectionHeader icon={Stethoscope} title="Management & Treatment" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -199,26 +198,27 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
 
         {/* BOTÓN FINAL DE VISTA */}
         <button 
-          onClick={() => setView('calculadora')} 
-          disabled={!!errorFecha} // BLOQUEO FÍSICO DEL BOTÓN
+          onClick={() => {
+            if (!errorFecha) setView('calculadora');
+          }} 
+          disabled={!!errorFecha} 
           style={{ 
             ...styles.calcBtn, 
             width: '100%', 
             padding: '20px', 
             borderRadius: '15px', 
             fontSize: '1.1rem',
-            // CAMBIO DE COLOR SI HAY ERROR
-            backgroundColor: errorFecha ? '#fda4af' : '#ef4444', 
+            backgroundColor: errorFecha ? '#cbd5e1' : '#ef4444', 
             boxShadow: errorFecha ? 'none' : '0 10px 15px -3px rgba(239, 68, 68, 0.3)',
             cursor: errorFecha ? 'not-allowed' : 'pointer',
-            opacity: errorFecha ? 0.8 : 1,
+            opacity: errorFecha ? 0.7 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '10px'
           }}
         >
-          {errorFecha ? 'Corrija la fecha para continuar' : 'Continuar a Evaluación de Síntomas'} 
+          {errorFecha ? 'Fecha no válida' : 'Continuar a Evaluación de Síntomas'} 
           {!errorFecha && <ArrowRight size={22} />}
         </button>
       </div>
