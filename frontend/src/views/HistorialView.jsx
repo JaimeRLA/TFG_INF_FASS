@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ClipboardList, Trash2, ShieldCheck, Download, Search, Fingerprint, Calendar, User, Clock } from 'lucide-react'; // Añadido Clock
+import { ClipboardList, Trash2, ShieldCheck, Download, Search, Fingerprint, Calendar, User, Clock, FileDown, FileText } from 'lucide-react'; 
 import { styles } from '../AppStyles.js';
 import CryptoJS from 'crypto-js';
 
-const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargarPaciente, eliminarEvaluacion, setView }) => {
+const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargarPaciente, eliminarEvaluacion, setView, descargarTodoCSV, generarReportePDF }) => {
   const [busqueda, setBusqueda] = useState('');
 
   const pacientesFiltrados = listaPacientes.filter(p => {
@@ -40,20 +40,45 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
             </div>
           </div>
           
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '5px', 
-            fontSize: '0.75rem', 
-            color: '#ea580c', 
-            backgroundColor: '#fff7ed', 
-            padding: '6px 14px', 
-            borderRadius: '20px',
-            border: '1px solid #ffedd5',
-            fontWeight: '700',
-            whiteSpace: 'nowrap'
-          }}>
-            <ShieldCheck size={14} /> RGPD: Datos Protegidos
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '5px', 
+              fontSize: '0.75rem', 
+              color: '#ea580c', 
+              backgroundColor: '#fff7ed', 
+              padding: '6px 14px', 
+              borderRadius: '20px',
+              border: '1px solid #ffedd5',
+              fontWeight: '700',
+              whiteSpace: 'nowrap'
+            }}>
+              <ShieldCheck size={14} /> RGPD: Datos Protegidos
+            </div>
+            
+            {/* BOTÓN DESCARGAR TODO CSV */}
+            <button 
+              onClick={descargarTodoCSV}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                backgroundColor: '#1e293b',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#0f172a'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#1e293b'}
+            >
+              <FileDown size={16} /> Exportar Base de Datos (CSV)
+            </button>
           </div>
         </div>
 
@@ -125,7 +150,6 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14}/> {p.rango_edad}</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Clock size={14}/> 
-                      {/* Mostramos fecha y hora formateada */}
                       {new Date(p.fecha).toLocaleDateString()} - {new Date(p.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -150,12 +174,27 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                   >
                     Editar
                   </button>
+                  
+                  {/* BOTÓN DESCARGAR REPORTE PDF (Bonito) */}
                   <button 
-                    onClick={() => descargarPaciente(p)} 
-                    style={{ ...styles.actionBtnBlue, display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#2563eb' }}
+                    onClick={() => generarReportePDF(p)} 
+                    style={{ 
+                      ...styles.actionBtnBlue, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '6px', 
+                      padding: '8px 16px', 
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <Download size={14} /> CSV
+                    <FileText size={14} /> Reporte PDF
                   </button>
+
                   <button 
                     onClick={() => eliminarEvaluacion(p.id)} 
                     style={{ 
