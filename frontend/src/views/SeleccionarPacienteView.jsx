@@ -28,7 +28,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
     <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.3s ease' }}>
       
       <button onClick={() => setView('perfil')} style={styles.backBtn}>
-        ← Cancelar
+        ← Volver a Menú
       </button>
 
       <div style={{ ...styles.cardStyle, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>

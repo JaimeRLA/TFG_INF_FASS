@@ -128,7 +128,7 @@ const AntecedentesView = ({
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.4s ease' }}>
-      <button onClick={() => setView('perfil')} style={styles.backBtn}>← Cancelar</button>
+      <button onClick={() => setView('perfil')} style={styles.backBtn}>← Volver al Menú</button>
       
       <div style={{ ...styles.cardStyle, padding: '40px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>

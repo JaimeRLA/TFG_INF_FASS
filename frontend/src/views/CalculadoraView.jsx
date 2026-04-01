@@ -5,7 +5,8 @@ import {
   CheckCircle2, 
   FileText,
   UserCheck,
-  XCircle
+  XCircle,
+  ArrowLeft // Importamos ArrowLeft para mantener la coherencia visual
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import { SECCIONES_SINTOMAS } from '../data/sintomas';
@@ -53,22 +54,18 @@ const CalculadoraView = ({
       {/* COLUMNA IZQUIERDA: CALCULADORA */}
       <section style={{ flex: '1', minWidth: '0' }}>
         
-        {/* BOTÓN VOLVER: Visible siempre que estemos en el flujo de nueva evaluación o nuevo registro */}
+        {/* BOTÓN VOLVER: Estilo unificado con el resto de la app */}
         <button 
           onClick={() => setView('event_record')} 
           style={{
               ...styles.backBtn,
-              fontSize: '1.5rem',
-              padding: '5px 15px',
               marginBottom: '15px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 1
+              gap: '8px'
           }}
-          title="Volver a Event Record"
         >
-          ← Volver
+          ← Volver a Event Record
         </button>
 
         <div style={{ ...styles.cardStyle, padding: '35px' }}>

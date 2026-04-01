@@ -104,7 +104,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
         onClick={() => setView(esPacienteExistente ? 'perfil' : 'registro_paciente')} 
         style={styles.backBtn}
       >
-        {esPacienteExistente ? '← Cancelar' : '← Volver a Antecedentes'}
+        {esPacienteExistente ? '← Volver a Menú' : '← Volver a Antecedentes'}
       </button>
 
       <div style={{ ...styles.cardStyle, padding: '40px' }}>
