@@ -42,7 +42,7 @@ const Login = ({ onLoginSuccess }) => {
   return (
     <div style={styles.loginContainer}>
       <div style={styles.loginCard}>
-        <HeartPulse size={60} color="#2563eb" style={{ marginBottom: '15px' }} />
+        <HeartPulse size={60} color="#1e293b" style={{ marginBottom: '15px' }} />
         
         <h2 style={{ margin: '0 0 10px 0', color: '#1e293b', fontSize: '1.8rem', fontWeight: '800' }}>
           {isRegister ? "Registro Médico" : "Acceso al Sistema"}

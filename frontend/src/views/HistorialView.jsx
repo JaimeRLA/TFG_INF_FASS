@@ -184,7 +184,7 @@ const HistorialView = ({ listaPacientes, seleccionarPacienteExistente, descargar
                       alignItems: 'center', 
                       gap: '6px', 
                       padding: '8px 16px', 
-                      backgroundColor: '#2563eb',
+                      backgroundColor: '#1e293b',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
