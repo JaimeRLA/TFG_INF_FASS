@@ -10,15 +10,15 @@ export const styles = {
   },
   inputStyle: { 
     width: '100%', 
-    height: '45px', // Forzamos altura fija
-    padding: '0 15px', // Padding lateral únicamente para no variar la altura
+    height: '45px', 
+    padding: '0 15px', 
     borderRadius: '10px', 
     border: '1px solid #e2e8f0', 
     backgroundColor: '#f8fafc', 
     color: '#1e293b', 
     fontSize: '0.95rem', 
     fontFamily: '"Inter", sans-serif', 
-    boxSizing: 'border-box', // Crucial para que el padding no sume al tamaño
+    boxSizing: 'border-box', 
     outline: 'none' 
   },
   headerStyle: { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', alignItems: 'center' },
@@ -40,11 +40,10 @@ export const styles = {
   rowYesNo: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' },
   subLabelNormal: { fontSize: '0.9rem', color: '#1e293b', fontWeight: '700', fontFamily: '"Inter", sans-serif' },
   
-  // Mantenemos estas versiones duplicadas que tenías al final de tu lista
   inputStyleV2: { width: '100%', padding: '12px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', fontFamily: '"Inter", sans-serif', boxSizing: 'border-box', outline: 'none' },
   selectStyle: { 
       width: '100%', 
-      height: '45px', // Exactamente la misma altura que el input
+      height: '45px', 
       padding: '0 15px', 
       borderRadius: '10px', 
       border: '1px solid #e2e8f0', 
@@ -55,7 +54,7 @@ export const styles = {
       boxSizing: 'border-box', 
       fontFamily: '"Inter", sans-serif',
       outline: 'none',
-    appearance: 'none', // Quita estilos nativos de algunos navegadores
+    appearance: 'none', 
   },
   labelStyleV2: { fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '4px', fontFamily: '"Inter", sans-serif' },
   
@@ -73,7 +72,7 @@ export const styles = {
   actionBtnGray: { padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' },
   actionBtnRed: { padding: '8px 12px', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fee2e2', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
-  // --- NUEVOS ESTILOS PARA EL MÓDULO LOGIN ---
+  // --- MÓDULO LOGIN ---
   loginContainer: { 
     height: '100vh', width: '100vw', display: 'flex', 
     justifyContent: 'center', alignItems: 'center', 
@@ -118,12 +117,59 @@ export const styles = {
     marginBottom: '20px', border: '1px solid #bbf7d0' 
   },
 
+  // --- NUEVOS ESTILOS PARA PESTAÑAS (TABS) ---
+  tabInactive: {
+    padding: '8px 16px',
+    borderRadius: '10px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    color: '#64748b',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    transition: 'all 0.2s',
+    fontFamily: '"Inter", sans-serif'
+  },
+  tabActive: {
+    padding: '8px 16px',
+    borderRadius: '10px',
+    border: 'none',
+    backgroundColor: '#ffffff',
+    color: '#2563eb',
+    fontSize: '0.9rem',
+    fontWeight: '700',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    fontFamily: '"Inter", sans-serif'
+  },
 
-// Dentro de styles en AppStyles.js
-
-  
-
-  
+  // --- TARJETA DE INFORMACIÓN (MODAL/INFO) ---
+  infoCard: {
+    backgroundColor: '#ffffff',
+    padding: '40px',
+    borderRadius: '20px',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e2e8f0',
+    position: 'relative',
+    animation: 'fadeIn 0.3s ease',
+    marginBottom: '20px',
+    fontFamily: '"Inter", sans-serif'
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    fontSize: '24px',
+    background: 'none',
+    border: 'none',
+    color: '#94a3b8',
+    cursor: 'pointer',
+    lineHeight: 1
+  }
 };
-
-
