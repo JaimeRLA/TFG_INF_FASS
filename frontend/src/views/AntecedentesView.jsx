@@ -35,12 +35,11 @@ const AntecedentesView = ({
   const fechaMinima = hace120Anios.toISOString().split("T")[0]; 
 
   useEffect(() => {
-    // 1. VALIDACIÓN DE NHC DUPLICADO (Restricción de Identidad)
+    // 1. VALIDACIÓN DE NHC DUPLICADO
     if (!esPacienteExistente && paciente.id) {
       const nhcNormalizado = paciente.id.trim();
       const hashIntroducido = CryptoJS.SHA256(nhcNormalizado).toString();
       
-      // Comparamos el hash local con los nhc_hash que vienen de la DB
       const yaExiste = listaPacientes.some(p => p.nhc_hash === hashIntroducido);
       
       if (yaExiste) {
@@ -52,7 +51,7 @@ const AntecedentesView = ({
       setErrorNHC('');
     }
 
-    // 2. VALIDACIÓN DE FECHA RAZONABLE (Restricción Temporal)
+    // 2. VALIDACIÓN DE FECHA RAZONABLE
     if (!esPacienteExistente && paciente.fecha_nacimiento) {
       const fechaSeleccionada = paciente.fecha_nacimiento;
       if (fechaSeleccionada > hoy) {
@@ -74,7 +73,7 @@ const AntecedentesView = ({
 
   const hayErroresBloqueantes = !!errorNHC || !!errorFecha;
 
-  // Componente interno para las preguntas de Sí/No
+  // Componente interno para las preguntas de Sí/No (Traducido)
   const PreguntaClinicaLocal = ({ id, label }) => (
     <div style={{
       display: 'flex',
@@ -85,25 +84,28 @@ const AntecedentesView = ({
     }}>
       <span style={{ fontSize: '0.95rem', color: '#475569', fontWeight: '500' }}>{label}</span>
       <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
-        {['Yes', 'No'].map(op => (
-          <button
-            key={op}
-            onClick={() => handleCuestionario(id, op)}
-            style={{
-              padding: '5px 15px',
-              borderRadius: '6px',
-              border: 'none',
-              fontSize: '0.85rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              backgroundColor: cuestionario[id] === op ? (op === 'Yes' ? '#2563eb' : '#64748b') : 'transparent',
-              color: cuestionario[id] === op ? '#fff' : '#64748b',
-            }}
-          >
-            {op}
-          </button>
-        ))}
+        {['Sí', 'No'].map(op => {
+          const valEnvio = op === 'Sí' ? 'Yes' : 'No'; // Mantenemos valor interno en inglés para la DB si es necesario, pero mostramos español
+          return (
+            <button
+              key={op}
+              onClick={() => handleCuestionario(id, valEnvio)}
+              style={{
+                padding: '5px 15px',
+                borderRadius: '6px',
+                border: 'none',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backgroundColor: cuestionario[id] === valEnvio ? (valEnvio === 'Yes' ? '#2563eb' : '#64748b') : 'transparent',
+                color: cuestionario[id] === valEnvio ? '#fff' : '#64748b',
+              }}
+            >
+              {op}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -139,11 +141,10 @@ const AntecedentesView = ({
           <p style={{ color: '#64748b', marginTop: '5px' }}>Complete el perfil clínico previo a la evaluación de síntomas</p>
         </div>
 
-        {/* SECCIÓN 1: IDENTIFICACIÓN CON RESTRICCIONES */}
+        {/* SECCIÓN 1: IDENTIFICACIÓN */}
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={User} title="Identificación del Paciente" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-            {/* INPUT NHC */}
             <div>
               <label style={styles.labelStyle}>NHC / Identificador</label>
               <div style={{ position: 'relative' }}>
@@ -171,7 +172,6 @@ const AntecedentesView = ({
               )}
             </div>
 
-            {/* INPUT FECHA */}
             <div>
               <label style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento'}</label>
               {esPacienteExistente ? (
@@ -216,23 +216,23 @@ const AntecedentesView = ({
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={ShieldAlert} title="Alergias y Reacciones Conocidas" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <PreguntaClinicaLocal id="q1" label="Do you have any confirmed allergies?" />
+            <PreguntaClinicaLocal id="q1" label="¿Tiene alguna alergia confirmada?" />
             {cuestionario.q1 === 'Yes' && (
               <textarea 
                 style={{ ...styles.detailInput, border: '1px solid #2563eb', backgroundColor: '#f0f7ff' }} 
-                placeholder="Details about confirmed allergies..." 
+                placeholder="Detalles sobre las alergias confirmadas..." 
                 value={cuestionario.q1_details || ''}
                 onChange={e => handleCuestionario('q1_details', e.target.value)} 
               />
             )}
-            <PreguntaClinicaLocal id="q2_foods" label="Suspected allergy to Foods?" />
-            <PreguntaClinicaLocal id="q2_insects" label="Suspected allergy to Insects/Ticks?" />
-            <PreguntaClinicaLocal id="q2_meds" label="Suspected allergy to Medications?" />
+            <PreguntaClinicaLocal id="q2_foods" label="¿Sospecha de alergia a Alimentos?" />
+            <PreguntaClinicaLocal id="q2_insects" label="¿Sospecha de alergia a Insectos/Garrapatas?" />
+            <PreguntaClinicaLocal id="q2_meds" label="¿Sospecha de alergia a Medicamentos?" />
             
             {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes') && (
               <textarea 
                 style={{ ...styles.detailInput, border: '1px solid #2563eb', backgroundColor: '#f0f7ff' }} 
-                placeholder="Details about suspected allergens..." 
+                placeholder="Detalles sobre los alérgenos sospechosos..." 
                 value={cuestionario.q2_details || ''}
                 onChange={e => handleCuestionario('q2_details', e.target.value)} 
               />
@@ -244,16 +244,16 @@ const AntecedentesView = ({
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={Pill} title="Medicación y Tratamientos" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 40px' }}>
-            <PreguntaClinicaLocal id="q3_anti" label="Antihistamines?" />
-            <PreguntaClinicaLocal id="q3_nasal" label="Nasal sprays?" />
-            <PreguntaClinicaLocal id="q3_puff" label="Asthma puffers?" />
-            <PreguntaClinicaLocal id="q4" label="Prescribed adrenaline?" />
-            <PreguntaClinicaLocal id="q5" label="Other supplements?" />
+            <PreguntaClinicaLocal id="q3_anti" label="¿Toma Antihistamínicos?" />
+            <PreguntaClinicaLocal id="q3_nasal" label="¿Usa Sprays nasales?" />
+            <PreguntaClinicaLocal id="q3_puff" label="¿Usa Inhaladores para el asma?" />
+            <PreguntaClinicaLocal id="q4" label="¿Tiene adrenalina prescrita?" />
+            <PreguntaClinicaLocal id="q5" label="¿Toma otros suplementos?" />
           </div>
           {(cuestionario.q3_anti === 'Yes' || cuestionario.q3_nasal === 'Yes' || cuestionario.q3_puff === 'Yes' || cuestionario.q5 === 'Yes') && (
             <textarea 
               style={{ ...styles.detailInput, marginTop: '15px' }} 
-              placeholder="Specify medications and dosages..." 
+              placeholder="Especifique medicamentos y dosis..." 
               value={cuestionario.q3_details || cuestionario.q5_details || ''}
               onChange={e => handleCuestionario('q5_details', e.target.value)} 
             />
@@ -264,40 +264,40 @@ const AntecedentesView = ({
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={Activity} title="Condiciones Crónicas" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 40px' }}>
-            <PreguntaClinicaLocal id="q6_rhin" label="Allergic rhinitis?" />
-            <PreguntaClinicaLocal id="q6_asth" label="Asthma?" />
-            <PreguntaClinicaLocal id="q6_ecze" label="Eczema?" />
-            <PreguntaClinicaLocal id="q6_hive" label="Hives?" />
-            <PreguntaClinicaLocal id="q6_head" label="Regular headaches?" />
-            <PreguntaClinicaLocal id="q9" label="Family history of allergy?" />
+            <PreguntaClinicaLocal id="q6_rhin" label="¿Padece Rinitis alérgica?" />
+            <PreguntaClinicaLocal id="q6_asth" label="¿Padece Asma?" />
+            <PreguntaClinicaLocal id="q6_ecze" label="¿Padece Eczema?" />
+            <PreguntaClinicaLocal id="q6_hive" label="¿Padece Urticaria?" />
+            <PreguntaClinicaLocal id="q6_head" label="¿Sufre dolores de cabeza regulares?" />
+            <PreguntaClinicaLocal id="q9" label="¿Hay antecedentes familiares de alergia?" />
           </div>
           {cuestionario.q9 === 'Yes' && (
             <textarea 
               style={{ ...styles.detailInput, marginTop: '15px' }} 
-              placeholder="Family history details..." 
+              placeholder="Detalles de los antecedentes familiares..." 
               value={cuestionario.q9_details || ''}
               onChange={e => handleCuestionario('q9_details', e.target.value)} 
             />
           )}
         </div>
 
-        {/* SECCIÓN 5: OTROS */}
+        {/* SECCIÓN 5: ENTORNO Y OTROS */}
         <div style={{ marginBottom: '40px' }}>
           <SectionHeader icon={Home} title="Entorno y Otros" />
-          <PreguntaClinicaLocal id="q7" label="Do you live with indoor pets?" />
+          <PreguntaClinicaLocal id="q7" label="¿Convive con mascotas en el interior?" />
           {cuestionario.q7 === 'Yes' && (
             <textarea 
               style={{ ...styles.detailInput, marginTop: '15px', marginBottom: '15px' }} 
-              placeholder="Type of pets..." 
+              placeholder="Tipo de mascotas..." 
               value={cuestionario.q7_details || ''}
               onChange={e => handleCuestionario('q7_details', e.target.value)} 
             />
           )}
-          <PreguntaClinicaLocal id="q10" label="Other medical problems/surgeries?" />
+          <PreguntaClinicaLocal id="q10" label="¿Otros problemas médicos o cirugías?" />
           {cuestionario.q10 === 'Yes' && (
             <textarea 
               style={{ ...styles.detailInput, marginTop: '15px' }} 
-              placeholder="Describe other medical issues..." 
+              placeholder="Describa otros problemas médicos..." 
               value={cuestionario.q10_details || ''}
               onChange={e => handleCuestionario('q10_details', e.target.value)} 
             />
@@ -316,7 +316,7 @@ const AntecedentesView = ({
             boxShadow: hayErroresBloqueantes ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.2)'
           }}
         >
-          Continuar a Event Record <ArrowRight size={22} />
+          Continuar al Registro del Evento <ArrowRight size={22} />
         </button>
       </div>
     </div>
