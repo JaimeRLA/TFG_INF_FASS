@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { HeartPulse, LogOut, Info, BookOpen, HelpCircle, Home } from 'lucide-react';
+import { HeartPulse, LogOut, Info, BookOpen, HelpCircle, Home, ShieldCheck, Database, Zap, FileText, Activity } from 'lucide-react';
 
 import { styles } from './AppStyles.js';
 import ChatBot from './components/ChatBot';
@@ -190,13 +190,13 @@ const App = () => {
         {/* NAVEGACIÓN POR PESTAÑAS */}
         <nav style={{ display: 'flex', gap: '5px', backgroundColor: '#f8fafc', padding: '5px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
           <button onClick={() => setTabActiva('app')} style={tabActiva === 'app' ? styles.tabActive : styles.tabInactive}>
-            <Home size={16} /> Aplicación
+            <Home size={16} color="currentColor" /> Aplicación
           </button>
           <button onClick={() => setTabActiva('puntuacion')} style={tabActiva === 'puntuacion' ? styles.tabActive : styles.tabInactive}>
-            <BookOpen size={16} /> Escala nFASS
+            <BookOpen size={16} color="currentColor" /> Escala nFASS
           </button>
           <button onClick={() => setTabActiva('about')} style={tabActiva === 'about' ? styles.tabActive : styles.tabInactive}>
-            <HelpCircle size={16} /> Ayuda
+            <HelpCircle size={16} color="currentColor" /> Ayuda
           </button>
         </nav>
 
@@ -205,51 +205,110 @@ const App = () => {
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
         
-        {/* PESTAÑA: ESCALA NFASS */}
+        {/* PESTAÑA: ESCALA NFASS (DETALLADA) */}
         {tabActiva === 'puntuacion' && (
           <div style={{...styles.infoCard, backgroundColor: '#ffffff', color: '#1e293b'}}>
             <button onClick={() => setTabActiva('app')} style={styles.closeBtn}>×</button>
-            <h2 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <BookOpen size={24} /> Interpretación de Puntuación nFASS
-            </h2>
-            <p style={{marginTop: '20px', fontSize: '1.05rem'}}>
-                La puntuación <strong>nFASS (Numerical Fass)</strong> es un algoritmo de soporte de decisiones que pondera los síntomas de una reacción alérgica según su gravedad clínica y compromiso de órganos vitales.
-            </p>
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px'}}>
-                <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
-                    <h4 style={{margin: '0 0 10px 0', color: '#16a34a'}}>Gravedad Leve (Grado 1-2)</h4>
-                    <p style={{margin: 0, fontSize: '0.9rem'}}>Síntomas limitados a piel y mucosas o afectación gastrointestinal leve. Riesgo bajo de progresión inmediata.</p>
+            <div style={{ borderBottom: '2px solid #f1f5f9', paddingBottom: '20px', marginBottom: '25px' }}>
+                <h2 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
+                    <BookOpen size={28} /> Comprensión de las Escalas nFASS y oFASS
+                </h2>
+                <p style={{ color: '#64748b', marginTop: '8px', fontSize: '1.1rem' }}>Soporte a la decisión clínica basado en algoritmos de ponderación logarítmica.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+                <div>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Zap size={20} color="#2563eb" /> nFASS (Numerical Score)
+                    </h3>
+                    <p style={{ lineHeight: '1.6', color: '#334155' }}>
+                        A diferencia de las escalas tradicionales, el <strong>nFASS</strong> es una métrica continua que calcula la gravedad exacta mediante la fórmula:
+                        <code style={{ display: 'block', padding: '15px', background: '#f8fafc', borderRadius: '10px', margin: '15px 0', border: '1px solid #e2e8f0', color: '#2563eb', fontWeight: 'bold' }}>
+                            nFASS = log2(Σ 2^ε * (1 + λ)) + 2
+                        </code>
+                        Donde <strong>ε (épsilon)</strong> representa el peso de los síntomas y <strong>λ (lambda)</strong> el impacto de los cofactores/antecedentes.
+                    </p>
                 </div>
-                <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
-                    <h4 style={{margin: '0 0 10px 0', color: '#ea580c'}}>Gravedad Moderada (Grado 3)</h4>
-                    <p style={{margin: 0, fontSize: '0.9rem'}}>Afectación respiratoria o cardiovascular moderada. Requiere observación estricta y tratamiento activo.</p>
+                <div>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Activity size={20} color="#16a34a" /> oFASS (Ordinal Grade)
+                    </h3>
+                    <p style={{ lineHeight: '1.6', color: '#334155' }}>
+                        Es la categorización clínica en 5 grados de gravedad. Los grados <strong>4 y 5</strong> indican anafilaxia grave con riesgo vital inmediato y una correlación de <strong>Odds Ratio 188.9</strong> para el uso de adrenalina.
+                    </p>
                 </div>
-                <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
-                    <h4 style={{margin: '0 0 10px 0', color: '#dc2626'}}>Gravedad Grave (Grado 4-5)</h4>
-                    <p style={{margin: 0, fontSize: '0.9rem'}}>Compromiso vital inminente (shock, fallo respiratorio). Prioridad absoluta de adrenalina IM.</p>
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '30px'}}>
+                <div style={{padding: '20px', borderRadius: '15px', border: '1px solid #bbf7d0', background: '#f0fdf4'}}>
+                    <h4 style={{margin: '0 0 10px 0', color: '#16a34a', fontWeight: '800'}}>LEVE (Grados 1-2)</h4>
+                    <p style={{margin: 0, fontSize: '0.9rem', color: '#166534'}}>Afectación cutánea (urticaria, angioedema) o gastrointestinal moderada. Riesgo bajo de compromiso sistémico.</p>
+                </div>
+                <div style={{padding: '20px', borderRadius: '15px', border: '1px solid #fed7aa', background: '#fff7ed'}}>
+                    <h4 style={{margin: '0 0 10px 0', color: '#ea580c', fontWeight: '800'}}>MODERADO (Grado 3)</h4>
+                    <p style={{margin: 0, fontSize: '0.9rem', color: '#9a3412'}}>Compromiso respiratorio (sibilancias, tos persistente) o cardiovascular leve. Requiere monitorización clínica.</p>
+                </div>
+                <div style={{padding: '20px', borderRadius: '15px', border: '1px solid #fecdd3', background: '#fff1f2'}}>
+                    <h4 style={{margin: '0 0 10px 0', color: '#dc2626', fontWeight: '800'}}>GRAVE (Grados 4-5)</h4>
+                    <p style={{margin: 0, fontSize: '0.9rem', color: '#991b1b'}}>Fallo multiorgánico, colapso circulatorio, estridor o cianosis. <strong>Administración de adrenalina prioritaria.</strong></p>
                 </div>
             </div>
           </div>
         )}
 
-        {/* PESTAÑA: ABOUT / AYUDA */}
+        {/* PESTAÑA: ABOUT / AYUDA (DETALLADA) */}
         {tabActiva === 'about' && (
           <div style={{...styles.infoCard, backgroundColor: '#ffffff', color: '#1e293b'}}>
             <button onClick={() => setTabActiva('app')} style={styles.closeBtn}>×</button>
-            <h2 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <HelpCircle size={24} /> Funcionamiento de la Aplicación
-            </h2>
-            <div style={{lineHeight: '1.6', marginTop: '20px'}}>
-                <p>Bienvenido al sistema <strong>nFASS v2.0</strong>. Este software está diseñado para estandarizar la evaluación de reacciones alérgicas agudas.</p>
-                <h4 style={{marginBottom: '10px'}}>Pasos para realizar una evaluación:</h4>
-                <ol>
-                    <li><strong>Registro de Paciente:</strong> Introduzca el NHC. El sistema lo seudonimizará automáticamente por seguridad (RGPD).</li>
-                    <li><strong>Antecedentes:</strong> Marque los factores de riesgo previos y alergias confirmadas.</li>
-                    <li><strong>Event Record:</strong> Registre los detalles de la reacción actual (trigger, tiempo, lugar).</li>
-                    <li><strong>Calculadora:</strong> Seleccione todos los síntomas observados. El sistema calculará la gravedad en tiempo real.</li>
-                </ol>
-                <div style={{marginTop: '20px', padding: '15px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #bfdbfe'}}>
-                    <strong>Privacidad:</strong> No guardamos nombres ni apellidos. El NHC se convierte en un hash irreversible mediante SHA-256 antes de ser enviado a la base de datos.
+            <div style={{ borderBottom: '2px solid #f1f5f9', paddingBottom: '20px', marginBottom: '25px' }}>
+                <h2 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
+                    <HelpCircle size={28} /> Manual Operativo del Sistema
+                </h2>
+                <p style={{ color: '#64748b', marginTop: '8px', fontSize: '1.1rem' }}>Guía técnica para la gestión de evaluaciones de reacciones alérgicas.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px' }}>
+                <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                        <Zap color="#2563eb" size={24} />
+                        <h4 style={{ margin: 0, fontWeight: '800' }}>Flujo de Trabajo</h4>
+                    </div>
+                    <ul style={{ paddingLeft: '20px', fontSize: '0.95rem', color: '#475569', lineHeight: '2' }}>
+                        <li><strong>Paciente:</strong> NHC + Demográficos.</li>
+                        <li><strong>Antecedentes:</strong> Factores de riesgo.</li>
+                        <li><strong>Event Record:</strong> Cronología del evento.</li>
+                        <li><strong>Calculadora:</strong> Diagnóstico clínico.</li>
+                    </ul>
+                </div>
+
+                <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                        <ShieldCheck color="#16a34a" size={24} />
+                        <h4 style={{ margin: 0, fontWeight: '800' }}>Seguridad RGPD</h4>
+                    </div>
+                    <p style={{ fontSize: '0.95rem', color: '#475569', lineHeight: '1.6' }}>
+                        El NHC real es seudonimizado localmente mediante <strong>SHA-256</strong>. El servidor solo recibe un Hash irreversible, garantizando que la identidad del paciente nunca sea expuesta en la nube.
+                    </p>
+                </div>
+
+                <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                        <Database color="#ea580c" size={24} />
+                        <h4 style={{ margin: 0, fontWeight: '800' }}>Investigación</h4>
+                    </div>
+                    <p style={{ fontSize: '0.95rem', color: '#475569', lineHeight: '1.6' }}>
+                        Desde el <strong>Historial Global</strong>, el facultativo puede exportar todos los datos en formato CSV para análisis estadísticos o reportes individuales en PDF para la historia clínica.
+                    </p>
+                </div>
+            </div>
+
+            <div style={{ marginTop: '30px', padding: '20px', background: '#eff6ff', borderRadius: '15px', display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+                <Info size={24} color="#2563eb" style={{ flexShrink: 0 }} />
+                <div>
+                    <strong style={{ display: 'block', marginBottom: '5px' }}>Asistencia Clínica:</strong>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#1e40af' }}>
+                        En la esquina inferior derecha dispone de un <strong>Asistente Clínico Inteligente</strong>. Puede consultarle sobre dosis, interpretación de síntomas críticos (Estridor, Colapso) o dudas operativas sobre el sistema nFASS.
+                    </p>
                 </div>
             </div>
           </div>
