@@ -217,15 +217,15 @@ const App = () => {
             </p>
             <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px'}}>
                 <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
-                    <h4 style={{margin: '0 0 10px 0', color: '#1e293b'}}>Gravedad Leve (Grado 1-2)</h4>
+                    <h4 style={{margin: '0 0 10px 0', color: '#16a34a'}}>Gravedad Leve (Grado 1-2)</h4>
                     <p style={{margin: 0, fontSize: '0.9rem'}}>Síntomas limitados a piel y mucosas o afectación gastrointestinal leve. Riesgo bajo de progresión inmediata.</p>
                 </div>
                 <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
-                    <h4 style={{margin: '0 0 10px 0', color: '#1e293b'}}>Gravedad Moderada (Grado 3)</h4>
+                    <h4 style={{margin: '0 0 10px 0', color: '#ea580c'}}>Gravedad Moderada (Grado 3)</h4>
                     <p style={{margin: 0, fontSize: '0.9rem'}}>Afectación respiratoria o cardiovascular moderada. Requiere observación estricta y tratamiento activo.</p>
                 </div>
                 <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
-                    <h4 style={{margin: '0 0 10px 0', color: '#1e293b'}}>Gravedad Grave (Grado 4-5)</h4>
+                    <h4 style={{margin: '0 0 10px 0', color: '#dc2626'}}>Gravedad Grave (Grado 4-5)</h4>
                     <p style={{margin: 0, fontSize: '0.9rem'}}>Compromiso vital inminente (shock, fallo respiratorio). Prioridad absoluta de adrenalina IM.</p>
                 </div>
             </div>
@@ -240,8 +240,8 @@ const App = () => {
                 <HelpCircle size={24} /> Funcionamiento de la Aplicación
             </h2>
             <div style={{lineHeight: '1.6', marginTop: '20px'}}>
-                <p>Bienvenido al sistema <strong>nFASS v2.0</strong>. Este software está diseñado para estandarizar la evaluación de reacciones alérgica agudas.</p>
-                <h4 style={{marginBottom: '10px', color: '#1e293b'}}>Pasos para realizar una evaluación:</h4>
+                <p>Bienvenido al sistema <strong>nFASS v2.0</strong>. Este software está diseñado para estandarizar la evaluación de reacciones alérgicas agudas.</p>
+                <h4 style={{marginBottom: '10px'}}>Pasos para realizar una evaluación:</h4>
                 <ol>
                     <li><strong>Registro de Paciente:</strong> Introduzca el NHC. El sistema lo seudonimizará automáticamente por seguridad (RGPD).</li>
                     <li><strong>Antecedentes:</strong> Marque los factores de riesgo previos y alergias confirmadas.</li>
@@ -249,7 +249,7 @@ const App = () => {
                     <li><strong>Calculadora:</strong> Seleccione todos los síntomas observados. El sistema calculará la gravedad en tiempo real.</li>
                 </ol>
                 <div style={{marginTop: '20px', padding: '15px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #bfdbfe'}}>
-                    <strong style={{color: '#1e293b'}}>Privacidad:</strong> No guardamos nombres ni apellidos. El NHC se convierte en un hash irreversible mediante SHA-256 antes de ser enviado a la base de datos.
+                    <strong>Privacidad:</strong> No guardamos nombres ni apellidos. El NHC se convierte en un hash irreversible mediante SHA-256 antes de ser enviado a la base de datos.
                 </div>
             </div>
           </div>

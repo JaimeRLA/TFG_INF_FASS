@@ -140,7 +140,7 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontWeight: '600' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b', fontWeight: '600' }}>
                   <span>Seleccionar</span>
                   <ArrowRight size={20} />
                 </div>
