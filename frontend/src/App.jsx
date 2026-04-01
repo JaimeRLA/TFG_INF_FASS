@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { HeartPulse, LogOut, Info, BookOpen, ShieldAlert, Home } from 'lucide-react';
+import { HeartPulse, LogOut, Info, BookOpen, HelpCircle, Home } from 'lucide-react';
 
 import { styles } from './AppStyles.js';
 import ChatBot from './components/ChatBot';
@@ -17,7 +17,7 @@ import Login from './views/Login';
 
 const App = () => {
   // --- ESTADOS ---
-  const [tabActiva, setTabActiva] = useState('app'); // Estados: 'app', 'puntuacion', 'protocolos'
+  const [tabActiva, setTabActiva] = useState('app'); 
   const [esPacienteExistente, setEsPacienteExistente] = useState(false);
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
   const [view, setView] = useState('perfil');
@@ -82,7 +82,7 @@ const App = () => {
         headers: { 'x-tfg-key': TFG_KEY }
       });
       setListaPacientes(res.data);
-      setView('seleccionar_paciente');
+      setView('seleccionar_pac_existente');
     } catch (err) { 
       alert("Error al cargar pacientes"); 
     }
@@ -188,24 +188,15 @@ const App = () => {
         </div>
 
         {/* NAVEGACIÓN POR PESTAÑAS */}
-        <nav style={{ display: 'flex', gap: '5px', backgroundColor: '#f1f5f9', padding: '5px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <button 
-            onClick={() => setTabActiva('app')}
-            style={tabActiva === 'app' ? styles.tabActive : styles.tabInactive}
-          >
-            <Home size={16} /> Calculadora
+        <nav style={{ display: 'flex', gap: '5px', backgroundColor: '#f8fafc', padding: '5px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <button onClick={() => setTabActiva('app')} style={tabActiva === 'app' ? styles.tabActive : styles.tabInactive}>
+            <Home size={16} /> Aplicación
           </button>
-          <button 
-            onClick={() => setTabActiva('puntuacion')}
-            style={tabActiva === 'puntuacion' ? styles.tabActive : styles.tabInactive}
-          >
-            <Info size={16} /> Escala nFASS
+          <button onClick={() => setTabActiva('puntuacion')} style={tabActiva === 'puntuacion' ? styles.tabActive : styles.tabInactive}>
+            <BookOpen size={16} /> Escala nFASS
           </button>
-          <button 
-            onClick={() => setTabActiva('protocolos')}
-            style={tabActiva === 'protocolos' ? styles.tabActive : styles.tabInactive}
-          >
-            <ShieldAlert size={16} /> Guía Adrenalina
+          <button onClick={() => setTabActiva('about')} style={tabActiva === 'about' ? styles.tabActive : styles.tabInactive}>
+            <HelpCircle size={16} /> Ayuda
           </button>
         </nav>
 
@@ -216,39 +207,51 @@ const App = () => {
         
         {/* PESTAÑA: ESCALA NFASS */}
         {tabActiva === 'puntuacion' && (
-          <div style={styles.infoCard}>
+          <div style={{...styles.infoCard, backgroundColor: '#ffffff', color: '#1e293b'}}>
             <button onClick={() => setTabActiva('app')} style={styles.closeBtn}>×</button>
-            <h2 style={{ color: '#1e40af', display: 'flex', alignItems: 'center', gap: '10px' }}><BookOpen /> Interpretación de Puntuación nFASS</h2>
-            <hr style={{ border: '0', height: '1px', backgroundColor: '#e2e8f0', margin: '20px 0' }} />
-            <p>La puntuación <strong>nFASS (Numerical Fass)</strong> pondera los síntomas según su compromiso vital:</p>
-            <ul style={{ lineHeight: '1.8' }}>
-              <li><strong>Grado 1-2:</strong> Síntomas cutáneos o gastrointestinales leves.</li>
-              <li><strong>Grado 3:</strong> Compromiso moderado (Sibilancias, vómitos repetidos).</li>
-              <li><strong>Grado 4-5:</strong> Emergencia médica (Hipotensión, estridor, cianosis).</li>
-            </ul>
+            <h2 style={{ color: '#2563eb', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <BookOpen size={24} /> Interpretación de Puntuación nFASS
+            </h2>
+            <p style={{marginTop: '20px', fontSize: '1.05rem'}}>
+                La puntuación <strong>nFASS (Numerical Fass)</strong> es un algoritmo de soporte de decisiones que pondera los síntomas de una reacción alérgica según su gravedad clínica y compromiso de órganos vitales.
+            </p>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px'}}>
+                <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
+                    <h4 style={{margin: '0 0 10px 0', color: '#16a34a'}}>Gravedad Leve (Grado 1-2)</h4>
+                    <p style={{margin: 0, fontSize: '0.9rem'}}>Síntomas limitados a piel y mucosas o afectación gastrointestinal leve. Riesgo bajo de progresión inmediata.</p>
+                </div>
+                <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
+                    <h4 style={{margin: '0 0 10px 0', color: '#ea580c'}}>Gravedad Moderada (Grado 3)</h4>
+                    <p style={{margin: 0, fontSize: '0.9rem'}}>Afectación respiratoria o cardiovascular moderada. Requiere observación estricta y tratamiento activo.</p>
+                </div>
+                <div style={{padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc'}}>
+                    <h4 style={{margin: '0 0 10px 0', color: '#dc2626'}}>Gravedad Grave (Grado 4-5)</h4>
+                    <p style={{margin: 0, fontSize: '0.9rem'}}>Compromiso vital inminente (shock, fallo respiratorio). Prioridad absoluta de adrenalina IM.</p>
+                </div>
+            </div>
           </div>
         )}
 
-        {/* PESTAÑA: GUÍA ADRENALINA */}
-        {tabActiva === 'protocolos' && (
-          <div style={styles.infoCard}>
+        {/* PESTAÑA: ABOUT / AYUDA */}
+        {tabActiva === 'about' && (
+          <div style={{...styles.infoCard, backgroundColor: '#ffffff', color: '#1e293b'}}>
             <button onClick={() => setTabActiva('app')} style={styles.closeBtn}>×</button>
-            <h2 style={{ color: '#991b1b', display: 'flex', alignItems: 'center', gap: '10px' }}><ShieldAlert /> Protocolo Rápido de Adrenalina (IM)</h2>
-            <hr style={{ border: '0', height: '1px', backgroundColor: '#e2e8f0', margin: '20px 0' }} />
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px' }}>Paciente</th>
-                  <th style={{ padding: '12px' }}>Dosis (1 mg/ml)</th>
-                  <th style={{ padding: '12px' }}>Volumen</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}><td style={{ padding: '12px' }}>Adulto (&gt;50kg)</td><td style={{ padding: '12px' }}>0.5 mg</td><td style={{ padding: '12px' }}>0.5 ml</td></tr>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}><td style={{ padding: '12px' }}>Niño 6-12 años</td><td style={{ padding: '12px' }}>0.3 mg</td><td style={{ padding: '12px' }}>0.3 ml</td></tr>
-                <tr><td style={{ padding: '12px' }}>Niño &lt;6 años</td><td style={{ padding: '12px' }}>0.15 mg</td><td style={{ padding: '12px' }}>0.15 ml</td></tr>
-              </tbody>
-            </table>
+            <h2 style={{ color: '#2563eb', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <HelpCircle size={24} /> Funcionamiento de la Aplicación
+            </h2>
+            <div style={{lineHeight: '1.6', marginTop: '20px'}}>
+                <p>Bienvenido al sistema <strong>nFASS v2.0</strong>. Este software está diseñado para estandarizar la evaluación de reacciones alérgicas agudas.</p>
+                <h4 style={{marginBottom: '10px'}}>Pasos para realizar una evaluación:</h4>
+                <ol>
+                    <li><strong>Registro de Paciente:</strong> Introduzca el NHC. El sistema lo seudonimizará automáticamente por seguridad (RGPD).</li>
+                    <li><strong>Antecedentes:</strong> Marque los factores de riesgo previos y alergias confirmadas.</li>
+                    <li><strong>Event Record:</strong> Registre los detalles de la reacción actual (trigger, tiempo, lugar).</li>
+                    <li><strong>Calculadora:</strong> Seleccione todos los síntomas observados. El sistema calculará la gravedad en tiempo real.</li>
+                </ol>
+                <div style={{marginTop: '20px', padding: '15px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #bfdbfe'}}>
+                    <strong>Privacidad:</strong> No guardamos nombres ni apellidos. El NHC se convierte en un hash irreversible mediante SHA-256 antes de ser enviado a la base de datos.
+                </div>
+            </div>
           </div>
         )}
 
@@ -268,7 +271,7 @@ const App = () => {
               />
             )}
             
-            {view === 'seleccionar_paciente' && (
+            {view === 'seleccionar_pac_existente' && (
               <SeleccionarPacienteView 
                 listaPacientes={listaPacientes}
                 seleccionarPacienteExistente={seleccionarPacienteExistente} 
