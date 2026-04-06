@@ -15,9 +15,14 @@ from .security import hash_password, verify_password, encrypt_data, decrypt_data
 app = FastAPI()
 
 # --- CONFIGURACIÓN DE CORS ---
+# --- CONFIGURACIÓN DE CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://tfg-inf-fass.onrender.com", "http://localhost:5173"],
+    allow_origins=[
+        "https://tfg-inf-fass-1.onrender.com", 
+        "https://tfg-inf-fass.onrender.com",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
