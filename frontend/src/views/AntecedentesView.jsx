@@ -146,7 +146,7 @@ const AntecedentesView = ({
           <SectionHeader icon={User} title="Identificación del Paciente" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
             <div>
-              <label style={styles.labelStyle}>NHC / Identificador</label>
+              <label style={styles.labelStyle}>NHC / Identificador*</label>
               <div style={{ position: 'relative' }}>
                 <input 
                   type="text" 
@@ -173,7 +173,7 @@ const AntecedentesView = ({
             </div>
 
             <div>
-              <label style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento'}</label>
+              <label style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento*'}</label>
               {esPacienteExistente ? (
                 <input type="text" disabled value={paciente.rango_edad || ''} style={{ ...styles.inputStyle, backgroundColor: '#f8fafc' }} />
               ) : (
@@ -199,7 +199,7 @@ const AntecedentesView = ({
             </div>
 
             <div>
-              <label style={styles.labelStyle}>Género</label>
+              <label style={styles.labelStyle}>Género*</label>
               <select 
                 name="genero" value={paciente.genero || ''} onChange={handlePacienteChange} disabled={esPacienteExistente} 
                 style={{ ...styles.selectStyle, backgroundColor: esPacienteExistente ? '#f8fafc' : '#fff' }}

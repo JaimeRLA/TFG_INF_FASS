@@ -16,7 +16,6 @@ def calcular_nfass_ofass(sintomas_ids):
         }
 
     # 1. Agrupamos los lambdas por SISTEMA (Órgano), no por epsilon
-    # Estructura: { 'Skin': {'epsilon': 0, 'lambdas': [0.08, ...]}, 'Eye': ... }
     sistemas_data = {}
 
     for s_id in sintomas_ids:
@@ -34,7 +33,6 @@ def calcular_nfass_ofass(sintomas_ids):
             sistemas_data[sys_name]['lambdas_sum'] += s['lambda']
 
     # 2. Paso 2 de la Tabla: Calcular nFASSo por cada sistema
-    # nFASSo = 2^ε * (1 + Σλ)
     suma_total_sistemas = 0
     for sys_name, data in sistemas_data.items():
         eps = data['epsilon']
@@ -44,14 +42,12 @@ def calcular_nfass_ofass(sintomas_ids):
         suma_total_sistemas += nfass_organo
 
     # 3. Paso 3 de la Tabla: Transformación logarítmica
-    # nFASS = log2( Σ nFASSo ) + 2
     if suma_total_sistemas <= 0:
         return {"nfass": 0.0, "ofass_grade": 0, "ofass_category": "N/A", "risk_level": "Low"}
 
     nfass_final = round(np.log2(suma_total_sistemas) + 2, 2)
 
     # 4. Clasificación oFASS (Basada en rangos clínicos estándar)
-    # nFASS de 6.59 (como el ejemplo de la tabla) es Grado 5
     if nfass_final >= 6.0:
         ofass_grade, category, risk = 5, "Severe", "Very High"
     elif nfass_final >= 5.0:

@@ -1,7 +1,5 @@
-// src/AppStyles.js
-
 export const styles = {
-  // --- TUS ESTILOS ORIGINALES (MANTENIDOS) ---
+
   labelStyle: {
     color: '#1e293b',
     fontSize: '0.95rem',
@@ -117,7 +115,6 @@ export const styles = {
     marginBottom: '20px', border: '1px solid #bbf7d0' 
   },
 
-  // --- NUEVOS ESTILOS PARA PESTAÑAS (TABS) ---
   tabInactive: {
     padding: '8px 16px',
     borderRadius: '10px',

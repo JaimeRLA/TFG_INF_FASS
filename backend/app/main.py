@@ -15,7 +15,6 @@ from .security import hash_password, verify_password, encrypt_data, decrypt_data
 app = FastAPI()
 
 # --- CONFIGURACIÓN DE CORS ---
-# --- CONFIGURACIÓN DE CORS ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -79,7 +78,6 @@ def init_db():
 init_db()
 
 # --- UTILIDADES DE PRIVACIDAD ---
-
 def get_age_range(dob_str):
     """Convierte fecha exacta en rango de edad (Minimización de datos)"""
     try:
@@ -106,7 +104,6 @@ def generate_pseudonym(nhc):
     return hashlib.sha256(str(nhc).encode()).hexdigest()
 
 # --- ENDPOINTS DE PACIENTES ---
-
 @app.get("/pacientes_unicos")
 async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header(None)):
     if x_tfg_key != APP_SECRET_KEY:
@@ -133,7 +130,6 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
         conn.close()
 
 # --- ENDPOINTS DE AUTENTICACIÓN ---
-
 @app.post("/register")
 async def register(request: LoginRequest):
     conn = get_connection()
@@ -165,7 +161,6 @@ async def login(request: LoginRequest):
         conn.close()
 
 # --- ENDPOINTS CLÍNICOS ---
-
 @app.get("/history")
 async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
     if x_tfg_key != APP_SECRET_KEY:
@@ -219,7 +214,6 @@ async def calculate(request: EvaluacionRequest):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
-        # --- PASO 3: GESTIÓN DEL PACIENTE ---
         cursor.execute(f"SELECT id FROM pacientes WHERE nhc_hash = {placeholder}", (nhc_pseudo,))
         res_paciente = cursor.fetchone()
         
@@ -234,7 +228,6 @@ async def calculate(request: EvaluacionRequest):
             """, (nhc_pseudo, rango_edad, genero_c, request.medico))
             int_paciente_id = cursor.fetchone()[0]
 
-        # --- PASO 4: GUARDADO DE EVALUACIÓN ---
         id_final = None
         # Si recibimos un ID válido, actualizamos (UPDATE), si no, creamos (INSERT)
         if request.id and str(request.id).isdigit() and int(request.id) > 0:
@@ -288,7 +281,6 @@ async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_
         conn.close()
 
 # --- UTILIDADES ADICIONALES ---
-
 @app.get("/get_hash/{nhc}")
 async def get_hash(nhc: str):
     """Devuelve el hash SHA256 completo para el buscador del frontend"""
