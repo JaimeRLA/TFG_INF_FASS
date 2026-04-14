@@ -287,6 +287,173 @@ async def get_hash(nhc: str):
     hash_obj = hashlib.sha256(nhc.encode())
     return {"hash": hash_obj.hexdigest()}
 
+@app.get("/stats")
+async def get_stats(medico: str = Query(...), timeRange: str = Query("all"), x_tfg_key: str = Header(None)):
+    """Obtiene estadísticas agregadas de pacientes y evaluaciones por médico"""
+    if x_tfg_key != APP_SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Acceso no autorizado")
+
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+        
+        # Construir filtro de tiempo
+        time_filter = ""
+        if timeRange != "all":
+            days_map = {"30d": 30, "90d": 90, "365d": 365}
+            days = days_map.get(timeRange, 0)
+            if days > 0:
+                if DATABASE_URL:
+                    time_filter = f"AND r.fecha >= NOW() - INTERVAL '{days} days'"
+                else:
+                    time_filter = f"AND r.fecha >= datetime('now', '-{days} days')"
+        
+        # Consulta principal
+        query = f"""
+            SELECT 
+                r.id, r.paciente_id, r.nfass, r.ofass_grade, 
+                r.ofass_category, r.risk_level, r.sintomas, 
+                r.evento_json, r.fecha
+            FROM registros r
+            WHERE r.medico = {placeholder} {time_filter}
+        """
+        cursor.execute(query, (medico,))
+        rows = cursor.fetchall()
+        
+        if not rows:
+            return {
+                "total_patients": 0,
+                "total_evaluations": 0,
+                "anaphylaxis_count": 0,
+                "anaphylaxis_percent": 0,
+                "avg_nfass": 0,
+                "severity_distribution": [],
+                "top_allergens": [],
+                "affected_systems": [],
+                "monthly_trend": []
+            }
+        
+        # Procesar datos
+        pacientes_unicos = set()
+        total_nfass = 0
+        anaphylaxis = 0
+        severity_counts = {}
+        allergen_counts = {}
+        system_counts = {}
+        monthly_counts = {}
+        
+        for row in rows:
+            pid, nfass, ofass_grade, ofass_category, risk_level, sintomas_enc, evento_enc, fecha = row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]
+            
+            pacientes_unicos.add(pid)
+            total_nfass += nfass if nfass else 0
+            
+            # Anafilaxis (OFASS ≥ 3)
+            if ofass_grade and ofass_grade >= 3:
+                anaphylaxis += 1
+            
+            # Distribución de severidad
+            severity = ofass_category if ofass_category else "No especificado"
+            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+            
+            # Alérgenos principales
+            try:
+                evento = json.loads(decrypt_data(evento_enc))
+                alergeno = evento.get("alergeno", "Desconocido")
+                allergen_counts[alergeno] = allergen_counts.get(alergeno, 0) + 1
+            except:
+                pass
+            
+            # Sistemas afectados
+            try:
+                sintomas_list = json.loads(decrypt_data(sintomas_enc))
+                for sintoma in sintomas_list:
+                    # Clasificar sistemas según nomenclatura FASS
+                    if any(x in sintoma.lower() for x in ["oral", "lengua", "labio", "garganta", "palad"]):
+                        system_counts["Orofaringe"] = system_counts.get("Orofaringe", 0) + 1
+                    elif any(x in sintoma.lower() for x in ["piel", "urticaria", "eritema", "angioedema", "prurito"]):
+                        system_counts["Piel"] = system_counts.get("Piel", 0) + 1
+                    elif any(x in sintoma.lower() for x in ["respiratorio", "broncoespasmo", "disnea", "tos", "estridor"]):
+                        system_counts["Respiratorio"] = system_counts.get("Respiratorio", 0) + 1
+                    elif any(x in sintoma.lower() for x in ["cardiovascular", "hipotensión", "taquicardia", "shock", "mareo"]):
+                        system_counts["Cardiovascular"] = system_counts.get("Cardiovascular", 0) + 1
+                    elif any(x in sintoma.lower() for x in ["gastrointestinal", "vómito", "náusea", "diarrea", "dolor abdominal"]):
+                        system_counts["Gastrointestinal"] = system_counts.get("Gastrointestinal", 0) + 1
+            except:
+                pass
+            
+            # Tendencia mensual
+            try:
+                if isinstance(fecha, str):
+                    mes = fecha[:7]  # YYYY-MM
+                else:
+                    mes = fecha.strftime("%Y-%m")
+                monthly_counts[mes] = monthly_counts.get(mes, 0) + 1
+            except:
+                pass
+        
+        total_evaluations = len(rows)
+        total_patients = len(pacientes_unicos)
+        avg_nfass = total_nfass / total_evaluations if total_evaluations > 0 else 0
+        anaphylaxis_percent = (anaphylaxis / total_evaluations * 100) if total_evaluations > 0 else 0
+        
+        # Colores para gráficos
+        severity_colors = {
+            "Leve": "#10b981",
+            "Moderada": "#f59e0b",
+            "Grave": "#ef4444",
+            "Muy Grave": "#991b1b",
+            "No especificado": "#6b7280"
+        }
+        
+        system_colors = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"]
+        allergen_colors = ["#ef4444", "#f97316", "#f59e0b", "#eab308", "#84cc16"]
+        
+        # Top 5 alérgenos
+        top_allergens = sorted(allergen_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_allergens_data = [
+            {"name": name, "value": count, "color": allergen_colors[i % len(allergen_colors)]}
+            for i, (name, count) in enumerate(top_allergens)
+        ]
+        
+        # Top 5 sistemas afectados
+        top_systems = sorted(system_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_systems_data = [
+            {"name": name, "value": count, "color": system_colors[i % len(system_colors)]}
+            for i, (name, count) in enumerate(top_systems)
+        ]
+        
+        # Distribución de severidad
+        severity_data = [
+            {"name": sev, "value": count, "color": severity_colors.get(sev, "#6b7280")}
+            for sev, count in severity_counts.items()
+        ]
+        
+        # Últimos 12 meses
+        monthly_sorted = sorted(monthly_counts.items(), key=lambda x: x[0], reverse=True)[:12]
+        monthly_sorted.reverse()  # Orden cronológico
+        monthly_data = [
+            {"name": mes, "value": count, "color": "#3b82f6"}
+            for mes, count in monthly_sorted
+        ]
+        
+        return {
+            "total_patients": total_patients,
+            "total_evaluations": total_evaluations,
+            "anaphylaxis_count": anaphylaxis,
+            "anaphylaxis_percent": round(anaphylaxis_percent, 1),
+            "avg_nfass": round(avg_nfass, 2),
+            "severity_distribution": severity_data,
+            "top_allergens": top_allergens_data,
+            "affected_systems": top_systems_data,
+            "monthly_trend": monthly_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
+    finally:
+        conn.close()
+
 @app.get("/chat")
 async def chat_asistente(user_message: str = Query(...)):
     key = os.getenv("GROQ_API_KEY")

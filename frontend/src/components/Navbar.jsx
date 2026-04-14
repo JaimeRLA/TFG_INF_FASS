@@ -1,5 +1,5 @@
 import React from 'react';
-import { HeartPulse, LogOut, Home, BookOpen, HelpCircle } from 'lucide-react';
+import { HeartPulse, LogOut, Home, BookOpen, HelpCircle, BarChart3 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 
 const Navbar = ({ tabActiva, setTabActiva, setUsuarioLogueado }) => {
@@ -24,6 +24,12 @@ const Navbar = ({ tabActiva, setTabActiva, setUsuarioLogueado }) => {
           style={tabActiva === 'app' ? styles.tabActive : styles.tabInactive}
         >
           <Home size={16} color="currentColor" /> Aplicación
+        </button>
+        <button 
+          onClick={() => setTabActiva('dashboard')} 
+          style={tabActiva === 'dashboard' ? styles.tabActive : styles.tabInactive}
+        >
+          <BarChart3 size={16} color="currentColor" /> Dashboard
         </button>
         <button 
           onClick={() => setTabActiva('puntuacion')} 

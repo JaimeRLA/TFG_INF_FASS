@@ -19,6 +19,7 @@ import CalculadoraView from './views/CalculadoraView';
 import Login from './views/Login';
 
 // Vistas de Información y Soporte
+import DashboardView from './views/DashboardView';
 import PuntuacionView from './views/PuntuacionView';
 import AboutView from './views/AboutView';
 
@@ -304,6 +305,8 @@ const App = () => {
         )}
 
         {/* VISTAS DE DOCUMENTACIÓN Y AYUDA */}
+        {tabActiva === 'dashboard' && <DashboardView usuarioLogueado={usuarioLogueado} setTabActiva={setTabActiva} />}
+        
         {tabActiva === 'puntuacion' && <PuntuacionView setTabActiva={setTabActiva} />}
         
         {tabActiva === 'about' && <AboutView setTabActiva={setTabActiva} />}
