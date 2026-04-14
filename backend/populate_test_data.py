@@ -11,7 +11,7 @@ import psycopg2
 import json
 import hashlib
 from datetime import datetime, timedelta
-from app.security import encrypt_data
+from app.security import encrypt_data, hash_password
 from app.logic import calcular_nfass_ofass
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -381,12 +381,53 @@ def poblar_base_datos():
     print(f"📊 Total procesados: {len(CASOS_PRUEBA)}")
     print(f"{'='*60}\n")
 
+def crear_usuarios_prueba():
+    """Crea usuarios de prueba para los médicos"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    placeholder = "%s" if DATABASE_URL else "?"
+    
+    usuarios = [
+        {"username": "Dr. García", "password": "garcia123"},
+        {"username": "Dr. Martínez", "password": "martinez123"},
+        {"username": "admin", "password": "admin123"}
+    ]
+    
+    print("🔄 Creando usuarios de prueba...\n")
+    
+    for user in usuarios:
+        try:
+            # Verificar si ya existe
+            cursor.execute(f"SELECT id FROM usuarios WHERE username = {placeholder}", (user["username"],))
+            if cursor.fetchone():
+                print(f"⚠️  Usuario '{user['username']}' ya existe, omitiendo...")
+                continue
+            
+            # Hash de la contraseña
+            hashed_pw = hash_password(user["password"])
+            
+            # Insertar usuario
+            cursor.execute(
+                f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})",
+                (user["username"], hashed_pw)
+            )
+            conn.commit()
+            print(f"✅ Usuario creado: {user['username']} / {user['password']}")
+            
+        except Exception as e:
+            print(f"❌ Error creando usuario {user['username']}: {str(e)}")
+            conn.rollback()
+    
+    conn.close()
+    print()
+
 if __name__ == "__main__":
     print("\n" + "="*60)
     print("🏥 SISTEMA FASS - Población de Datos de Prueba")
     print("="*60 + "\n")
     
     try:
+        crear_usuarios_prueba()
         poblar_base_datos()
         print("✅ Proceso completado. Puedes probar el dashboard ahora.\n")
     except Exception as e:
