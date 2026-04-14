@@ -4,35 +4,45 @@ Lógica del agente médico con restricciones de dominio
 from .knowledge_base import KNOWLEDGE_BASE, get_severity_guidance, search_knowledge
 
 SYSTEM_PROMPT = """
-Eres un asistente médico especializado EXCLUSIVAMENTE en el Síndrome de Sjögren y la escala FASS (Functional Assessment of Sjögren's Syndrome).
+Eres un asistente médico especializado EXCLUSIVAMENTE en Alergias Alimentarias y la escala FASS (Food Allergy Severity Score).
 
 RESTRICCIONES ESTRICTAS:
 - SOLO puedes responder preguntas relacionadas con:
-  * Síndrome de Sjögren
+  * Alergias alimentarias y reacciones alérgicas
   * Escala FASS (nFASS y oFASS)
-  * Clasificación de síntomas (leve, moderado, severo)
-  * Sistemas de órganos afectados en Sjögren
-  * Evaluación clínica de pacientes con Sjögren
+  * Clasificación de severidad de reacciones (leve, moderado, severo, anafilaxia)
+  * Sistemas de órganos afectados en reacciones alérgicas
+  * Evaluación clínica de episodios alérgicos
+  * Alérgenos alimentarios comunes
+  * Manejo de emergencias (adrenalina, antihistamínicos)
+  * Anafilaxia y reacciones bifásicas
 
-- Si el usuario pregunta sobre CUALQUIER otro tema, debes responder:
-  "Lo siento, solo puedo asistir con preguntas relacionadas con el Síndrome de Sjögren y la escala FASS. ¿Tienes alguna duda sobre clasificación de síntomas o evaluación clínica?"
+- Si el usuario pregunta sobre CUALQUIER otro tema NO relacionado con alergias alimentarias, debes responder:
+  "Lo siento, solo puedo asistir con preguntas relacionadas con alergias alimentarias y la escala FASS. ¿Tienes alguna duda sobre clasificación de reacciones alérgicas o evaluación clínica?"
 
 CAPACIDADES:
-1. Ayudar a clasificar severidad de síntomas (leve/moderado/severo)
-2. Explicar criterios de clasificación por sistema de órgano
-3. Aclarar dudas sobre la escala FASS
+1. Ayudar a clasificar severidad de reacciones alérgicas (leve/moderado/severo/anafilaxia)
+2. Explicar criterios de clasificación por sistema de órgano afectado
+3. Aclarar dudas sobre la escala FASS (nFASS y oFASS)
 4. Proporcionar ejemplos clínicos de cada nivel de severidad
-5. Guiar en la selección apropiada de síntomas
+5. Guiar en la selección apropiada de síntomas observados
+6. Orientar sobre cuándo usar adrenalina (anafilaxia)
+7. Explicar diferencias entre reacciones IgE mediadas y no mediadas
 
-Siempre basa tus respuestas en criterios clínicos objetivos y evidencia médica.
+Siempre basa tus respuestas en criterios clínicos objetivos y evidencia médica actualizada.
 """
 
 ALLOWED_TOPICS = [
-    "sjögren", "sjogren", "fass", "nfass", "ofass",
-    "síntomas", "sintomas", "severidad", "clasificación",
-    "artralgia", "xerostomía", "xeroftalmia", "fatiga",
-    "renal", "pulmonar", "neurológico", "cutáneo", "glandular",
-    "leve", "moderado", "severo", "grave"
+    "alergia", "alergias", "alimentaria", "food allergy", "fass", "nfass", "ofass",
+    "síntomas", "sintomas", "severidad", "clasificación", "anafilaxia", "anaphylaxis",
+    "urticaria", "angioedema", "estridor", "shock", "adrenalina", "epinefrina",
+    "gastrointestinal", "náuseas", "vómito", "diarrea", 
+    "respiratorio", "sibilancias", "broncoespasmo", "disnea",
+    "cardiovascular", "hipotensión", "taquicardia", "colapso",
+    "cutáneo", "piel", "prurito", "rash", "eritema",
+    "leve", "moderado", "severo", "grave", "crítico",
+    "leche", "huevo", "cacahuete", "frutos secos", "pescado", "mariscos", "soja", "trigo",
+    "reacción", "episodio", "trigger", "cofactor"
 ]
 
 def is_on_topic(user_query):
@@ -47,7 +57,9 @@ def is_on_topic(user_query):
     # Verificar patrones de preguntas médicas relevantes
     medical_patterns = [
         "cómo clasificar", "es grave", "es severo", "es leve",
-        "qué nivel", "criterios", "evaluar", "paciente con"
+        "qué nivel", "criterios", "evaluar", "paciente con",
+        "cuándo dar", "cuándo usar", "necesita adrenalina",
+        "es anafilaxia", "diferencia entre"
     ]
     
     for pattern in medical_patterns:
@@ -59,12 +71,13 @@ def is_on_topic(user_query):
 def get_off_topic_response():
     """Respuesta para temas fuera del dominio"""
     return {
-        "response": "Lo siento, solo puedo asistir con preguntas relacionadas con el Síndrome de Sjögren y la escala FASS. ¿Tienes alguna duda sobre clasificación de síntomas o evaluación clínica?",
+        "response": "Lo siento, solo puedo asistir con preguntas relacionadas con alergias alimentarias y la escala FASS. ¿Tienes alguna duda sobre clasificación de reacciones alérgicas o evaluación clínica?",
         "suggestions": [
-            "¿Cómo clasifico la severidad de artralgia?",
-            "¿Cuándo un síntoma es considerado severo?",
-            "¿Qué diferencia hay entre síntomas leves y moderados?",
-            "Explícame los criterios para el sistema renal"
+            "¿Cómo clasifico la severidad de una urticaria?",
+            "¿Cuándo una reacción se considera anafilaxia?",
+            "¿Qué diferencia hay entre reacción leve y moderada?",
+            "¿Cuándo debo usar adrenalina?",
+            "Explícame los criterios del sistema respiratorio"
         ]
     }
 

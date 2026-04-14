@@ -4,6 +4,9 @@ import axios from 'axios';
 import { styles } from './AppStyles.js';
 import ChatBot from './components/ChatBot';
 import Navbar from './components/Navbar';
+import Toast from './components/Toast';
+import LoadingSpinner from './components/LoadingSpinner';
+import { useToast } from './hooks/useToast';
 import { generarReportePDF } from './utils/pdfGenerator';
 
 // Vistas principales
@@ -20,6 +23,9 @@ import PuntuacionView from './views/PuntuacionView';
 import AboutView from './views/AboutView';
 
 const App = () => {
+  // --- HOOK DE NOTIFICACIONES ---
+  const { toasts, removeToast, success, error, warning, info } = useToast();
+
   // --- ESTADOS DE NAVEGACIÓN ---
   const [tabActiva, setTabActiva] = useState('app'); 
   const [view, setView] = useState('perfil');
@@ -30,6 +36,12 @@ const App = () => {
   const [resultado, setResultado] = useState(null);
   const [listaPacientes, setListaPacientes] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
+
+  // --- ESTADOS DE LOADING ---
+  const [isLoadingHistorial, setIsLoadingHistorial] = useState(false);
+  const [isLoadingPacientes, setIsLoadingPacientes] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [paciente, setPaciente] = useState({ id: '', fecha_nacimiento: '', rango_edad: '', genero: '' });
   const [cuestionario, setCuestionario] = useState({});
@@ -67,6 +79,7 @@ const App = () => {
 
   // --- LLAMADAS A API ---
   const cargarHistorial = async () => {
+    setIsLoadingHistorial(true);
     try {
       const res = await axios.get(`${BASE_URL}/history`, {
         params: { medico: usuarioLogueado }, 
@@ -74,10 +87,17 @@ const App = () => {
       });
       setListaPacientes(res.data);
       setView('historial_global');
-    } catch (err) { alert("Error al cargar el historial"); }
+      success(`Historial cargado: ${res.data.length} evaluaciones encontradas`);
+    } catch (err) { 
+      error("No se pudo cargar el historial. Verifique su conexión e intente nuevamente.");
+      console.error('Error cargarHistorial:', err);
+    } finally {
+      setIsLoadingHistorial(false);
+    }
   };
 
   const cargarPacientesExistentes = async () => {
+    setIsLoadingPacientes(true);
     try {
       const res = await axios.get(`${BASE_URL}/pacientes_unicos`, {
         params: { medico: usuarioLogueado },
@@ -85,7 +105,13 @@ const App = () => {
       });
       setListaPacientes(res.data);
       setView('seleccionar_pac_existente');
-    } catch (err) { alert("Error al cargar pacientes"); }
+      info(`${res.data.length} pacientes disponibles`);
+    } catch (err) { 
+      error("No se pudo cargar la lista de pacientes. Intente nuevamente.");
+      console.error('Error cargarPacientes:', err);
+    } finally {
+      setIsLoadingPacientes(false);
+    }
   };
 
   const seleccionarPacienteExistente = (p) => {
@@ -93,7 +119,8 @@ const App = () => {
     setEsPacienteExistente(true); 
     setPaciente({ id: p.nhc_hash || p.id || '', rango_edad: p.rango_edad || '', genero: p.genero || '', fecha_nacimiento: '' });
     setResultado(null);
-    setView('event_record'); 
+    setView('event_record');
+    info(`Paciente seleccionado: ${p.rango_edad} - ${p.genero}`);
   };
 
   const seleccionarParaEditar = (p) => {
@@ -110,20 +137,46 @@ const App = () => {
   };
 
   const eliminarEvaluacion = async (id_db) => {
-    if (!id_db || !window.confirm("¿Estás seguro?")) return;
+    if (!id_db) return;
+    
+    if (!window.confirm("¿Está seguro de eliminar esta evaluación? Esta acción no se puede deshacer.")) return;
+    
+    setIsDeleting(true);
     try {
       await axios.delete(`${BASE_URL}/evaluacion/${id_db}`, {
         params: { medico: usuarioLogueado },
         headers: { 'x-tfg-key': TFG_KEY }
       });
+      success("Evaluación eliminada correctamente");
       cargarHistorial();
-    } catch (err) { alert("Error al borrar."); }
+    } catch (err) { 
+      error("No se pudo eliminar la evaluación. Por favor, intente nuevamente.");
+      console.error('Error eliminarEvaluacion:', err);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const enviarEvaluacion = async () => {
     const listaIds = Object.values(seleccionados).filter(id => id !== "");
-    if (!paciente.id || listaIds.length === 0) return alert("Por favor, seleccione síntomas.");
+    
+    // Validación de campos requeridos
+    if (!paciente.id) {
+      warning("Por favor, ingrese el identificador del paciente (NHC)");
+      return;
+    }
+    if (listaIds.length === 0) {
+      warning("Debe seleccionar al menos un síntoma para calcular el score FASS");
+      return;
+    }
+    if (!paciente.genero) {
+      warning("Por favor, seleccione el género del paciente");
+      return;
+    }
+    
     const idParaEnviar = (editandoId && editandoId > 0) ? parseInt(editandoId) : null;
+    setIsCalculating(true);
+    
     try {
       const res = await axios.post(`${BASE_URL}/calculate`, {
         id: idParaEnviar, 
@@ -138,21 +191,36 @@ const App = () => {
       if (res.data.success) {
         setResultado(res.data);
         if (res.data.id_registro) setEditandoId(res.data.id_registro);
+        success(idParaEnviar ? "Evaluación actualizada correctamente" : "Evaluación guardada correctamente");
       }
-    } catch (err) { alert("Error al calcular."); }
+    } catch (err) { 
+      error("Error al calcular el score FASS. Verifique los datos e intente nuevamente.");
+      console.error('Error enviarEvaluacion:', err);
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const descargarTodoCSV = () => {
-    if (listaPacientes.length === 0) return alert("No hay datos para exportar.");
-    const encabezados = "ID_Interno,NHC_Hash,Genero,Rango_Edad,nFASS,oFASS,Riesgo,Fecha\n";
-    const filas = listaPacientes.map(p => 
-      `${p.id},${p.nhc_hash},${p.genero},${p.rango_edad},${p.nfass},${p.ofass_grade},${p.risk_level},${p.fecha}`
-    ).join("\n");
-    const blob = new Blob([encabezados + filas], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", `Historial_FASS_Completo_${new Date().toLocaleDateString()}.csv`);
-    link.click();
+    if (listaPacientes.length === 0) {
+      warning("No hay datos disponibles para exportar");
+      return;
+    }
+    try {
+      const encabezados = "ID_Interno,NHC_Hash,Genero,Rango_Edad,nFASS,oFASS,Riesgo,Fecha\n";
+      const filas = listaPacientes.map(p => 
+        `${p.id},${p.nhc_hash},${p.genero},${p.rango_edad},${p.nfass},${p.ofass_grade},${p.risk_level},${p.fecha}`
+      ).join("\n");
+      const blob = new Blob([encabezados + filas], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", `Historial_FASS_Completo_${new Date().toLocaleDateString()}.csv`);
+      link.click();
+      success(`Archivo CSV descargado: ${listaPacientes.length} registros exportados`);
+    } catch (err) {
+      error("Error al generar el archivo CSV");
+      console.error('Error descargarCSV:', err);
+    }
   };
 
   if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
@@ -228,7 +296,8 @@ const App = () => {
                 resultado={resultado} 
                 reiniciarApp={reiniciarApp} 
                 setView={setView} 
-                esPacienteExistente={esPacienteExistente} 
+                esPacienteExistente={esPacienteExistente}
+                isCalculating={isCalculating}
               />
             )}
           </>
@@ -240,6 +309,29 @@ const App = () => {
         {tabActiva === 'about' && <AboutView setTabActiva={setTabActiva} />}
 
       </div>
+
+      {/* TOAST NOTIFICATIONS */}
+      {toasts.map(toast => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
+
+      {/* LOADING OVERLAYS */}
+      {(isLoadingHistorial || isLoadingPacientes || isDeleting) && (
+        <LoadingSpinner 
+          fullScreen 
+          message={
+            isLoadingHistorial ? "Cargando historial..." :
+            isLoadingPacientes ? "Cargando pacientes..." :
+            isDeleting ? "Eliminando evaluación..." : "Procesando..."
+          }
+        />
+      )}
 
       <ChatBot />
     </div>

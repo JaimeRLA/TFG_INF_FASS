@@ -6,7 +6,8 @@ import {
   FileText,
   UserCheck,
   XCircle,
-  ArrowLeft // Importamos ArrowLeft para mantener la coherencia visual
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 import { SECCIONES_SINTOMAS } from '../data/sintomas';
@@ -19,7 +20,8 @@ const CalculadoraView = ({
   resultado, 
   reiniciarApp, 
   setView, 
-  esPacienteExistente 
+  esPacienteExistente,
+  isCalculating = false
 }) => {
 
   const SectionHeader = ({ icon: Icon, title }) => (
@@ -121,11 +123,33 @@ const CalculadoraView = ({
           ))}
           
           <button 
-            onClick={enviarEvaluacion} 
-            style={{ ...styles.calcBtn, width: '100%', padding: '20px', borderRadius: '15px', backgroundColor: '#2563eb' }}
+            onClick={enviarEvaluacion}
+            disabled={isCalculating}
+            style={{ 
+              ...styles.calcBtn, 
+              width: '100%', 
+              padding: '20px', 
+              borderRadius: '15px', 
+              backgroundColor: isCalculating ? '#94a3b8' : '#2563eb',
+              cursor: isCalculating ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              opacity: isCalculating ? 0.7 : 1,
+              transition: 'all 0.2s'
+            }}
           >
-            {resultado ? 'Actualizar Cálculo' : 'Calcular Gravedad nFASS'}
+            {isCalculating && <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />}
+            {isCalculating ? 'Calculando...' : (resultado ? 'Actualizar Cálculo' : 'Calcular Gravedad nFASS')}
           </button>
+          
+          <style>{`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       </section>
 

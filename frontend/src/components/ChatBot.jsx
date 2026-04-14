@@ -90,7 +90,7 @@ const ChatBot = () => {
               style={{ 
                 flex: 1, border: '1px solid #e2e8f0', padding: '12px 15px', 
                 borderRadius: '12px', outline: 'none', fontSize: '0.9rem',
-                backgroundColor: '#f1f5f9'
+                backgroundColor: '#f1f5f9', color: '#1e293b'
               }} 
               placeholder="Consulta el score o duda clínica..." 
               value={chatInput}

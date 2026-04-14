@@ -1,5 +1,6 @@
 """
-Base de conocimiento médica extendida para asistencia en clasificación de síntomas del Síndrome de Sjögren
+Base de conocimiento médica extendida para asistencia en clasificación de síntomas de Alergia Alimentaria
+FASS: Food Allergy Severity Score (Escala de Severidad de Alergia Alimentaria)
 """
 
 KNOWLEDGE_BASE = {
@@ -231,8 +232,9 @@ KNOWLEDGE_BASE = {
                         ],
                         "evaluate_for": [
                             "Gastroenteritis infecciosa",
-                            "Colitis microscópica (común en Sjögren)",
-                            "Enfermedad celíaca asociada",
+                            "Colitis microscópica",
+                            "Enfermedad celíaca",
+                            "Intolerancia alimentaria",
                             "Malabsorción"
                         ]
                     },
@@ -328,7 +330,8 @@ KNOWLEDGE_BASE = {
                             "Fiebre"
                         ],
                         "evaluate_for": [
-                            "Cirrosis biliar primaria (común en Sjögren)",
+                            "Reacción alérgica sistémica severa",
+                            "Colestasis (ictericia)",
                             "Linfoma",
                             "Reacción medicamentosa",
                             "Dermatosis pruriginosas"
@@ -493,7 +496,7 @@ KNOWLEDGE_BASE = {
                         },
                         "evaluate_for": [
                             "Urticaria crónica espontánea",
-                            "Urticaria autoinmune (asociada a Sjögren)",
+                            "Urticaria autoinmune",
                             "Urticaria física (dermografismo)",
                             "Deficiencia complemento (raro)"
                         ]
@@ -705,7 +708,7 @@ KNOWLEDGE_BASE = {
                         },
                         "evaluate_for": [
                             "Rinitis alérgica",
-                            "Sequedad nasal (en Sjögren)",
+                            "Sequedad nasal",
                             "Sinusitis crónica"
                         ]
                     },
@@ -771,7 +774,7 @@ KNOWLEDGE_BASE = {
                             "vision": "No afectada",
                             "cronicidad": "Episódico, no continuo"
                         },
-                        "differential": "Distinguir ojo seco (Sjögren) de conjuntivitis alérgica/infecciosa"
+                        "differential": "Distinguir ojo seco de conjuntivitis alérgica o infecciosa"
                     },
                     "clinical_impact": "Moderado - episodios limitados en tiempo",
                     "treatment_considerations": "Lágrimas artificiales, antihistamínicos tópicos si alérgico, higiene ocular"
@@ -805,7 +808,7 @@ KNOWLEDGE_BASE = {
                             "Lesiones corneales (úlcera)"
                         ],
                         "evaluate_for": [
-                            "Queratoconjuntivitis seca (Sjögren)",
+                            "Queratoconjuntivitis alérgica",
                             "Conjuntivitis crónica",
                             "Blefaritis asociada",
                             "Uveítis (dolor, fotofobia, visión disminuida)"
@@ -976,7 +979,7 @@ KNOWLEDGE_BASE = {
                             "noche": "Puede alterar sueño"
                         },
                         "evaluate_for": [
-                            "Tos irritativa (sequedad vías altas en Sjögren)",
+                            "Tos irritativa post-reacción alérgica",
                             "Goteo postnasal",
                             "Asma (tos variante)",
                             "Bronquitis"
@@ -1368,31 +1371,35 @@ KNOWLEDGE_BASE = {
     # PREGUNTAS FRECUENTES (FAQ)
     # ============================================
     "faq": {
-        "what_is_fass": "FASS (Functional Assessment of Sjögren's Syndrome) es una escala de evaluación que mide la severidad y el impacto funcional del Síndrome de Sjögren basándose en sistemas de órganos afectados.",
-        "what_is_nfass": "nFASS es la puntuación numérica calculada mediante logaritmo que integra la afectación de múltiples sistemas. Rangos: 0-2 (leve), 2-3.5 (moderado), 3.5-5 (severo), >5 (muy severo).",
-        "what_is_ofass": "oFASS es la clasificación ordinal (grados 1-5) derivada del nFASS que facilita la comunicación clínica y estratificación de pacientes.",
+        "what_is_fass": "FASS (Food Allergy Severity Score) es una escala de severidad de alergia alimentaria desarrollada mediante consenso multidisciplinario de expertos. Evalúa la gravedad de las reacciones alérgicas a alimentos basándose en síntomas clínicos observados.",
+        "what_is_nfass": "nFASS es el score numérico de FASS calculado mediante modelado matemático. La puntuación integra la afectación de múltiples sistemas orgánicos. Rangos: 0-2 (leve), 2-3.5 (moderado), 3.5-5 (severo), >5 (muy severo/anafilaxia).",
+        "what_is_ofass": "oFASS es el FASS ordinal generado mediante consenso de expertos, disponible en formatos de 3 y 5 grados. Facilita la comunicación clínica y estratificación de pacientes según severidad de la reacción alérgica.",
         
-        "how_to_select_symptoms": "Seleccione síntomas basándose en: 1) Presencia clínica actual (últimas 24-48h), 2) Severidad objetiva, 3) Impacto funcional, 4) Necesidad de tratamiento. Use las guías específicas de cada síntoma.",
+        "how_to_select_symptoms": "Seleccione síntomas observados durante la reacción alérgica basándose en: 1) Signos y síntomas presentes durante el episodio, 2) Severidad objetiva de la manifestación, 3) Tiempo de inicio post-exposición al alérgeno, 4) Necesidad de tratamiento (antihistamínicos, adrenalina). Use las guías específicas de cada síntoma.",
         
-        "when_symptoms_severe": "Un síntoma es severo cuando: 1) Limita significativamente la función, 2) Ocurre diariamente o casi diariamente, 3) Requiere tratamiento intensivo, 4) Tiene alto impacto en calidad de vida, 5) Presenta riesgo de complicaciones.",
+        "when_symptoms_severe": "Un síntoma de reacción alérgica es severo cuando: 1) Afecta múltiples sistemas orgánicos, 2) Requiere adrenalina (epinefrina), 3) Causa compromiso respiratorio o cardiovascular, 4) Presenta riesgo de progresión a anafilaxia, 5) Requiere atención médica urgente.",
         
-        "when_symptoms_critical": "Síntomas CRÍTICOS requieren acción inmediata: ESTRIDOR (vía aérea), SHOCK (cardiovascular), PÉRDIDA CONSCIENCIA (neurológico), INSUFICIENCIA RESPIRATORIA. Estos son EMERGENCIAS MÉDICAS.",
+        "when_symptoms_critical": "Síntomas que indican ANAFILAXIA (CRÍTICOS): ESTRIDOR (obstrucción vía aérea), HIPOTENSIÓN/SHOCK, PÉRDIDA CONSCIENCIA, CIANOSIS, BRONCOESPASMO SEVERO. Requieren ADRENALINA INMEDIATA y manejo en urgencias.",
         
         "difference_mild_moderate": "LEVE: ocasional (<3 días/sem), no limita actividades, no requiere tratamiento regular. MODERADO: frecuente (≥4 días/sem), limita algunas actividades, requiere tratamiento regular, afecta calidad de vida.",
         
         "difference_moderate_severe": "MODERADO: síntomas frecuentes pero paciente funcional con tratamiento. SEVERO: síntomas constantes, limitación funcional importante, requiere tratamiento intensivo o intervención urgente.",
         
-        "epsilon_meaning": "Epsilon (ε) es el peso del sistema de órgano en la escala FASS. Valores más altos indican mayor impacto clínico: ε=1 (menor impacto), ε=4 (mayor impacto). Refleja la gravedad potencial de afectar ese sistema.",
+        "epsilon_meaning": "Epsilon (ε) es el peso del sistema de órgano en la escala FASS. Refleja la importancia clínica del sistema afectado en reacciones alérgicas: ε=1 (cutáneo leve), ε=2 (gastrointestinal/cutáneo moderado), ε=3 (respiratorio/angioedema), ε=4 (cardiovascular/neurológico - riesgo anafilaxia).",
         
-        "lambda_meaning": "Lambda (λ) es el peso individual del síntoma dentro de su sistema. Valores más altos indican mayor severidad: λ=0.01-0.03 (leve), λ=0.04-0.06 (moderado), λ=0.07-0.08 (severo).",
+        "lambda_meaning": "Lambda (λ) es el peso individual del síntoma dentro de su sistema. Representa la severidad relativa del síntoma: λ=0.01-0.03 (leve), λ=0.04-0.06 (moderado), λ=0.07-0.08 (severo/compromiso vital).",
         
-        "how_calculate_nfass": "nFASS se calcula: 1) Sumar lambdas de síntomas por cada sistema, 2) Multiplicar por 2^epsilon del sistema, 3) Sumar todos los sistemas, 4) Aplicar log2(suma) + 2.",
+        "how_calculate_nfass": "nFASS se calcula mediante modelado matemático: 1) Sumar lambdas (λ) de síntomas observados por cada sistema orgánico, 2) Multiplicar suma por 2^epsilon (ε) del sistema, 3) Sumar contribuciones de todos los sistemas afectados, 4) Aplicar transformación logarítmica: log2(suma) + 2.",
         
-        "when_hospitalize": "Considerar hospitalización si: síntomas CRÍTICOS, multiple organ involvement severo, nFASS >5, síntomas con red flags, incapacidad para autocuidado, necesidad oxígeno/líquidos IV.",
+        "when_hospitalize": "Considerar hospitalización/observación urgente si: 1) Signos de anafilaxia (nFASS >5), 2) Compromiso respiratorio o cardiovascular, 3) Necesidad de adrenalina, 4) Afectación múltiple de órganos, 5) Historia de reacciones bifásicas, 6) Asma mal controlado asociado.",
         
-        "sjogren_overlap": "El Síndrome de Sjögren puede solaparse con LES, AR, esclerosis sistémica. La escala FASS evalúa la contribución específica del Sjögren, pero considere manifestaciones de enfermedades coexistentes.",
+        "food_allergy_triggers": "Los alérgenos alimentarios más comunes incluyen: leche, huevo, cacahuete, frutos secos, pescado, mariscos, soja, trigo. La severidad puede variar según el alérgeno, cantidad ingerida, y factores del paciente (asma, ejercicio, cofactores).",
         
-        "treatment_impact": "El tratamiento efectivo debe disminuir el nFASS. Reevalúe periódicamente. Un nFASS estable o en aumento a pesar de tratamiento indica necesidad de ajuste terapéutico o reevaluación diagnóstica."
+        "cofactors_impact": "Cofactores que pueden aumentar severidad de reacciones alérgicas: ejercicio físico (anafilaxia inducida por ejercicio), AINEs, alcohol, infecciones, estrés, fase del ciclo menstrual. Considere estos al evaluar la severidad.",
+        
+        "biphasic_reactions": "Las reacciones bifásicas (10-20% de anafilaxias) ocurren 1-72h después de la reacción inicial sin nueva exposición al alérgeno. Pacientes con nFASS >3.5 requieren observación extendida (4-6h mínimo).",
+        
+        "treatment_impact": "El tratamiento temprano con adrenalina (primeros 30 min) mejora significativamente el pronóstico. Antihistamínicos y corticoides son adyuvantes pero NO sustituyen la adrenalina en anafilaxia. Un nFASS >5 indica necesidad de adrenalina inmediata."
     }
 }
 
