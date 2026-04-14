@@ -8,7 +8,7 @@ from fastapi import FastAPI, Query, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from groq import Groq
 from .logic import calcular_nfass_ofass
-from .prompt import SYSTEM_PROMPT
+from .agent_logic import SYSTEM_PROMPT
 from .data_models import LoginRequest, EvaluacionRequest
 from .security import hash_password, verify_password, encrypt_data, decrypt_data
 
