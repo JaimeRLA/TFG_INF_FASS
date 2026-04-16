@@ -11,6 +11,7 @@ from .logic import calcular_nfass_ofass
 from .agent_logic import SYSTEM_PROMPT
 from .data_models import LoginRequest, EvaluacionRequest
 from .security import hash_password, verify_password, encrypt_data, decrypt_data
+from .sintomas import DB_SINTOMAS
 
 app = FastAPI()
 
@@ -354,32 +355,43 @@ async def get_stats(medico: str = Query(...), timeRange: str = Query("all"), x_t
                 anaphylaxis += 1
             
             # Distribución de severidad
-            severity = ofass_category if ofass_category else "No especificado"
+            severity = ofass_category if ofass_category else "N/A"
             severity_counts[severity] = severity_counts.get(severity, 0) + 1
             
             # Alérgenos principales
             try:
                 evento = json.loads(decrypt_data(evento_enc))
-                alergeno = evento.get("alergeno", "Desconocido")
+                partes = []
+                for campo in ["trigger_food", "trigger_insect", "trigger_drug"]:
+                    val = evento.get(campo, "").strip()
+                    if val:
+                        partes.append(val)
+                alergeno = ", ".join(partes) if partes else "Desconocido"
                 allergen_counts[alergeno] = allergen_counts.get(alergeno, 0) + 1
             except:
                 pass
             
-            # Sistemas afectados
+            # Sistemas afectados (usando el campo 'sys' de DB_SINTOMAS)
+            SYS_MAP = {
+                "Oral": "Orofaringe",
+                "Skin": "Piel",
+                "GI": "Gastrointestinal",
+                "Eye/Nose": "Ojos/Nariz",
+                "Bronchi": "Respiratorio",
+                "Larynx": "Laringe",
+                "CV": "Cardiovascular",
+                "NS": "Neurológico"
+            }
             try:
                 sintomas_list = json.loads(decrypt_data(sintomas_enc))
-                for sintoma in sintomas_list:
-                    # Clasificar sistemas según nomenclatura FASS
-                    if any(x in sintoma.lower() for x in ["oral", "lengua", "labio", "garganta", "palad"]):
-                        system_counts["Orofaringe"] = system_counts.get("Orofaringe", 0) + 1
-                    elif any(x in sintoma.lower() for x in ["piel", "urticaria", "eritema", "angioedema", "prurito"]):
-                        system_counts["Piel"] = system_counts.get("Piel", 0) + 1
-                    elif any(x in sintoma.lower() for x in ["respiratorio", "broncoespasmo", "disnea", "tos", "estridor"]):
-                        system_counts["Respiratorio"] = system_counts.get("Respiratorio", 0) + 1
-                    elif any(x in sintoma.lower() for x in ["cardiovascular", "hipotensión", "taquicardia", "shock", "mareo"]):
-                        system_counts["Cardiovascular"] = system_counts.get("Cardiovascular", 0) + 1
-                    elif any(x in sintoma.lower() for x in ["gastrointestinal", "vómito", "náusea", "diarrea", "dolor abdominal"]):
-                        system_counts["Gastrointestinal"] = system_counts.get("Gastrointestinal", 0) + 1
+                sistemas_vistos = set()
+                for s_id in sintomas_list:
+                    if s_id in DB_SINTOMAS:
+                        sys_key = DB_SINTOMAS[s_id]['sys']
+                        sys_name = SYS_MAP.get(sys_key, sys_key)
+                        sistemas_vistos.add(sys_name)
+                for sys_name in sistemas_vistos:
+                    system_counts[sys_name] = system_counts.get(sys_name, 0) + 1
             except:
                 pass
             
@@ -400,11 +412,11 @@ async def get_stats(medico: str = Query(...), timeRange: str = Query("all"), x_t
         
         # Colores para gráficos
         severity_colors = {
-            "Leve": "#10b981",
-            "Moderada": "#f59e0b",
-            "Grave": "#ef4444",
-            "Muy Grave": "#991b1b",
-            "No especificado": "#6b7280"
+            "Mild": "#10b981",
+            "Moderate": "#f59e0b",
+            "Severe": "#ef4444",
+            "No Symptoms": "#6b7280",
+            "N/A": "#6b7280"
         }
         
         system_colors = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"]

@@ -381,19 +381,6 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
             data={stats?.affected_systems || []}
           />
         </div>
-
-        {/* TENDENCIA MENSUAL */}
-        <div style={{ 
-          backgroundColor: '#fff',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-        }}>
-          <BarChart
-            label="Evaluaciones por Mes (últimos 6)"
-            data={stats?.monthly_trend || []}
-          />
-        </div>
       </div>
 
       {/* ACCIONES RÁPIDAS */}
