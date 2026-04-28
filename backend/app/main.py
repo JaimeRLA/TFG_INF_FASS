@@ -127,18 +127,23 @@ def generate_pseudonym(nhc):
 
 # --- UTILIDAD DE EMAIL (Brevo SMTP) ---
 def send_email(to: str, subject: str, html_body: str):
+    print(f"[EMAIL] Intentando enviar a={to} | SMTP_USER='{SMTP_USER}' | PASSWORD_SET={'Sí' if SMTP_PASSWORD else 'NO'}")
     if not SMTP_USER or not SMTP_PASSWORD:
-        print(f"[EMAIL] SMTP no configurado. No se envía a {to}: {subject}")
+        print("[EMAIL] ERROR: SMTP_USER o SMTP_PASSWORD no configuradas en las variables de entorno.")
         return
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = f"FASS Sistema <{SMTP_USER}>"
-    msg["To"] = to
-    msg.attach(MIMEText(html_body, "html"))
-    with smtplib.SMTP("smtp-relay.brevo.com", 587) as server:
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.sendmail(SMTP_USER, to, msg.as_string())
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"FASS Sistema <{SMTP_USER}>"
+        msg["To"] = to
+        msg.attach(MIMEText(html_body, "html"))
+        with smtplib.SMTP("smtp-relay.brevo.com", 587) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, to, msg.as_string())
+        print(f"[EMAIL] Enviado correctamente a {to}")
+    except Exception as e:
+        print(f"[EMAIL] ERROR al enviar a {to}: {e}")
 
 # --- ENDPOINTS DE PACIENTES ---
 @app.get("/pacientes_unicos")
