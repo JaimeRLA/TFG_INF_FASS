@@ -88,6 +88,10 @@ def init_db():
             id SERIAL PRIMARY KEY,
             email TEXT UNIQUE,
             nombre TEXT,
+            especialidad TEXT,
+            colegiado TEXT,
+            hospital TEXT,
+            telefono TEXT,
             token TEXT UNIQUE,
             status TEXT DEFAULT 'pending',
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -193,8 +197,8 @@ def register(request: RegisterRequest):
 
         token = secrets.token_urlsafe(32)
         cursor.execute(
-            f"INSERT INTO solicitudes_registro (email, nombre, token) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (request.email, request.nombre, token)
+            f"INSERT INTO solicitudes_registro (email, nombre, especialidad, colegiado, hospital, telefono, token) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})",
+            (request.email, request.nombre, request.especialidad, request.colegiado, request.hospital, request.telefono, token)
         )
         conn.commit()
 
@@ -206,13 +210,17 @@ def register(request: RegisterRequest):
             f"""
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px">
                 <h2 style="color:#1e293b">Nueva solicitud de registro en FASS</h2>
-                <table style="width:100%;border-collapse:collapse">
-                    <tr><td style="padding:8px;font-weight:bold">Nombre:</td><td style="padding:8px">{request.nombre}</td></tr>
-                    <tr><td style="padding:8px;font-weight:bold">Email:</td><td style="padding:8px">{request.email}</td></tr>
+                <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0">
+                    <tr style="background:#f8fafc"><td style="padding:10px;font-weight:bold">Nombre:</td><td style="padding:10px">{request.nombre}</td></tr>
+                    <tr><td style="padding:10px;font-weight:bold">Email:</td><td style="padding:10px">{request.email}</td></tr>
+                    <tr style="background:#f8fafc"><td style="padding:10px;font-weight:bold">Especialidad:</td><td style="padding:10px">{request.especialidad}</td></tr>
+                    <tr><td style="padding:10px;font-weight:bold">Nº Colegiado:</td><td style="padding:10px">{request.colegiado}</td></tr>
+                    <tr style="background:#f8fafc"><td style="padding:10px;font-weight:bold">Hospital/Centro:</td><td style="padding:10px">{request.hospital}</td></tr>
+                    <tr><td style="padding:10px;font-weight:bold">Teléfono:</td><td style="padding:10px">{request.telefono}</td></tr>
                 </table>
                 <br>
                 <a href="{approve_link}" style="background:#1e293b;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;display:inline-block;font-size:16px">
-                    ✅ Aprobar acceso
+                    Aprobar acceso
                 </a>
                 <p style="color:#94a3b8;font-size:12px;margin-top:20px">Si no reconoce esta solicitud, ignórela.</p>
             </div>
@@ -235,7 +243,7 @@ def approve_registration(token: str):
         placeholder = "%s" if DATABASE_URL else "?"
 
         cursor.execute(
-            f"SELECT email, nombre, status FROM solicitudes_registro WHERE token = {placeholder}",
+            f"SELECT email, nombre, especialidad, colegiado, hospital, telefono, status FROM solicitudes_registro WHERE token = {placeholder}",
             (token,)
         )
         solicitud = cursor.fetchone()
@@ -246,7 +254,7 @@ def approve_registration(token: str):
                 status_code=404
             )
 
-        email, nombre, status = solicitud
+        email, nombre, especialidad, colegiado, hospital, telefono, status = solicitud
 
         if status == 'approved':
             return HTMLResponse(

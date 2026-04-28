@@ -9,6 +9,10 @@ class LoginRequest(BaseModel):
 class RegisterRequest(BaseModel):
     nombre: str
     email: EmailStr
+    especialidad: str
+    colegiado: str
+    hospital: str
+    telefono: str
 
 class EvaluacionRequest(BaseModel):
     id: Optional[int] = None           # ID de la EVALUACIÓN (para el UPDATE)

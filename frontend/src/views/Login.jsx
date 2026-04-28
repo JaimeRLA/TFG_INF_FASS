@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { HeartPulse, Lock, User, UserPlus, LogIn, Mail } from 'lucide-react';
+import { HeartPulse, Lock, User, UserPlus, LogIn, Mail, Stethoscope, Building2, Phone, Hash } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 
 const Login = ({ onLoginSuccess }) => {
   const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({ username: '', password: '', nombre: '', email: '' });
+  const [form, setForm] = useState({ username: '', password: '', nombre: '', email: '', especialidad: '', colegiado: '', hospital: '', telefono: '' });
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -22,11 +22,15 @@ const Login = ({ onLoginSuccess }) => {
         const res = await axios.post(`${API_URL}/register`, {
           nombre: form.nombre,
           email: form.email,
+          especialidad: form.especialidad,
+          colegiado: form.colegiado,
+          hospital: form.hospital,
+          telefono: form.telefono,
         });
         if (res.data.success) {
           setMsg(res.data.message);
           setIsRegister(false);
-          setForm({ username: '', password: '', nombre: '', email: '' });
+          setForm({ username: '', password: '', nombre: '', email: '', especialidad: '', colegiado: '', hospital: '', telefono: '' });
         } else {
           setError(res.data.message || "Error al enviar la solicitud.");
         }
@@ -86,6 +90,54 @@ const Login = ({ onLoginSuccess }) => {
                   required
                 />
               </div>
+              {/* CAMPO ESPECIALIDAD */}
+              <div style={styles.loginInputGroup}>
+                <Stethoscope size={20} color="#64748b" />
+                <input
+                  type="text"
+                  placeholder="Especialidad médica"
+                  style={styles.loginInput}
+                  value={form.especialidad}
+                  onChange={e => setForm({...form, especialidad: e.target.value})}
+                  required
+                />
+              </div>
+              {/* CAMPO COLEGIADO */}
+              <div style={styles.loginInputGroup}>
+                <Hash size={20} color="#64748b" />
+                <input
+                  type="text"
+                  placeholder="Número de colegiado"
+                  style={styles.loginInput}
+                  value={form.colegiado}
+                  onChange={e => setForm({...form, colegiado: e.target.value})}
+                  required
+                />
+              </div>
+              {/* CAMPO HOSPITAL */}
+              <div style={styles.loginInputGroup}>
+                <Building2 size={20} color="#64748b" />
+                <input
+                  type="text"
+                  placeholder="Hospital / Centro de trabajo"
+                  style={styles.loginInput}
+                  value={form.hospital}
+                  onChange={e => setForm({...form, hospital: e.target.value})}
+                  required
+                />
+              </div>
+              {/* CAMPO TELÉFONO */}
+              <div style={styles.loginInputGroup}>
+                <Phone size={20} color="#64748b" />
+                <input
+                  type="tel"
+                  placeholder="Teléfono de contacto"
+                  style={styles.loginInput}
+                  value={form.telefono}
+                  onChange={e => setForm({...form, telefono: e.target.value})}
+                  required
+                />
+              </div>
             </>
           ) : (
             <>
@@ -130,7 +182,7 @@ const Login = ({ onLoginSuccess }) => {
         </form>
 
         <button 
-          onClick={() => { setIsRegister(!isRegister); setError(""); setMsg(""); setForm({ username: '', password: '', nombre: '', email: '' }); }} 
+          onClick={() => { setIsRegister(!isRegister); setError(""); setMsg(""); setForm({ username: '', password: '', nombre: '', email: '', especialidad: '', colegiado: '', hospital: '', telefono: '' }); }} 
           style={styles.loginToggleBtn}
         >
           {isRegister ? "¿Ya tiene cuenta? Inicie sesión aquí" : "¿No tiene cuenta? Solicite acceso"}
