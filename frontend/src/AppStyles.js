@@ -72,19 +72,20 @@ export const styles = {
 
   // --- MÓDULO LOGIN ---
   loginContainer: { 
-    height: '100vh', width: '100vw', display: 'flex', 
-    justifyContent: 'center', alignItems: 'center', 
-    backgroundColor: '#f1f5f9', margin: 0, padding: 0 
+    minHeight: '100vh', width: '100vw', display: 'flex', 
+    justifyContent: 'center', alignItems: 'flex-start', 
+    backgroundColor: '#f1f5f9', margin: 0, padding: '30px 0' 
   },
   loginCard: { 
-    padding: '50px 40px', backgroundColor: '#ffffff', borderRadius: '28px', 
+    padding: '40px 36px', backgroundColor: '#ffffff', borderRadius: '28px', 
     boxShadow: '0 25px 50px -12px rgba(0,0,0,0.1)', width: '100%', 
-    maxWidth: '420px', textAlign: 'center', border: '1px solid #e2e8f0' 
+    maxWidth: '460px', textAlign: 'center', border: '1px solid #e2e8f0',
+    margin: 'auto'
   },
   loginInputGroup: { 
     display: 'flex', alignItems: 'center', gap: '12px', 
-    border: '2px solid #e2e8f0', padding: '14px 18px', 
-    borderRadius: '16px', marginBottom: '20px', backgroundColor: '#f8fafc' 
+    border: '2px solid #e2e8f0', padding: '11px 16px', 
+    borderRadius: '14px', marginBottom: '12px', backgroundColor: '#f8fafc' 
   },
   loginInput: { 
     border: 'none', outline: 'none', width: '100%', 

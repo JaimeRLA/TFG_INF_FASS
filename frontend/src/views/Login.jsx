@@ -53,13 +53,13 @@ const Login = ({ onLoginSuccess }) => {
   return (
     <div style={styles.loginContainer}>
       <div style={styles.loginCard}>
-        <HeartPulse size={60} color="#1e293b" style={{ marginBottom: '15px' }} />
+        <HeartPulse size={isRegister ? 40 : 60} color="#1e293b" style={{ marginBottom: isRegister ? '8px' : '15px' }} />
         
-        <h2 style={{ margin: '0 0 10px 0', color: '#1e293b', fontSize: '1.8rem', fontWeight: '800' }}>
+        <h2 style={{ margin: '0 0 6px 0', color: '#1e293b', fontSize: isRegister ? '1.4rem' : '1.8rem', fontWeight: '800' }}>
           {isRegister ? "Solicitud de Acceso" : "Acceso al Sistema"}
         </h2>
         
-        <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '30px' }}>
+        <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: isRegister ? '16px' : '30px' }}>
             {isRegister ? "Rellene el formulario y el administrador le enviará sus credenciales" : "Identifíquese para gestionar sus pacientes"}
         </p>
 
