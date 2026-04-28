@@ -137,33 +137,6 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                   <ArrowRight size={15} />
                 </div>
               </div>
-                    e.currentTarget.style.backgroundColor = '#fff';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  {/* HUELLA AZUL */}
-                  <div style={{ backgroundColor: '#eff6ff', padding: '10px', borderRadius: '10px' }}>
-                    <Fingerprint size={24} color="#16a34a" />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: '700', color: '#1e293b', fontFamily: 'monospace', fontSize: '1.1rem' }}>
-                      ID: {p.nhc_hash ? p.nhc_hash.substring(0, 16) : (p.id ? String(p.id).substring(0,16) : '---')}...
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '6px', display: 'flex', gap: '15px' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <User size={16} /> {p.genero === 'M' ? 'Masc.' : 'Fem.'}
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Calendar size={16} /> {p.rango_edad}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b', fontWeight: '600' }}>
-                  <span>Seleccionar</span>
-                  <ArrowRight size={20} />
-                </div>
-              </div>
             ))
           ) : (
             <div style={{ 
