@@ -17,7 +17,7 @@ const PuntuacionView = ({ setTabActiva }) => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-        <div>
+        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Zap size={20} color="#2563eb" /> nFASS (Numerical Score)
           </h3>
@@ -30,7 +30,7 @@ const PuntuacionView = ({ setTabActiva }) => {
           </p>
         </div>
         
-        <div>
+        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Activity size={20} color="#16a34a" /> oFASS (Ordinal Grade)
           </h3>

@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   Activity,
   Calendar,
-  PieChart as PieChartIcon,
   ArrowUpCircle,
   ArrowDownCircle,
   RefreshCw
@@ -248,27 +247,24 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
   };
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px' }}>
-      {/* HEADER */}
-      <div style={{ marginBottom: '30px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+    <div style={{...styles.infoCard, backgroundColor: '#ffffff', color: '#1e293b'}}>
+
+      {/* CABECERA con separador — igual que AboutView / PuntuacionView */}
+      <div style={{ borderBottom: '2px solid #f1f5f9', paddingBottom: '20px', marginBottom: '25px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', margin: '0 0 8px 0' }}>
-              Dashboard Clínico
+            <h2 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
+              <BarChart3 size={28} /> Dashboard Clínico
             </h2>
-            <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
+            <p style={{ color: '#64748b', marginTop: '8px', fontSize: '1rem', margin: '8px 0 0 0' }}>
               Estadísticas de tus pacientes con alergias alimentarias
             </p>
           </div>
-          
+
           {/* SELECTOR DE RANGO TEMPORAL */}
           <div style={{ 
-            display: 'flex', 
-            gap: '8px', 
-            backgroundColor: '#f8fafc', 
-            padding: '6px', 
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0'
+            display: 'flex', gap: '6px', backgroundColor: '#f8fafc', 
+            padding: '5px', borderRadius: '12px', border: '1px solid #e2e8f0'
           }}>
             {[
               { value: 'all', label: 'Todo' },
@@ -280,18 +276,14 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
                 key={option.value}
                 onClick={() => setTimeRange(option.value)}
                 style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  fontSize: '0.85rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
+                  padding: '7px 14px', borderRadius: '8px', border: 'none',
+                  fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer',
                   transition: 'all 0.2s',
                   backgroundColor: timeRange === option.value ? '#1e293b' : 'transparent',
                   color: timeRange === option.value ? '#fff' : '#64748b'
                 }}
               >
-                <Calendar size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                <Calendar size={13} style={{ marginRight: '5px', verticalAlign: 'middle' }} />
                 {option.label}
               </button>
             ))}
@@ -299,124 +291,54 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
         </div>
       </div>
 
-      {/* TARJETAS DE ESTADÍSTICAS PRINCIPALES */}
+      {/* TARJETAS DE ESTADÍSTICAS */}
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-        gap: '20px',
-        marginBottom: '30px'
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', 
+        gap: '16px', marginBottom: '25px'
       }}>
-        <StatCard
-          icon={Users}
-          label="Total Pacientes"
-          value={stats?.total_patients || 0}
-          color="#2563eb"
-          subtitle="Pacientes únicos registrados"
-        />
-        <StatCard
-          icon={Activity}
-          label="Evaluaciones Totales"
-          value={stats?.total_evaluations || 0}
-          color="#8b5cf6"
-          subtitle="Episodios registrados"
-        />
-        <StatCard
-          icon={AlertTriangle}
-          label="Casos de Anafilaxia"
-          value={stats?.anaphylaxis_count || 0}
-          color="#dc2626"
-          subtitle={`${stats?.anaphylaxis_percent || 0}% del total`}
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="nFASS Promedio"
-          value={stats?.avg_nfass?.toFixed(2) || '0.00'}
-          color="#f59e0b"
-          subtitle="Score medio de severidad"
-        />
+        <StatCard icon={Users}         label="Total Pacientes"       value={stats?.total_patients || 0}              color="#2563eb" subtitle="Pacientes únicos registrados" />
+        <StatCard icon={Activity}      label="Evaluaciones Totales"  value={stats?.total_evaluations || 0}           color="#8b5cf6" subtitle="Episodios registrados" />
+        <StatCard icon={AlertTriangle} label="Casos de Anafilaxia"   value={stats?.anaphylaxis_count || 0}           color="#dc2626" subtitle={`${stats?.anaphylaxis_percent || 0}% del total`} />
+        <StatCard icon={TrendingUp}    label="nFASS Promedio"        value={stats?.avg_nfass?.toFixed(2) || '0.00'}  color="#f59e0b" subtitle="Score medio de severidad" />
       </div>
 
-      {/* GRÁFICOS */}
+      {/* GRÁFICOS — mismos rebordes que las pestañas de info */}
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
-        gap: '20px',
-        marginBottom: '30px'
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', 
+        gap: '20px', marginBottom: '25px'
       }}>
-        {/* DISTRIBUCIÓN POR SEVERIDAD */}
-        <div style={{ 
-          backgroundColor: '#fff',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-        }}>
-          <PieChart
-            label="Distribución por Severidad"
-            data={stats?.severity_distribution || []}
-          />
+        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+          <PieChart label="Distribución por Severidad" data={stats?.severity_distribution || []} />
         </div>
-
-        {/* TOP ALÉRGENOS */}
-        <div style={{ 
-          backgroundColor: '#fff',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-        }}>
-          <BarChart
-            label="Alérgenos Más Frecuentes"
-            data={stats?.top_allergens || []}
-          />
+        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+          <BarChart label="Alérgenos Más Frecuentes" data={stats?.top_allergens || []} />
         </div>
-
-        {/* SISTEMAS MÁS AFECTADOS */}
-        <div style={{ 
-          backgroundColor: '#fff',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-        }}>
-          <BarChart
-            label="Sistemas Orgánicos Afectados"
-            data={stats?.affected_systems || []}
-          />
+        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+          <BarChart label="Sistemas Orgánicos Afectados" data={stats?.affected_systems || []} />
         </div>
       </div>
 
       {/* ACCIONES RÁPIDAS */}
-      <div style={{ ...styles.cardStyle, padding: '30px', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#1e293b', marginBottom: '20px' }}>
-          Acciones Rápidas
+      <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <Activity size={20} color="#2563eb" /> Acciones Rápidas
         </h3>
-        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setTabActiva('app')}
-            style={{
-              ...styles.primaryBtn,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
+            style={{ ...styles.primaryBtn, display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <Users size={18} /> Nueva Evaluación
           </button>
           <button 
             onClick={cargarEstadisticas}
             style={{
-              padding: '12px 24px',
-              borderRadius: '10px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#fff',
-              color: '#475569',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s'
+              padding: '12px 24px', borderRadius: '10px', border: '1px solid #e2e8f0',
+              backgroundColor: '#fff', color: '#475569', fontWeight: '600', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}
           >
             <RefreshCw size={18} /> Actualizar Datos
           </button>
