@@ -38,8 +38,9 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
 
 # --- CONFIGURACIÓN EMAIL (Brevo SMTP) ---
-SMTP_USER = os.getenv("SMTP_USER", "")   # tu login de Brevo
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")  # SMTP key de Brevo
+SMTP_USER = os.getenv("SMTP_USER", "")        # login de Brevo (a99405001@smtp-brevo.com)
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "") # SMTP key de Brevo
+FROM_EMAIL = os.getenv("FROM_EMAIL", "jruiz.lopez.alvarado@gmail.com")  # remitente verificado en Brevo
 ADMIN_EMAIL = "jruiz.lopez.alvarado@gmail.com"
 BACKEND_URL = os.getenv("BACKEND_URL", "https://tfg-inf-fass.onrender.com")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://tfg-inf-fass-1.onrender.com")
@@ -134,13 +135,13 @@ def send_email(to: str, subject: str, html_body: str):
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"FASS Sistema <{SMTP_USER}>"
+        msg["From"] = f"FASS Sistema <{FROM_EMAIL}>"
         msg["To"] = to
         msg.attach(MIMEText(html_body, "html"))
         with smtplib.SMTP("smtp-relay.brevo.com", 587) as server:
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_USER, to, msg.as_string())
+            server.sendmail(FROM_EMAIL, to, msg.as_string())
         print(f"[EMAIL] Enviado correctamente a {to}")
     except Exception as e:
         print(f"[EMAIL] ERROR al enviar a {to}: {e}")
