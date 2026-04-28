@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Users, ClipboardList, ArrowRight } from 'lucide-react';
 import { styles } from '../AppStyles.js';
 
-const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial }) => {
+const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial, usuarioLogueado }) => {
   // Estado para el efecto visual al pasar el ratón
   const [hoveredCard, setHoveredCard] = useState(null);
 
@@ -41,13 +41,22 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial }) => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 20px' }}>
+
+      {/* BIENVENIDA */}
+      <div style={{ marginBottom: '35px' }}>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: '800', color: '#1e293b', margin: '0 0 6px 0' }}>
+          Bienvenido, <span style={{ color: '#2563eb' }}>{usuarioLogueado}</span>
+        </h2>
+        <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>
+          ¿Qué desea hacer hoy?
+        </p>
+      </div>
       
       {/* GRID DE OPCIONES (Sin título superior) */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-        gap: '30px',
-        marginTop: '20px' 
+        gap: '30px'
       }}>
         {menuOptions.map((opt) => (
           <div 

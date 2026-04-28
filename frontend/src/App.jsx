@@ -244,7 +244,8 @@ const App = () => {
               <MenuView 
                 setView={setView} 
                 cargarPacientesExistentes={cargarPacientesExistentes} 
-                cargarHistorial={cargarHistorial} 
+                cargarHistorial={cargarHistorial}
+                usuarioLogueado={usuarioLogueado}
               />
             )}
 
