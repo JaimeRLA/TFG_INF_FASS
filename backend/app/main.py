@@ -185,13 +185,10 @@ def register(request: RegisterRequest):
         if cursor.fetchone():
             return {"success": False, "message": "Este correo ya tiene una cuenta activa."}
 
-        # Verificar solicitud previa
+        # Verificar solicitud previa — si existe (pending o rechazada), se sobreescribe y reenvía
         cursor.execute(f"SELECT status FROM solicitudes_registro WHERE email = {placeholder}", (request.email,))
         existing = cursor.fetchone()
         if existing:
-            if existing[0] == 'pending':
-                return {"success": False, "message": "Ya existe una solicitud pendiente para este correo. Espere la aprobación del administrador."}
-            # Si fue rechazada, permitir reenvío
             cursor.execute(f"DELETE FROM solicitudes_registro WHERE email = {placeholder}", (request.email,))
 
         token = secrets.token_urlsafe(32)
