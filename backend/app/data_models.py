@@ -1,10 +1,14 @@
 # src/data_models.py
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict
 
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+class RegisterRequest(BaseModel):
+    nombre: str
+    email: EmailStr
 
 class EvaluacionRequest(BaseModel):
     id: Optional[int] = None           # ID de la EVALUACIÓN (para el UPDATE)

@@ -1,15 +1,20 @@
 import sqlite3
 import os
 import json
+import secrets
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import psycopg2 
 import hashlib # Para la pseudonimización
 from datetime import datetime
 from fastapi import FastAPI, Query, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from groq import Groq
 from .logic import calcular_nfass_ofass
 from .agent_logic import SYSTEM_PROMPT
-from .data_models import LoginRequest, EvaluacionRequest
+from .data_models import LoginRequest, RegisterRequest, EvaluacionRequest
 from .security import hash_password, verify_password, encrypt_data, decrypt_data
 from .sintomas import DB_SINTOMAS
 
@@ -31,6 +36,13 @@ app.add_middleware(
 # --- BASE DE DATOS ---
 DATABASE_URL = os.getenv("DATABASE_URL")
 APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
+
+# --- CONFIGURACIÓN EMAIL (Brevo SMTP) ---
+SMTP_USER = os.getenv("SMTP_USER", "")   # tu login de Brevo
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")  # SMTP key de Brevo
+ADMIN_EMAIL = "jruiz.lopez.alvarado@gmail.com"
+BACKEND_URL = os.getenv("BACKEND_URL", "https://tfg-inf-fass.onrender.com")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://tfg-inf-fass-1.onrender.com")
 
 def get_connection():
     if DATABASE_URL:
@@ -70,6 +82,15 @@ def init_db():
             username TEXT UNIQUE,
             password TEXT
         )''')
+        # Tabla de Solicitudes de Registro (pendientes de aprobación)
+        cursor.execute('''CREATE TABLE IF NOT EXISTS solicitudes_registro (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE,
+            nombre TEXT,
+            token TEXT UNIQUE,
+            status TEXT DEFAULT 'pending',
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
         conn.commit()
     except Exception as e:
         print(f"Error en init_db: {e}")
@@ -104,6 +125,21 @@ def generate_pseudonym(nhc):
         return str(nhc)
     return hashlib.sha256(str(nhc).encode()).hexdigest()
 
+# --- UTILIDAD DE EMAIL (Brevo SMTP) ---
+def send_email(to: str, subject: str, html_body: str):
+    if not SMTP_USER or not SMTP_PASSWORD:
+        print(f"[EMAIL] SMTP no configurado. No se envía a {to}: {subject}")
+        return
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"FASS Sistema <{SMTP_USER}>"
+    msg["To"] = to
+    msg.attach(MIMEText(html_body, "html"))
+    with smtplib.SMTP("smtp-relay.brevo.com", 587) as server:
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.sendmail(SMTP_USER, to, msg.as_string())
+
 # --- ENDPOINTS DE PACIENTES ---
 @app.get("/pacientes_unicos")
 async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header(None)):
@@ -132,18 +168,139 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
 
 # --- ENDPOINTS DE AUTENTICACIÓN ---
 @app.post("/register")
-async def register(request: LoginRequest):
+def register(request: RegisterRequest):
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        cursor.execute(f"SELECT username FROM usuarios WHERE username = {placeholder}", (request.username,))
+
+        # Verificar si ya tiene cuenta activa
+        cursor.execute(f"SELECT username FROM usuarios WHERE username = {placeholder}", (request.email,))
         if cursor.fetchone():
-            return {"success": False, "message": "El nombre de usuario ya existe"}
-        hashed_pw = hash_password(request.password) 
-        cursor.execute(f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})", (request.username, hashed_pw))
+            return {"success": False, "message": "Este correo ya tiene una cuenta activa."}
+
+        # Verificar solicitud previa
+        cursor.execute(f"SELECT status FROM solicitudes_registro WHERE email = {placeholder}", (request.email,))
+        existing = cursor.fetchone()
+        if existing:
+            if existing[0] == 'pending':
+                return {"success": False, "message": "Ya existe una solicitud pendiente para este correo. Espere la aprobación del administrador."}
+            # Si fue rechazada, permitir reenvío
+            cursor.execute(f"DELETE FROM solicitudes_registro WHERE email = {placeholder}", (request.email,))
+
+        token = secrets.token_urlsafe(32)
+        cursor.execute(
+            f"INSERT INTO solicitudes_registro (email, nombre, token) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (request.email, request.nombre, token)
+        )
         conn.commit()
-        return {"success": True, "message": "Registro completado"}
+
+        # Email al admin
+        approve_link = f"{BACKEND_URL}/approve/{token}"
+        send_email(
+            ADMIN_EMAIL,
+            f"[FASS] Nueva solicitud de acceso: {request.nombre}",
+            f"""
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px">
+                <h2 style="color:#1e293b">Nueva solicitud de registro en FASS</h2>
+                <table style="width:100%;border-collapse:collapse">
+                    <tr><td style="padding:8px;font-weight:bold">Nombre:</td><td style="padding:8px">{request.nombre}</td></tr>
+                    <tr><td style="padding:8px;font-weight:bold">Email:</td><td style="padding:8px">{request.email}</td></tr>
+                </table>
+                <br>
+                <a href="{approve_link}" style="background:#1e293b;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;display:inline-block;font-size:16px">
+                    ✅ Aprobar acceso
+                </a>
+                <p style="color:#94a3b8;font-size:12px;margin-top:20px">Si no reconoce esta solicitud, ignórela.</p>
+            </div>
+            """
+        )
+
+        return {"success": True, "message": "Solicitud enviada correctamente. Recibirá sus credenciales por correo cuando sea aprobado."}
+    except Exception as e:
+        if conn: conn.rollback()
+        return {"success": False, "message": f"Error al procesar la solicitud: {str(e)}"}
+    finally:
+        conn.close()
+
+
+@app.get("/approve/{token}", response_class=HTMLResponse)
+def approve_registration(token: str):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        cursor.execute(
+            f"SELECT email, nombre, status FROM solicitudes_registro WHERE token = {placeholder}",
+            (token,)
+        )
+        solicitud = cursor.fetchone()
+
+        if not solicitud:
+            return HTMLResponse(
+                "<html><body style='font-family:Arial;padding:40px;text-align:center'><h2>❌ Enlace inválido o expirado.</h2></body></html>",
+                status_code=404
+            )
+
+        email, nombre, status = solicitud
+
+        if status == 'approved':
+            return HTMLResponse(
+                f"<html><body style='font-family:Arial;padding:40px;text-align:center'><h2>ℹ️ Esta solicitud ya fue aprobada para <b>{email}</b>.</h2></body></html>"
+            )
+
+        # Generar contraseña aleatoria
+        password = secrets.token_urlsafe(10)
+        hashed_pw = hash_password(password)
+
+        # Crear usuario
+        cursor.execute(
+            f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})",
+            (email, hashed_pw)
+        )
+
+        # Marcar solicitud como aprobada
+        cursor.execute(
+            f"UPDATE solicitudes_registro SET status = 'approved' WHERE token = {placeholder}",
+            (token,)
+        )
+        conn.commit()
+
+        # Enviar credenciales al usuario
+        send_email(
+            email,
+            "[FASS] Tu acceso ha sido aprobado",
+            f"""
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px">
+                <h2 style="color:#1e293b">Bienvenido/a al Sistema FASS, {nombre}</h2>
+                <p>Tu solicitud de acceso ha sido aprobada. Aquí están tus credenciales de acceso:</p>
+                <div style="background:#f1f5f9;border-radius:8px;padding:20px;margin:20px 0">
+                    <p style="margin:6px 0"><b>Usuario (email):</b> {email}</p>
+                    <p style="margin:6px 0"><b>Contraseña:</b> <code style="font-size:1.2em;background:#e2e8f0;padding:4px 8px;border-radius:4px">{password}</code></p>
+                </div>
+                <a href="{FRONTEND_URL}" style="background:#1e293b;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;display:inline-block;font-size:16px">
+                    Acceder al sistema
+                </a>
+                <p style="color:#94a3b8;font-size:12px;margin-top:20px">Guarda tu contraseña en un lugar seguro.</p>
+            </div>
+            """
+        )
+
+        return HTMLResponse(f"""
+        <html>
+        <body style="font-family:Arial,sans-serif;padding:40px;text-align:center;background:#f8fafc">
+            <div style="max-width:500px;margin:auto;background:white;padding:40px;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.1)">
+                <h2 style="color:#1e293b">✅ Acceso aprobado</h2>
+                <p>Se ha aprobado el acceso para <b>{nombre}</b> ({email}).</p>
+                <p>Las credenciales han sido enviadas a su correo electrónico.</p>
+            </div>
+        </body>
+        </html>
+        """)
+    except Exception as e:
+        if conn: conn.rollback()
+        return HTMLResponse(f"<html><body style='font-family:Arial;padding:40px'><h2>Error: {str(e)}</h2></body></html>", status_code=500)
     finally:
         conn.close()
 
