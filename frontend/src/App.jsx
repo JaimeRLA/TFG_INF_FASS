@@ -228,7 +228,7 @@ const App = () => {
   if (!usuarioLogueado) return <Login onLoginSuccess={(username, nombre) => { setUsuarioLogueado(username); setNombreMedico(nombre); }} />;
 
   return (
-    <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
+    <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", system-ui, -apple-system, sans-serif' }}>
       
       <Navbar 
         tabActiva={tabActiva} 

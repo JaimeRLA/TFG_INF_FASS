@@ -84,52 +84,40 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
   const StatCard = ({ icon: Icon, label, value, color, trend, subtitle }) => (
     <div style={{ 
       backgroundColor: '#fff',
-      borderRadius: '16px',
-      padding: '24px',
+      borderRadius: '8px',
+      padding: '20px',
       border: '1px solid #e2e8f0',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-      cursor: 'pointer'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-4px)';
-      e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.08)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-    }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div style={{ 
-          backgroundColor: `${color}15`, 
-          padding: '12px', 
-          borderRadius: '12px' 
+          backgroundColor: '#f1f5f9', 
+          padding: '8px', 
+          borderRadius: '6px' 
         }}>
-          <Icon size={24} color={color} />
+          <Icon size={18} color={color} />
         </div>
         {trend && (
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '4px',
-            fontSize: '0.85rem',
-            color: trend > 0 ? '#16a34a' : '#dc2626',
+            fontSize: '0.8rem',
+            color: trend > 0 ? '#15803d' : '#b91c1c',
             fontWeight: '600'
           }}>
-            {trend > 0 ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+            {trend > 0 ? <ArrowUpCircle size={14} /> : <ArrowDownCircle size={14} />}
             {Math.abs(trend)}%
           </div>
         )}
       </div>
-      <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', marginBottom: '4px' }}>
+      <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0f172a', marginBottom: '2px', lineHeight: 1 }}>
         {value}
       </div>
-      <div style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: '500' }}>
+      <div style={{ fontSize: '0.825rem', color: '#475569', fontWeight: '600', marginTop: '4px' }}>
         {label}
       </div>
       {subtitle && (
-        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '8px' }}>
+        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
           {subtitle}
         </div>
       )}
@@ -247,24 +235,22 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
   };
 
   return (
-    <div style={{...styles.infoCard, backgroundColor: '#ffffff', color: '#1e293b'}}>
+    <div style={{...styles.infoCard}}>
 
-      {/* CABECERA con separador — igual que AboutView / PuntuacionView */}
-      <div style={{ borderBottom: '2px solid #f1f5f9', paddingBottom: '20px', marginBottom: '25px' }}>
+      {/* CABECERA */}
+      <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
-              <BarChart3 size={28} /> Dashboard Clínico
+            <p style={{ fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.08em', color: '#94a3b8', textTransform: 'uppercase', margin: '0 0 6px 0' }}>Estadísticas</p>
+            <h2 style={{ color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px', margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>
+              <BarChart3 size={20} color="#1d4ed8" /> Dashboard Clínico
             </h2>
-            <p style={{ color: '#64748b', marginTop: '8px', fontSize: '1rem', margin: '8px 0 0 0' }}>
-              Estadísticas de tus pacientes con alergias alimentarias
-            </p>
           </div>
 
           {/* SELECTOR DE RANGO TEMPORAL */}
           <div style={{ 
-            display: 'flex', gap: '6px', backgroundColor: '#f8fafc', 
-            padding: '5px', borderRadius: '12px', border: '1px solid #e2e8f0'
+            display: 'flex', gap: '2px', backgroundColor: '#f1f5f9', 
+            padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0'
           }}>
             {[
               { value: 'all', label: 'Todo' },
@@ -276,14 +262,14 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
                 key={option.value}
                 onClick={() => setTimeRange(option.value)}
                 style={{
-                  padding: '7px 14px', borderRadius: '8px', border: 'none',
-                  fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  backgroundColor: timeRange === option.value ? '#1e293b' : 'transparent',
-                  color: timeRange === option.value ? '#fff' : '#64748b'
+                  padding: '5px 12px', borderRadius: '4px', border: 'none',
+                  fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  backgroundColor: timeRange === option.value ? '#0f172a' : 'transparent',
+                  color: timeRange === option.value ? '#fff' : '#64748b',
+                  fontFamily: '"Inter", sans-serif'
                 }}
               >
-                <Calendar size={13} style={{ marginRight: '5px', verticalAlign: 'middle' }} />
                 {option.label}
               </button>
             ))}
@@ -302,45 +288,39 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
         <StatCard icon={TrendingUp}    label="nFASS Promedio"        value={stats?.avg_nfass?.toFixed(2) || '0.00'}  color="#f59e0b" subtitle="Score medio de severidad" />
       </div>
 
-      {/* GRÁFICOS — mismos rebordes que las pestañas de info */}
+      {/* GRÁFICOS */}
       <div style={{ 
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', 
-        gap: '20px', marginBottom: '25px'
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', 
+        gap: '16px', marginBottom: '16px'
       }}>
-        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px' }}>
           <PieChart label="Distribución por Severidad" data={stats?.severity_distribution || []} />
         </div>
-        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px' }}>
           <BarChart label="Alérgenos Más Frecuentes" data={stats?.top_allergens || []} />
         </div>
-        <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px' }}>
           <BarChart label="Sistemas Orgánicos Afectados" data={stats?.affected_systems || []} />
         </div>
       </div>
 
       {/* ACCIONES RÁPIDAS */}
-      <div style={{ padding: '20px', border: '1px solid #e2e8f0', borderRadius: '16px', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Activity size={20} color="#2563eb" /> Acciones Rápidas
-        </h3>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <span style={{ fontSize: '0.875rem', color: '#475569', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Activity size={16} color="#1d4ed8" /> Acciones rápidas
+        </span>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setTabActiva('app')}
-            style={{ ...styles.primaryBtn, display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={styles.actionBtnBlue}
           >
-            <Users size={18} /> Nueva Evaluación
+            Nueva Evaluación
           </button>
           <button 
             onClick={cargarEstadisticas}
-            style={{
-              padding: '12px 24px', borderRadius: '10px', border: '1px solid #e2e8f0',
-              backgroundColor: '#fff', color: '#475569', fontWeight: '600', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}
+            style={styles.actionBtnGray}
           >
-            <RefreshCw size={18} /> Actualizar Datos
+            <RefreshCw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />Actualizar
           </button>
         </div>
       </div>

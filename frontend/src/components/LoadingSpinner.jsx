@@ -37,7 +37,7 @@ const LoadingSpinner = ({ size = 'medium', message = 'Cargando...', fullScreen =
       <div style={spinnerStyle}>
         <Loader2 
           size={spinnerSize} 
-          color="#2563eb" 
+          color="#1d4ed8" 
           style={{ animation: 'spin 1s linear infinite' }}
         />
         {message && (

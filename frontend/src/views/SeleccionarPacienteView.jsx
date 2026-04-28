@@ -31,46 +31,43 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
         ← Volver a Menú
       </button>
 
-      <div style={{ ...styles.cardStyle, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+      <div style={styles.cardStyle}>
         
-        {/* Cabecera con Icono Verde y Etiqueta RGPD */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ backgroundColor: '#f0fdf4', padding: '12px', borderRadius: '12px' }}>
-              <Users color="#16a34a" size={32} />
-            </div>
+        {/* Cabecera */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Users color="#1d4ed8" size={18} />
             <div>
-              <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
                 Localizar Paciente
               </h3>
-              <p style={{ fontSize: '0.95rem', color: '#64748b', margin: '4px 0 0' }}>
-                Introduzca el <strong>NHC real</strong> para realizar una búsqueda de paciente.
+              <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0' }}>
+                Introduzca el <strong>NHC real</strong> para buscar al paciente.
               </p>
             </div>
           </div>
 
-          {/* ETIQUETA RGPD VERDE */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '5px', 
             fontSize: '0.75rem', 
-            color: '#16a34a', 
+            color: '#15803d', 
             backgroundColor: '#f0fdf4', 
-            padding: '6px 14px', 
-            borderRadius: '20px',
-            border: '1px solid #dcfce7',
-            fontWeight: '700'
+            padding: '4px 10px', 
+            borderRadius: '4px',
+            border: '1px solid #bbf7d0',
+            fontWeight: '600'
           }}>
-            <ShieldCheck size={14} /> RGPD: Datos Protegidos
+            <ShieldCheck size={13} /> RGPD: Datos Protegidos
           </div>
         </div>
 
         {/* BUSCADOR */}
-        <div style={{ position: 'relative', marginBottom: '35px' }}>
+        <div style={{ position: 'relative', marginBottom: '16px' }}>
           <Search 
-            style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
-            size={22} 
+            style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
+            size={15} 
           />
           <input
             type="text"
@@ -79,18 +76,16 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
             onChange={(e) => setBusqueda(e.target.value)}
             style={{ 
               width: '100%',
-              padding: '16px 16px 16px 50px',
+              padding: '9px 12px 9px 36px',
               border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              fontSize: '1.05rem',
+              borderRadius: '6px',
+              fontSize: '0.875rem',
               outline: 'none',
-              transition: 'all 0.2s ease',
               boxSizing: 'border-box',
               backgroundColor: '#ffffff', 
-              color: '#1e293b'
+              color: '#0f172a',
+              fontFamily: '"Inter", sans-serif'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#16a34a'}
-            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
           />
         </div>
 
@@ -102,22 +97,46 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
                 key={index} 
                 onClick={() => seleccionarPacienteExistente(p)}
                 style={{
-                  padding: '20px',
-                  borderRadius: '14px',
-                  border: '1px solid #f1f5f9',
+                  padding: '12px 16px',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
                   backgroundColor: '#fff',
                   cursor: 'pointer',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  transition: 'all 0.2s ease'
+                  transition: 'border-color 0.15s'
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#16a34a';
-                    e.currentTarget.style.backgroundColor = '#f0fdf4';
+                    e.currentTarget.style.borderColor = '#93c5fd';
+                    e.currentTarget.style.backgroundColor = '#f8fafc';
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#f1f5f9';
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.backgroundColor = '#fff';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Fingerprint size={16} color="#475569" />
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#0f172a', fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                      {p.nhc_hash ? p.nhc_hash.substring(0, 16) : (p.id ? String(p.id).substring(0,16) : '---')}...
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px', display: 'flex', gap: '10px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <User size={12} /> {p.genero === 'M' ? 'Masc.' : 'Fem.'}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <Calendar size={12} /> {p.rango_edad}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#1d4ed8', fontWeight: '600', fontSize: '0.8rem' }}>
+                  <span>Seleccionar</span>
+                  <ArrowRight size={15} />
+                </div>
+              </div>
                     e.currentTarget.style.backgroundColor = '#fff';
                 }}
               >
@@ -149,13 +168,13 @@ const SeleccionarPacienteView = ({ listaPacientes, seleccionarPacienteExistente,
           ) : (
             <div style={{ 
               textAlign: 'center', 
-              padding: '50px', 
+              padding: '40px', 
               color: '#94a3b8', 
-              background: '#f8fafc', 
-              borderRadius: '16px', 
-              border: '2px dashed #e2e8f0' 
+              background: '#fafafa', 
+              borderRadius: '6px', 
+              border: '1px dashed #cbd5e1' 
             }}>
-              <p style={{ fontSize: '1.1rem', margin: 0 }}>No hay pacientes que coincidan.</p>
+              <p style={{ fontSize: '0.875rem', margin: 0 }}>No hay pacientes que coincidan.</p>
             </div>
           )}
         </div>

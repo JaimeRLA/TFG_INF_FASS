@@ -105,62 +105,59 @@ const ChatBot = () => {
 
   return (
     <div style={{ 
-      position: 'fixed', bottom: '25px', right: '25px', width: '420px', 
-      backgroundColor: '#fff', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', 
+      position: 'fixed', bottom: '20px', right: '20px', width: '400px', 
+      backgroundColor: '#fff', borderRadius: '8px',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)', 
       overflow: 'hidden', border: '1px solid #e2e8f0', zIndex: 1000, 
-      display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease',
-      transform: minimizado ? 'translateY(10px)' : 'translateY(0)',
-      maxHeight: minimizado ? '60px' : '600px'
+      display: 'flex', flexDirection: 'column', transition: 'max-height 0.25s ease',
+      maxHeight: minimizado ? '48px' : '560px'
     }}>
       {/* HEADER */}
       <div 
         onClick={() => setMinimizado(!minimizado)}
         style={{ 
-          backgroundColor: '#1e293b', color: '#fff', padding: '16px 20px', 
-          fontWeight: '700', display: 'flex', alignItems: 'center', 
-          justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none'
+          backgroundColor: '#0f172a', color: '#fff', padding: '12px 16px', 
+          fontWeight: '600', fontSize: '0.875rem',
+          display: 'flex', alignItems: 'center', 
+          justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none',
+          flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <MessageSquare size={18} color="#94a3b8" />
-          <div style={{ position: 'relative' }}>
-            Asistente Clínico FASS
-            <div style={{ 
-              position: 'absolute', top: '-2px', right: '-12px', 
-              width: '8px', height: '8px', borderRadius: '50%', 
-              backgroundColor: '#4ade80', border: '2px solid #1e293b' 
-            }}></div>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MessageSquare size={15} color="#93c5fd" />
+          <span>Asistente Clínico FASS</span>
+          <div style={{ 
+            width: '6px', height: '6px', borderRadius: '50%', 
+            backgroundColor: '#4ade80',
+          }}></div>
         </div>
-        <span style={{ fontSize: '24px', lineHeight: '0' }}>
-          {minimizado ? '+' : '−'}
+        <span style={{ fontSize: '16px', lineHeight: '1', color: '#94a3b8' }}>
+          {minimizado ? '▲' : '▼'}
         </span>
       </div>
 
       {!minimizado && (
         <>
           <div style={{ 
-            height: '480px', 
+            height: '420px', 
             overflowY: 'auto', 
-            padding: '20px', 
+            padding: '16px', 
             backgroundColor: '#f8fafc',
             scrollBehavior: 'smooth'
           }}>
             {mensajes.map((m, i) => (
               <div key={i} style={{ 
-                marginBottom: '18px', 
+                marginBottom: '12px', 
                 textAlign: m.rol === 'user' ? 'right' : 'left',
-                animation: 'fadeIn 0.3s ease-in'
               }}>
                 <div style={{ 
                   display: 'inline-block', 
-                  padding: '14px 18px', 
-                  borderRadius: m.rol === 'user' ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
-                  backgroundColor: m.rol === 'user' ? '#1e293b' : '#fff',
-                  color: m.rol === 'user' ? '#fff' : '#1e293b',
-                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', 
+                  padding: '10px 14px', 
+                  borderRadius: m.rol === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                  backgroundColor: m.rol === 'user' ? '#0f172a' : '#fff',
+                  color: m.rol === 'user' ? '#fff' : '#0f172a',
                   maxWidth: '88%', 
-                  fontSize: '0.88rem', 
+                  fontSize: '0.85rem', 
                   lineHeight: '1.6',
                   border: m.rol === 'bot' ? '1px solid #e2e8f0' : 'none',
                   textAlign: 'left',
@@ -172,15 +169,15 @@ const ChatBot = () => {
               </div>
             ))}
             {cargandoChat && (
-              <div style={{ display: 'flex', gap: '8px', padding: '10px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px', padding: '8px', alignItems: 'center' }}>
                 <div style={{ 
-                  width: '8px', 
-                  height: '8px', 
+                  width: '6px', 
+                  height: '6px', 
                   borderRadius: '50%', 
-                  backgroundColor: '#2563eb',
+                  backgroundColor: '#1d4ed8',
                   animation: 'pulse 1.5s ease-in-out infinite' 
                 }}></div>
-                <div style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>
                   Generando respuesta clínica...
                 </div>
               </div>
@@ -190,21 +187,22 @@ const ChatBot = () => {
           
           <div style={{ 
             display: 'flex', 
-            padding: '15px', 
-            gap: '10px', 
-            borderTop: '1px solid #f1f5f9', 
+            padding: '10px 12px', 
+            gap: '8px', 
+            borderTop: '1px solid #e2e8f0', 
             backgroundColor: '#fff' 
           }}>
             <input 
               style={{ 
                 flex: 1, 
                 border: '1px solid #e2e8f0', 
-                padding: '12px 15px', 
-                borderRadius: '12px', 
+                padding: '8px 12px', 
+                borderRadius: '6px', 
                 outline: 'none', 
-                fontSize: '0.9rem',
-                backgroundColor: '#f1f5f9', 
-                color: '#1e293b'
+                fontSize: '0.875rem',
+                backgroundColor: '#f8fafc', 
+                color: '#0f172a',
+                fontFamily: '"Inter", sans-serif'
               }} 
               placeholder="Pregunta sobre alergias o score FASS..." 
               value={chatInput}
@@ -215,21 +213,18 @@ const ChatBot = () => {
               onClick={handleChat} 
               disabled={!chatInput.trim() || cargandoChat}
               style={{ 
-                backgroundColor: chatInput.trim() && !cargandoChat ? '#1e293b' : '#94a3b8', 
+                backgroundColor: chatInput.trim() && !cargandoChat ? '#0f172a' : '#94a3b8', 
                 color: '#fff', 
                 border: 'none', 
-                borderRadius: '12px', 
-                padding: '12px', 
+                borderRadius: '6px', 
+                padding: '8px 10px', 
                 cursor: chatInput.trim() && !cargandoChat ? 'pointer' : 'not-allowed', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                transition: 'all 0.2s'
               }}
-              onMouseOver={(e) => chatInput.trim() && !cargandoChat && (e.currentTarget.style.opacity = '0.9')}
-              onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
             >
-              <Send size={18} />
+              <Send size={15} />
             </button>
           </div>
 

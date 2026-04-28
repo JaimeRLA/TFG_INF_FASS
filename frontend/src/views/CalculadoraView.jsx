@@ -28,15 +28,13 @@ const CalculadoraView = ({
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      marginBottom: '20px',
-      padding: '10px 15px',
-      backgroundColor: '#eff6ff',
-      borderLeft: '4px solid #2563eb',
-      borderRadius: '0 8px 8px 0'
+      gap: '8px',
+      marginBottom: '16px',
+      paddingBottom: '8px',
+      borderBottom: '1px solid #e2e8f0',
     }}>
-      <Icon size={20} color="#2563eb" />
-      <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#1e40af', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <Icon size={15} color="#1d4ed8" />
+      <h4 style={{ margin: 0, fontSize: '0.7rem', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         {title}
       </h4>
     </div>

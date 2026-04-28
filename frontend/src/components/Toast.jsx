@@ -45,17 +45,19 @@ const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
       top: '20px',
       right: '20px',
       zIndex: 9999,
-      backgroundColor: config.bg,
-      border: `2px solid ${config.border}`,
-      borderRadius: '12px',
-      padding: '16px 20px',
-      minWidth: '300px',
-      maxWidth: '500px',
-      boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+      backgroundColor: '#ffffff',
+      border: `1px solid ${config.border}`,
+      borderLeft: `3px solid ${config.border}`,
+      borderRadius: '6px',
+      padding: '12px 16px',
+      minWidth: '280px',
+      maxWidth: '440px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
-      animation: 'slideIn 0.3s ease-out'
+      gap: '10px',
+      animation: 'slideIn 0.2s ease-out',
+      fontFamily: '"Inter", system-ui, sans-serif'
     }}>
       <Icon size={22} color={config.border} style={{ flexShrink: 0 }} />
       <p style={{ 
