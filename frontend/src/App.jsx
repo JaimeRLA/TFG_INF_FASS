@@ -31,6 +31,7 @@ const App = () => {
   const [tabActiva, setTabActiva] = useState('app'); 
   const [view, setView] = useState('perfil');
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
+  const [nombreMedico, setNombreMedico] = useState('');
 
   // --- ESTADOS DE DATOS ---
   const [esPacienteExistente, setEsPacienteExistente] = useState(false);
@@ -224,7 +225,7 @@ const App = () => {
     }
   };
 
-  if (!usuarioLogueado) return <Login onLoginSuccess={setUsuarioLogueado} />;
+  if (!usuarioLogueado) return <Login onLoginSuccess={(username, nombre) => { setUsuarioLogueado(username); setNombreMedico(nombre); }} />;
 
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", sans-serif' }}>
@@ -245,7 +246,7 @@ const App = () => {
                 setView={setView} 
                 cargarPacientesExistentes={cargarPacientesExistentes} 
                 cargarHistorial={cargarHistorial}
-                usuarioLogueado={usuarioLogueado}
+                usuarioLogueado={nombreMedico || usuarioLogueado}
               />
             )}
 

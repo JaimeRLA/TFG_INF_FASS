@@ -43,11 +43,12 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial, usuario
     <div style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 20px' }}>
 
       {/* BIENVENIDA */}
-      <div style={{ marginBottom: '35px' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: '800', color: '#1e293b', margin: '0 0 6px 0' }}>
-          Bienvenido, <span style={{ color: '#2563eb' }}>{usuarioLogueado}</span>
-        </h2>
-        <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>
+      <div style={{ marginBottom: '28px' }}>
+        <p style={{ fontSize: '1rem', color: '#64748b', margin: '0 0 2px 0', fontWeight: '500' }}>
+          Bienvenido/a,{' '}
+          <span style={{ color: '#1e293b', fontWeight: '700' }}>{usuarioLogueado}</span>
+        </p>
+        <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
           ¿Qué desea hacer hoy?
         </p>
       </div>

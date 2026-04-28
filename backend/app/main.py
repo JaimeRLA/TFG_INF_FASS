@@ -323,8 +323,12 @@ async def login(request: LoginRequest):
         placeholder = "%s" if DATABASE_URL else "?"
         cursor.execute(f"SELECT username, password FROM usuarios WHERE username = {placeholder}", (request.username,))
         user = cursor.fetchone()
-        if user and verify_password(request.password, user[1]): 
-            return {"success": True, "username": user[0]}
+        if user and verify_password(request.password, user[1]):
+            # Buscar el nombre en solicitudes_registro
+            cursor.execute(f"SELECT nombre FROM solicitudes_registro WHERE email = {placeholder}", (request.username,))
+            sol = cursor.fetchone()
+            nombre = sol[0] if sol else request.username
+            return {"success": True, "username": user[0], "nombre": nombre}
         return {"success": False, "message": "Credenciales inválidas"}
     finally:
         conn.close()
