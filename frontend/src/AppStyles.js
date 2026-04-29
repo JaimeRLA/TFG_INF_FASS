@@ -271,6 +271,7 @@ export const styles = {
   calcBtn: {
     width: '100%',
     padding: '12px',
+    minHeight: '44px',
     backgroundColor: C.brand,
     color: '#fff',
     border: 'none',
@@ -482,6 +483,7 @@ export const styles = {
   loginButton: {
     width: '100%',
     padding: '11px',
+    minHeight: '44px',
     backgroundColor: C.navy,
     color: '#ffffff',
     border: 'none',
