@@ -407,7 +407,6 @@ export const styles = {
     padding: '6px 14px',
     borderRadius: '0',
     border: 'none',
-    outline: 'none',
     borderBottom: '2px solid #fff',
     backgroundColor: 'transparent',
     color: '#ffffff',
@@ -424,7 +423,6 @@ export const styles = {
     padding: '6px 14px',
     borderRadius: '0',
     border: 'none',
-    outline: 'none',
     borderBottom: '2px solid transparent',
     backgroundColor: 'transparent',
     color: '#94a3b8',
@@ -502,7 +500,6 @@ export const styles = {
   loginToggleBtn: {
     background: 'none',
     border: 'none',
-    outline: 'none',
     color: C.brand,
     marginTop: '20px',
     cursor: 'pointer',

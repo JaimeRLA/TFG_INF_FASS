@@ -20,7 +20,9 @@ const Navbar = ({ tabActiva, setTabActiva, setUsuarioLogueado }) => {
       </div>
 
       {/* NAVEGACIÓN POR PESTAÑAS — underline style */}
-      <nav style={{
+      <nav
+        aria-label="Navegación principal"
+        style={{
         display: 'flex',
         height: '100%',
         alignItems: 'stretch',
@@ -35,6 +37,7 @@ const Navbar = ({ tabActiva, setTabActiva, setUsuarioLogueado }) => {
           <button
             key={key}
             onClick={() => setTabActiva(key)}
+            aria-current={tabActiva === key ? 'page' : undefined}
             style={{
               ...( tabActiva === key ? styles.tabActive : styles.tabInactive ),
               height: '100%',
@@ -50,6 +53,7 @@ const Navbar = ({ tabActiva, setTabActiva, setUsuarioLogueado }) => {
       {/* SALIR */}
       <button
         onClick={() => setUsuarioLogueado(null)}
+        aria-label="Cerrar sesión"
         style={styles.logoutBtn}
       >
         <LogOut size={15} /> Salir

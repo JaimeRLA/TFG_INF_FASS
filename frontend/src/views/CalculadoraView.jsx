@@ -160,7 +160,8 @@ const CalculadoraView = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           <button 
-            onClick={reiniciarApp} 
+            onClick={reiniciarApp}
+            aria-label="Finalizar evaluación y guardar sesión"
             style={{ 
               padding: '10px 16px',
               borderRadius: '6px',

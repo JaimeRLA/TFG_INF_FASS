@@ -54,9 +54,18 @@ button {
 button:hover {
   border-color: #646cff;
 }
-button:focus,
+button:focus {
+  outline: none;
+}
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 1px;
 }
 
 @media (prefers-color-scheme: light) {

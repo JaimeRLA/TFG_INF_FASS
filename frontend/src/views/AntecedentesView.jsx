@@ -90,6 +90,7 @@ const AntecedentesView = ({
             <button
               key={op}
               onClick={() => handleCuestionario(id, valEnvio)}
+              aria-pressed={cuestionario[id] === valEnvio}
               style={{
                 padding: '4px 12px',
                 borderRadius: '3px',

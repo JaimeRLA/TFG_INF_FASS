@@ -63,6 +63,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
             <button
               key={op}
               onClick={() => handleEvento(id, valEnvio)}
+              aria-pressed={evento[id] === valEnvio}
               style={{
                 padding: '4px 12px',
                 borderRadius: '3px',
