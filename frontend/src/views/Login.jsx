@@ -78,8 +78,9 @@ const Login = ({ onLoginSuccess }) => {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         padding: '64px',
+        paddingTop: '48px',
         borderRight: '1px solid #1e293b',
         display: window.innerWidth < 800 ? 'none' : 'flex',
       }}>

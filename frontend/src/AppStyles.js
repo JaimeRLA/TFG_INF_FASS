@@ -500,6 +500,7 @@ export const styles = {
   loginToggleBtn: {
     background: 'none',
     border: 'none',
+    outline: 'none',
     color: C.brand,
     marginTop: '20px',
     cursor: 'pointer',
