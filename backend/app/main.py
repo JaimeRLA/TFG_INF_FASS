@@ -141,7 +141,7 @@ def send_email(to: str, subject: str, html_body: str):
         msg["From"] = f"FASS Sistema <{FROM_EMAIL}>"
         msg["To"] = to
         msg.attach(MIMEText(html_body, "html"))
-        with smtplib.SMTP("smtp-relay.brevo.com", 587) as server:
+        with smtplib.SMTP("smtp-relay.brevo.com", 2525, timeout=15) as server:
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(FROM_EMAIL, to, msg.as_string())
