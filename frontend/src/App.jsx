@@ -30,8 +30,12 @@ const App = () => {
   // --- ESTADOS DE NAVEGACIÓN ---
   const [tabActiva, setTabActiva] = useState('app'); 
   const [view, setView] = useState('perfil');
-  const [usuarioLogueado, setUsuarioLogueado] = useState(null);
-  const [nombreMedico, setNombreMedico] = useState('');
+  const [usuarioLogueado, setUsuarioLogueado] = useState(
+    () => sessionStorage.getItem('fass_usuario') || null
+  );
+  const [nombreMedico, setNombreMedico] = useState(
+    () => sessionStorage.getItem('fass_nombre') || ''
+  );
 
   // --- ESTADOS DE DATOS ---
   const [esPacienteExistente, setEsPacienteExistente] = useState(false);
@@ -241,7 +245,21 @@ const App = () => {
     }
   };
 
-  if (!usuarioLogueado) return <Login onLoginSuccess={(username, nombre) => { setUsuarioLogueado(username); setNombreMedico(nombre); }} />;
+  const handleLoginSuccess = (username, nombre) => {
+    sessionStorage.setItem('fass_usuario', username);
+    sessionStorage.setItem('fass_nombre', nombre);
+    setUsuarioLogueado(username);
+    setNombreMedico(nombre);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('fass_usuario');
+    sessionStorage.removeItem('fass_nombre');
+    setUsuarioLogueado(null);
+    setNombreMedico('');
+  };
+
+  if (!usuarioLogueado) return <Login onLoginSuccess={handleLoginSuccess} />;
 
   return (
     <div style={{ width: '100vw', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: '"Inter", system-ui, -apple-system, sans-serif' }}>
@@ -249,7 +267,7 @@ const App = () => {
       <Navbar 
         tabActiva={tabActiva} 
         setTabActiva={setTabActiva} 
-        setUsuarioLogueado={setUsuarioLogueado} 
+        setUsuarioLogueado={handleLogout} 
       />
 
       <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
