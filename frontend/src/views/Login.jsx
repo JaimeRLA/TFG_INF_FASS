@@ -90,10 +90,10 @@ const Login = ({ onLoginSuccess }) => {
           </span>
         </div>
         <h1 style={{ color: '#f1f5f9', fontSize: '2rem', fontWeight: '700', lineHeight: 1.3, margin: '0 0 16px 0' }}>
-          Escala de Riesgo<br />de Anafilaxia FASS
+          Escala de Severidad<br />de Alergia Alimentaria FASS
         </h1>
         <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.7, maxWidth: '380px', margin: '0 0 40px 0' }}>
-          Plataforma clínica para la evaluación y seguimiento del riesgo de anafilaxia en pacientes alérgicos.
+          Plataforma clínica para la evaluación y almacenamiento de datos de pacientes con alergias alimentarias.
           Datos protegidos según normativa RGPD.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

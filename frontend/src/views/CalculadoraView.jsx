@@ -68,15 +68,13 @@ const CalculadoraView = ({
           ← Volver a Event Record
         </button>
 
-        <div style={{ ...styles.cardStyle, padding: '35px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ backgroundColor: '#eff6ff', padding: '12px', borderRadius: '12px' }}>
-                <Stethoscope color="#2563eb" size={28} />
-              </div>
+        <div style={{ ...styles.cardStyle, padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Stethoscope color="#1d4ed8" size={20} />
               <div>
-                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Evaluación de Síntomas</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>Seleccione los hallazgos clínicos observados</p>
+                <p style={{ fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.08em', color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Evaluación clínica</p>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', margin: '2px 0 0' }}>Evaluación de Síntomas</h3>
               </div>
             </div>
             
@@ -99,11 +97,11 @@ const CalculadoraView = ({
               <SectionHeader icon={Activity} title={sec.titulo} />
               <div style={{ 
                 display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-                gap: '20px'
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '12px'
               }}>
                 {sec.grupos.map(grupo => (
-                  <div key={grupo.id_base} style={{ padding: '15px', borderRadius: '12px', border: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+                  <div key={grupo.id_base} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#fafafa' }}>
                     <label style={{ ...styles.labelStyle, marginBottom: '10px', display: 'block', fontSize: '0.85rem' }}>
                       {grupo.label}
                     </label>
@@ -126,9 +124,9 @@ const CalculadoraView = ({
             style={{ 
               ...styles.calcBtn, 
               width: '100%', 
-              padding: '20px', 
-              borderRadius: '15px', 
-              backgroundColor: isCalculating ? '#94a3b8' : '#2563eb',
+              padding: '12px', 
+              borderRadius: '6px',
+              backgroundColor: isCalculating ? '#94a3b8' : '#0f172a',
               cursor: isCalculating ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -153,8 +151,8 @@ const CalculadoraView = ({
 
       {/* COLUMNA DERECHA: RESULTADOS (FIJA) */}
       <aside style={{ 
-        width: '500px', 
-        minWidth: '500px', 
+        width: '420px', 
+        minWidth: '420px', 
         position: 'sticky', 
         top: '20px', 
         alignSelf: 'flex-start' 
@@ -164,20 +162,18 @@ const CalculadoraView = ({
           <button 
             onClick={reiniciarApp} 
             style={{ 
-              padding: '18px',
-              borderRadius: '18px',
+              padding: '10px 16px',
+              borderRadius: '6px',
               border: 'none',
-              backgroundColor: '#1e293b',
+              backgroundColor: '#0f172a',
               color: '#fff',
-              fontWeight: '800',
-              fontSize: '1rem',
+              fontWeight: '600',
+              fontSize: '0.875rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '10px',
+              gap: '8px',
               cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-              transition: 'all 0.2s'
             }}
           >
             <XCircle size={22} /> Finalizar y Guardar Sesión
@@ -187,8 +183,8 @@ const CalculadoraView = ({
             <div style={{ animation: 'slideInRight 0.4s ease' }}>
               <ResultadoCard resultado={resultado} />
               <div style={{ 
-                marginTop: '15px', padding: '15px', backgroundColor: '#ecfdf5', 
-                borderRadius: '12px', border: '1px solid #d1fae5', display: 'flex', gap: '8px', alignItems: 'center' 
+                marginTop: '12px', padding: '10px 14px', backgroundColor: '#f0fdf4', 
+                borderRadius: '6px', border: '1px solid #d1fae5', display: 'flex', gap: '8px', alignItems: 'center' 
               }}>
                 <CheckCircle2 size={18} color="#059669" />
                 <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: '700' }}>
@@ -198,8 +194,8 @@ const CalculadoraView = ({
             </div>
           ) : (
             <div style={{ 
-              padding: '100px 20px', border: '2px dashed #cbd5e1', borderRadius: '24px', 
-              backgroundColor: '#fff', textAlign: 'center', color: '#94a3b8' 
+              padding: '60px 20px', border: '1px dashed #cbd5e1', borderRadius: '8px', 
+              backgroundColor: '#fafafa', textAlign: 'center', color: '#94a3b8' 
             }}>
               <FileText size={50} strokeWidth={1} style={{ marginBottom: '10px' }} />
               <p style={{ fontWeight: '600' }}>Seleccione síntomas para evaluar</p>

@@ -80,25 +80,24 @@ const AntecedentesView = ({
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '8px 0',
-      borderBottom: '1px solid #f1f5f9'
+      borderBottom: '1px solid #e2e8f0'
     }}>
-      <span style={{ fontSize: '0.95rem', color: '#475569', fontWeight: '500' }}>{label}</span>
-      <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
+      <span style={{ fontSize: '0.875rem', color: '#475569', fontWeight: '500' }}>{label}</span>
+      <div style={{ display: 'flex', gap: '2px', backgroundColor: '#f1f5f9', padding: '2px', borderRadius: '4px' }}>
         {['Sí', 'No'].map(op => {
-          const valEnvio = op === 'Sí' ? 'Yes' : 'No'; // Mantenemos valor interno en inglés para la DB si es necesario, pero mostramos español
+          const valEnvio = op === 'Sí' ? 'Yes' : 'No';
           return (
             <button
               key={op}
               onClick={() => handleCuestionario(id, valEnvio)}
               style={{
-                padding: '5px 15px',
-                borderRadius: '6px',
+                padding: '4px 12px',
+                borderRadius: '3px',
                 border: 'none',
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.2s',
-                backgroundColor: cuestionario[id] === valEnvio ? (valEnvio === 'Yes' ? '#2563eb' : '#64748b') : 'transparent',
+                backgroundColor: cuestionario[id] === valEnvio ? (valEnvio === 'Yes' ? '#0f172a' : '#475569') : 'transparent',
                 color: cuestionario[id] === valEnvio ? '#fff' : '#64748b',
               }}
             >
@@ -114,15 +113,13 @@ const AntecedentesView = ({
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      marginBottom: '20px',
-      padding: '10px 15px',
-      backgroundColor: '#f8fafc',
-      borderLeft: '4px solid #2563eb',
-      borderRadius: '0 8px 8px 0'
+      gap: '8px',
+      marginBottom: '16px',
+      paddingBottom: '8px',
+      borderBottom: '1px solid #e2e8f0',
     }}>
-      <Icon size={20} color="#2563eb" />
-      <h4 style={{ margin: 0, fontSize: '1rem', color: '#1e293b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <Icon size={15} color="#1d4ed8" />
+      <h4 style={{ margin: 0, fontSize: '0.7rem', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         {title}
       </h4>
     </div>
@@ -132,17 +129,20 @@ const AntecedentesView = ({
     <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.4s ease' }}>
       <button onClick={() => setView('perfil')} style={styles.backBtn}>← Volver al Menú</button>
       
-      <div style={{ ...styles.cardStyle, padding: '40px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ backgroundColor: '#eff6ff', width: '60px', height: '60px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-            <ClipboardCheck color="#2563eb" size={32} />
+      <div style={{ ...styles.cardStyle, padding: '28px' }}>
+        <div style={{ marginBottom: '28px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <ClipboardCheck color="#1d4ed8" size={20} />
+            <div>
+              <p style={{ fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.08em', color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Registro de paciente</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', margin: '2px 0 0' }}>Antecedentes del Paciente</h3>
+            </div>
           </div>
-          <h3 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Antecedentes del Paciente</h3>
-          <p style={{ color: '#64748b', marginTop: '5px' }}>Complete el perfil clínico previo a la evaluación de síntomas</p>
+          <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '8px 0 0 30px' }}>Complete el perfil clínico previo a la evaluación de síntomas</p>
         </div>
 
         {/* SECCIÓN 1: IDENTIFICACIÓN */}
-        <div style={{ marginBottom: '45px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <SectionHeader icon={User} title="Identificación del Paciente" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
             <div>
@@ -213,13 +213,13 @@ const AntecedentesView = ({
         </div>
 
         {/* SECCIÓN 2: ALERGIAS CONOCIDAS */}
-        <div style={{ marginBottom: '45px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <SectionHeader icon={ShieldAlert} title="Alergias y Reacciones Conocidas" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <PreguntaClinicaLocal id="q1" label="¿Tiene alguna alergia confirmada?" />
             {cuestionario.q1 === 'Yes' && (
               <textarea 
-                style={{ ...styles.detailInput, border: '1px solid #2563eb', backgroundColor: '#f0f7ff' }} 
+                style={{ ...styles.detailInput }} 
                 placeholder="Detalles sobre las alergias confirmadas..." 
                 value={cuestionario.q1_details || ''}
                 onChange={e => handleCuestionario('q1_details', e.target.value)} 
@@ -231,7 +231,7 @@ const AntecedentesView = ({
             
             {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes') && (
               <textarea 
-                style={{ ...styles.detailInput, border: '1px solid #2563eb', backgroundColor: '#f0f7ff' }} 
+                style={{ ...styles.detailInput }} 
                 placeholder="Detalles sobre los alérgenos sospechosos..." 
                 value={cuestionario.q2_details || ''}
                 onChange={e => handleCuestionario('q2_details', e.target.value)} 
@@ -241,7 +241,7 @@ const AntecedentesView = ({
         </div>
 
         {/* SECCIÓN 3: MEDICACIÓN ACTUAL */}
-        <div style={{ marginBottom: '45px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <SectionHeader icon={Pill} title="Medicación y Tratamientos" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 40px' }}>
             <PreguntaClinicaLocal id="q3_anti" label="¿Toma Antihistamínicos?" />
@@ -261,7 +261,7 @@ const AntecedentesView = ({
         </div>
 
         {/* SECCIÓN 4: CONDICIONES CRÓNICAS */}
-        <div style={{ marginBottom: '45px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <SectionHeader icon={Activity} title="Condiciones Crónicas" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 40px' }}>
             <PreguntaClinicaLocal id="q6_rhin" label="¿Padece Rinitis alérgica?" />
@@ -309,11 +309,10 @@ const AntecedentesView = ({
           disabled={hayErroresBloqueantes} 
           style={{ 
             ...styles.calcBtn, 
-            width: '100%', padding: '20px', borderRadius: '15px', fontSize: '1.1rem',
-            backgroundColor: hayErroresBloqueantes ? '#cbd5e1' : '#2563eb',
+            width: '100%', padding: '12px', borderRadius: '6px', fontSize: '0.95rem',
+            backgroundColor: hayErroresBloqueantes ? '#94a3b8' : '#0f172a',
             cursor: hayErroresBloqueantes ? 'not-allowed' : 'pointer',
-            opacity: hayErroresBloqueantes ? 0.7 : 1,
-            boxShadow: hayErroresBloqueantes ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.2)'
+            opacity: hayErroresBloqueantes ? 0.7 : 1
           }}
         >
           Continuar al Registro del Evento <ArrowRight size={22} />

@@ -52,11 +52,11 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '10px 0',
-      borderBottom: '1px solid #f1f5f9'
+      padding: '8px 0',
+      borderBottom: '1px solid #e2e8f0'
     }}>
-      <span style={{ fontSize: '0.95rem', color: '#475569', fontWeight: '500' }}>{label}</span>
-      <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
+      <span style={{ fontSize: '0.875rem', color: '#475569', fontWeight: '500' }}>{label}</span>
+      <div style={{ display: 'flex', gap: '2px', backgroundColor: '#f1f5f9', padding: '2px', borderRadius: '4px' }}>
         {['Sí', 'No'].map(op => {
           const valEnvio = op === 'Sí' ? 'Yes' : 'No';
           return (
@@ -64,14 +64,13 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
               key={op}
               onClick={() => handleEvento(id, valEnvio)}
               style={{
-                padding: '5px 15px',
-                borderRadius: '6px',
+                padding: '4px 12px',
+                borderRadius: '3px',
                 border: 'none',
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.2s',
-                backgroundColor: evento[id] === valEnvio ? (valEnvio === 'Yes' ? '#ef4444' : '#64748b') : 'transparent',
+                backgroundColor: evento[id] === valEnvio ? (valEnvio === 'Yes' ? '#0f172a' : '#475569') : 'transparent',
                 color: evento[id] === valEnvio ? '#fff' : '#64748b',
               }}
             >
@@ -87,15 +86,13 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      marginBottom: '20px',
-      padding: '10px 15px',
-      backgroundColor: '#fef2f2',
-      borderLeft: '4px solid #ef4444',
-      borderRadius: '0 8px 8px 0'
+      gap: '8px',
+      marginBottom: '16px',
+      paddingBottom: '8px',
+      borderBottom: '1px solid #e2e8f0',
     }}>
-      <Icon size={20} color="#ef4444" />
-      <h4 style={{ margin: 0, fontSize: '1rem', color: '#991b1b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <Icon size={15} color="#1d4ed8" />
+      <h4 style={{ margin: 0, fontSize: '0.7rem', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         {title}
       </h4>
     </div>
@@ -111,13 +108,16 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
         {esPacienteExistente ? '← Volver a Menú' : '← Volver a Antecedentes'}
       </button>
 
-      <div style={{ ...styles.cardStyle, padding: '40px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ backgroundColor: '#fef2f2', width: '60px', height: '60px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
-            <Activity color="#ef4444" size={32} />
+      <div style={{ ...styles.cardStyle, padding: '28px' }}>
+        <div style={{ marginBottom: '28px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Activity color="#1d4ed8" size={20} />
+            <div>
+              <p style={{ fontSize: '0.7rem', fontWeight: '700', letterSpacing: '0.08em', color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Registro clínico</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', margin: '2px 0 0' }}>Registro del Evento</h3>
+            </div>
           </div>
-          <h3 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Registro del Evento</h3>
-          <p style={{ color: '#64748b', marginTop: '5px' }}>Detalles clínicos de la reacción actual</p>
+          <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '8px 0 0 30px' }}>Detalles clínicos de la reacción actual</p>
         </div>
 
         {/* SECCIÓN 1: TIEMPO Y DURACIÓN */}
@@ -197,7 +197,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
             <PreguntaTratamientoLocal id="other_treatment_yn" label="¿Se administró algún otro tratamiento?" />
             {evento.other_treatment_yn === 'Yes' && (
               <textarea 
-                style={{ ...styles.detailInput, border: '1px solid #ef4444', backgroundColor: '#fff8f8' }} 
+                style={{ ...styles.detailInput }} 
                 value={evento.other_treatment_details || ''} 
                 placeholder="Proporcione detalles (Esteroides, Antihistamínicos, etc)..." 
                 onChange={e => handleEvento('other_treatment_details', e.target.value)} 
@@ -216,11 +216,11 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           style={{ 
             ...styles.calcBtn, 
             width: '100%', 
-            padding: '20px', 
-            borderRadius: '15px', 
-            fontSize: '1.1rem',
-            backgroundColor: errorFecha ? '#cbd5e1' : '#ef4444', 
-            boxShadow: errorFecha ? 'none' : '0 10px 15px -3px rgba(239, 68, 68, 0.3)',
+            padding: '12px', 
+            borderRadius: '6px', 
+            fontSize: '0.95rem',
+            backgroundColor: errorFecha ? '#94a3b8' : '#0f172a', 
+            boxShadow: 'none',
             cursor: errorFecha ? 'not-allowed' : 'pointer',
             opacity: errorFecha ? 0.7 : 1,
             display: 'flex',
