@@ -4,7 +4,7 @@ import { styles } from '../AppStyles.js';
 
 const font = '"Inter", system-ui, -apple-system, sans-serif';
 
-const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial, usuarioLogueado }) => {
+const MenuView = ({ setView, iniciarNuevoRegistro, cargarPacientesExistentes, cargarHistorial, usuarioLogueado }) => {
   const [hoveredCard, setHoveredCard] = useState(null);
 
   const menuOptions = [
@@ -13,7 +13,7 @@ const MenuView = ({ setView, cargarPacientesExistentes, cargarHistorial, usuario
       title: 'Nuevo Registro',
       desc: 'Inscribir un paciente por primera vez y definir sus antecedentes clínicos.',
       icon: <User size={22} color="#1d4ed8" />,
-      action: () => setView('registro_paciente'),
+      action: iniciarNuevoRegistro,
       btnLabel: 'Empezar',
     },
     {

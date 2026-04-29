@@ -63,6 +63,22 @@ const App = () => {
   const handleCuestionario = (pregunta, valor) => setCuestionario(prev => ({ ...prev, [pregunta]: valor }));
   const handleSelectChange = (grupoId, valor) => setSeleccionados(prev => ({ ...prev, [grupoId]: valor }));
 
+  const iniciarNuevoRegistro = () => {
+    setEsPacienteExistente(false);
+    setEditandoId(null);
+    setPaciente({ id: '', fecha_nacimiento: '', rango_edad: '', genero: '' });
+    setCuestionario({});
+    setSeleccionados({});
+    setEvento({
+      reaccion_fecha: '', trigger_food: '', trigger_insect: '', trigger_drug: '',
+      duration: '', location: '', activity: '', adrenaline: '',
+      other_treatment_yn: '', other_treatment_details: '', ambulance: '', other_info: '',
+      drug_reason: '', drug_form: '', drug_other: '', drug_onset: '', drug_tolerance: '', drug_details_extra: ''
+    });
+    setResultado(null);
+    setView('registro_paciente');
+  };
+
   const reiniciarApp = () => {
     setEsPacienteExistente(false); 
     setEditandoId(null);
@@ -243,7 +259,8 @@ const App = () => {
           <>
             {view === 'perfil' && (
               <MenuView 
-                setView={setView} 
+                setView={setView}
+                iniciarNuevoRegistro={iniciarNuevoRegistro}
                 cargarPacientesExistentes={cargarPacientesExistentes} 
                 cargarHistorial={cargarHistorial}
                 usuarioLogueado={nombreMedico || usuarioLogueado}
@@ -316,15 +333,27 @@ const App = () => {
       </div>
 
       {/* TOAST NOTIFICATIONS */}
-      {toasts.map(toast => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
-        />
-      ))}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        pointerEvents: 'none',
+      }}>
+        {toasts.map(toast => (
+          <div key={toast.id} style={{ pointerEvents: 'auto' }}>
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              duration={toast.duration}
+              onClose={() => removeToast(toast.id)}
+            />
+          </div>
+        ))}
+      </div>
 
       {/* LOADING OVERLAYS */}
       {(isLoadingHistorial || isLoadingPacientes || isDeleting) && (

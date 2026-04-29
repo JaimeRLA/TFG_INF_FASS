@@ -41,10 +41,6 @@ const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
 
   return (
     <div style={{
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      zIndex: 9999,
       backgroundColor: '#ffffff',
       border: `1px solid ${config.border}`,
       borderLeft: `3px solid ${config.border}`,
