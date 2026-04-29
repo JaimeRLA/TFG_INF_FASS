@@ -104,7 +104,11 @@ const ChatBot = () => {
   };
 
   return (
-    <div style={{ 
+    <div
+      role="complementary"
+      aria-label="Asistente clínico"
+      onKeyDown={(e) => e.key === 'Escape' && setMinimizado(true)}
+      style={{ 
       position: 'fixed', bottom: '20px', right: '20px', width: '400px', 
       backgroundColor: '#fff', borderRadius: '8px',
       boxShadow: '0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)', 
@@ -113,14 +117,17 @@ const ChatBot = () => {
       maxHeight: minimizado ? '48px' : '560px'
     }}>
       {/* HEADER */}
-      <div 
+      <button
         onClick={() => setMinimizado(!minimizado)}
+        aria-expanded={!minimizado}
+        aria-controls="chatbot-body"
         style={{ 
           backgroundColor: '#0f172a', color: '#fff', padding: '12px 16px', 
           fontWeight: '600', fontSize: '0.875rem',
           display: 'flex', alignItems: 'center', 
           justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none',
-          flexShrink: 0,
+          flexShrink: 0, border: 'none', width: '100%', borderRadius: 0,
+          fontFamily: '"Inter", sans-serif',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -134,10 +141,10 @@ const ChatBot = () => {
         <span style={{ fontSize: '16px', lineHeight: '1', color: '#94a3b8' }}>
           {minimizado ? '▲' : '▼'}
         </span>
-      </div>
+      </button>
 
       {!minimizado && (
-        <>
+        <div id="chatbot-body">
           <div style={{ 
             height: '420px', 
             overflowY: 'auto', 
@@ -204,13 +211,15 @@ const ChatBot = () => {
                 color: '#0f172a',
                 fontFamily: '"Inter", sans-serif'
               }} 
-              placeholder="Pregunta sobre alergias o score FASS..." 
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleChat()}
+            aria-label="Escribe tu pregunta al asistente"
+            placeholder="Pregunta sobre alergias o score FASS..." 
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleChat()}
             />
             <button 
-              onClick={handleChat} 
+              onClick={handleChat}
+              aria-label="Enviar mensaje"
               disabled={!chatInput.trim() || cargandoChat}
               style={{ 
                 backgroundColor: chatInput.trim() && !cargandoChat ? '#0f172a' : '#94a3b8', 
@@ -238,7 +247,7 @@ const ChatBot = () => {
               50% { opacity: 0.3; }
             }
           `}</style>
-        </>
+        </div>
       )}
     </div>
   );
