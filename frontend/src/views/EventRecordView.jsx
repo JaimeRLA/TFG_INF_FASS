@@ -64,6 +64,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
               key={op}
               onClick={() => handleEvento(id, valEnvio)}
               aria-pressed={evento[id] === valEnvio}
+              aria-label={`${label}: ${op}`}
               style={{
                 padding: '4px 12px',
                 borderRadius: '3px',
@@ -126,8 +127,9 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
           <SectionHeader icon={Clock} title="Cronología de la Reacción" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
             <div>
-              <label style={styles.labelStyle}>Fecha y hora de la reacción:</label>
+              <label htmlFor="ev-fecha" style={styles.labelStyle}>Fecha y hora de la reacción:</label>
               <input 
+                id="ev-fecha"
                 type="datetime-local" 
                 style={{
                     ...styles.inputStyle,
@@ -140,14 +142,15 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
                 onChange={e => handleEvento('reaccion_fecha', e.target.value)} 
               />
               {errorFecha && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontSize: '0.85rem', marginTop: '8px', fontWeight: 'bold' }}>
+                <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontSize: '0.85rem', marginTop: '8px', fontWeight: 'bold' }}>
                   <AlertCircle size={16} /> {errorFecha}
                 </div>
               )}
             </div>
             <div>
-              <label style={styles.labelStyle}>Duración de los síntomas:</label>
+              <label htmlFor="ev-duracion" style={styles.labelStyle}>Duración de los síntomas:</label>
               <input 
+                id="ev-duracion"
                 style={styles.inputStyle} 
                 value={evento.duration || ''} 
                 placeholder="ej: 30 min, 2 horas" 
@@ -161,9 +164,9 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={Target} title="Disparadores Sospechosos" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-            <div><label style={styles.labelStyle}>Alimento/s:</label><input style={styles.inputStyle} value={evento.trigger_food || ''} onChange={e => handleEvento('trigger_food', e.target.value)} placeholder="Nombre" /></div>
-            <div><label style={styles.labelStyle}>Insectos o Garrapatas:</label><input style={styles.inputStyle} value={evento.trigger_insect || ''} onChange={e => handleEvento('trigger_insect', e.target.value)} placeholder="Nombre" /></div>
-            <div><label style={styles.labelStyle}>Medicamento/s:</label><input style={styles.inputStyle} value={evento.trigger_drug || ''} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Nombre" /></div>
+            <div><label htmlFor="ev-food" style={styles.labelStyle}>Alimento/s:</label><input id="ev-food" style={styles.inputStyle} value={evento.trigger_food || ''} onChange={e => handleEvento('trigger_food', e.target.value)} placeholder="Nombre" /></div>
+            <div><label htmlFor="ev-insect" style={styles.labelStyle}>Insectos o Garrapatas:</label><input id="ev-insect" style={styles.inputStyle} value={evento.trigger_insect || ''} onChange={e => handleEvento('trigger_insect', e.target.value)} placeholder="Nombre" /></div>
+            <div><label htmlFor="ev-drug" style={styles.labelStyle}>Medicamento/s:</label><input id="ev-drug" style={styles.inputStyle} value={evento.trigger_drug || ''} onChange={e => handleEvento('trigger_drug', e.target.value)} placeholder="Nombre" /></div>
           </div>
         </div>
 
@@ -171,7 +174,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
         <div style={{ marginBottom: '45px' }}>
           <SectionHeader icon={MapPin} title="Entorno y Actividad" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-            <select style={styles.selectStyle} value={evento.location || ''} onChange={e => handleEvento('location', e.target.value)}>
+            <select aria-label="Lugar de la reacción" style={styles.selectStyle} value={evento.location || ''} onChange={e => handleEvento('location', e.target.value)}>
               <option value="">Lugar de la reacción...</option>
               <option value="Home">Domicilio</option>
               <option value="School">Escuela / Centro Educativo</option>
@@ -180,7 +183,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
               <option value="Dining out">Restaurante / Fuera</option>
               <option value="Other">Otro</option>
             </select>
-            <select style={styles.selectStyle} value={evento.activity || ''} onChange={e => handleEvento('activity', e.target.value)}>
+            <select aria-label="Actividad inmediatamente antes de la reacción" style={styles.selectStyle} value={evento.activity || ''} onChange={e => handleEvento('activity', e.target.value)}>
               <option value="">Actividad inmediatamente antes...</option>
               <option value="Eating">Comiendo</option>
               <option value="Gardening">Jardinería</option>
@@ -198,6 +201,7 @@ const EventRecordView = ({ evento, handleEvento, setView, esPacienteExistente })
             <PreguntaTratamientoLocal id="other_treatment_yn" label="¿Se administró algún otro tratamiento?" />
             {evento.other_treatment_yn === 'Yes' && (
               <textarea 
+                aria-label="Detalles del tratamiento administrado"
                 style={{ ...styles.detailInput }} 
                 value={evento.other_treatment_details || ''} 
                 placeholder="Proporcione detalles (Esteroides, Antihistamínicos, etc)..." 

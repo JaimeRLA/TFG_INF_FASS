@@ -136,36 +136,36 @@ const Login = ({ onLoginSuccess }) => {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {isRegister ? (
             <>
-              <label style={{ ...styles.labelStyleV2, marginBottom: '6px' }}>Nombre completo</label>
-              <InputRow icon={<User size={16} />} type="text" placeholder="Dr. María García López" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required />
+              <label htmlFor="reg-nombre" style={{ ...styles.labelStyleV2, marginBottom: '6px' }}>Nombre completo</label>
+              <InputRow id="reg-nombre" icon={<User size={16} />} type="text" placeholder="Dr. María García López" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required />
 
-              <label style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Correo electrónico</label>
-              <InputRow icon={<Mail size={16} />} type="email" placeholder="correo@hospital.es" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required />
+              <label htmlFor="reg-email" style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Correo electrónico</label>
+              <InputRow id="reg-email" icon={<Mail size={16} />} type="email" placeholder="correo@hospital.es" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required />
 
-              <label style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Especialidad médica</label>
-              <InputRow icon={<Stethoscope size={16} />} type="text" placeholder="Alergología" value={form.especialidad} onChange={e => setForm({...form, especialidad: e.target.value})} required />
+              <label htmlFor="reg-especialidad" style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Especialidad médica</label>
+              <InputRow id="reg-especialidad" icon={<Stethoscope size={16} />} type="text" placeholder="Alergología" value={form.especialidad} onChange={e => setForm({...form, especialidad: e.target.value})} required />
 
-              <label style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Número de colegiado</label>
-              <InputRow icon={<Hash size={16} />} type="text" placeholder="28012345" value={form.colegiado} onChange={e => setForm({...form, colegiado: e.target.value})} required />
+              <label htmlFor="reg-colegiado" style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Número de colegiado</label>
+              <InputRow id="reg-colegiado" icon={<Hash size={16} />} type="text" placeholder="28012345" value={form.colegiado} onChange={e => setForm({...form, colegiado: e.target.value})} required />
 
-              <label style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Hospital / Centro</label>
-              <InputRow icon={<Building2 size={16} />} type="text" placeholder="Hospital Universitario..." value={form.hospital} onChange={e => setForm({...form, hospital: e.target.value})} required />
+              <label htmlFor="reg-hospital" style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Hospital / Centro</label>
+              <InputRow id="reg-hospital" icon={<Building2 size={16} />} type="text" placeholder="Hospital Universitario..." value={form.hospital} onChange={e => setForm({...form, hospital: e.target.value})} required />
 
-              <label style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Teléfono de contacto</label>
-              <InputRow icon={<Phone size={16} />} type="tel" placeholder="+34 600 000 000" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})} required />
+              <label htmlFor="reg-telefono" style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Teléfono de contacto</label>
+              <InputRow id="reg-telefono" icon={<Phone size={16} />} type="tel" placeholder="+34 600 000 000" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})} required />
             </>
           ) : (
             <>
-              <label style={{ ...styles.labelStyleV2, marginBottom: '6px' }}>Correo electrónico</label>
-              <InputRow icon={<Mail size={16} />} type="email" placeholder="correo@hospital.es" value={form.username} onChange={e => setForm({...form, username: e.target.value})} required />
+              <label htmlFor="log-email" style={{ ...styles.labelStyleV2, marginBottom: '6px' }}>Correo electrónico</label>
+              <InputRow id="log-email" icon={<Mail size={16} />} type="email" placeholder="correo@hospital.es" value={form.username} onChange={e => setForm({...form, username: e.target.value})} required />
 
-              <label style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Contraseña</label>
-              <InputRow icon={<Lock size={16} />} type="password" placeholder="••••••••" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required />
+              <label htmlFor="log-password" style={{ ...styles.labelStyleV2, marginTop: '8px', marginBottom: '6px' }}>Contraseña</label>
+              <InputRow id="log-password" icon={<Lock size={16} />} type="password" placeholder="••••••••" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required />
             </>
           )}
 
-          {error && <div style={{ ...styles.loginErrorBox, marginTop: '12px' }}>{error}</div>}
-          {msg   && <div style={{ ...styles.loginSuccessBox, marginTop: '12px' }}>{msg}</div>}
+          {error && <div role="alert" style={{ ...styles.loginErrorBox, marginTop: '12px' }}>{error}</div>}
+          {msg   && <div role="status" style={{ ...styles.loginSuccessBox, marginTop: '12px' }}>{msg}</div>}
 
           <button type="submit" style={{ ...styles.loginButton, marginTop: '20px' }}>
             {isRegister ? <><UserPlus size={16} /> Solicitar acceso</> : <><LogIn size={16} /> Entrar al sistema</>}

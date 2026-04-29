@@ -102,10 +102,11 @@ const CalculadoraView = ({
               }}>
                 {sec.grupos.map(grupo => (
                   <div key={grupo.id_base} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#fafafa' }}>
-                    <label style={{ ...styles.labelStyle, marginBottom: '10px', display: 'block', fontSize: '0.85rem' }}>
+                    <label htmlFor={`sint-${grupo.id_base}`} style={{ ...styles.labelStyle, marginBottom: '10px', display: 'block', fontSize: '0.85rem' }}>
                       {grupo.label}
                     </label>
                     <select 
+                      id={`sint-${grupo.id_base}`}
                       style={{ ...styles.selectStyle, backgroundColor: '#fff' }} 
                       onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}
                     >

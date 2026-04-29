@@ -91,6 +91,7 @@ const AntecedentesView = ({
               key={op}
               onClick={() => handleCuestionario(id, valEnvio)}
               aria-pressed={cuestionario[id] === valEnvio}
+              aria-label={`${label}: ${op}`}
               style={{
                 padding: '4px 12px',
                 borderRadius: '3px',
@@ -147,9 +148,10 @@ const AntecedentesView = ({
           <SectionHeader icon={User} title="Identificación del Paciente" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
             <div>
-              <label style={styles.labelStyle}>NHC / Identificador*</label>
+              <label htmlFor="ant-nhc" style={styles.labelStyle}>NHC / Identificador*</label>
               <div style={{ position: 'relative' }}>
                 <input 
+                  id="ant-nhc"
                   type="text" 
                   name="id"
                   disabled={esPacienteExistente}
@@ -167,18 +169,19 @@ const AntecedentesView = ({
                 {esPacienteExistente && <Lock size={16} style={{ position: 'absolute', right: 12, top: 14, color: '#94a3b8' }} />}
               </div>
               {errorNHC && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
+                <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
                   <AlertCircle size={14} /> {errorNHC}
                 </div>
               )}
             </div>
 
             <div>
-              <label style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento*'}</label>
+              <label htmlFor="ant-fecha" style={styles.labelStyle}>{esPacienteExistente ? 'Rango de Edad' : 'Fecha de Nacimiento*'}</label>
               {esPacienteExistente ? (
-                <input type="text" disabled value={paciente.rango_edad || ''} style={{ ...styles.inputStyle, backgroundColor: '#f8fafc' }} />
+                <input id="ant-fecha" type="text" disabled value={paciente.rango_edad || ''} style={{ ...styles.inputStyle, backgroundColor: '#f8fafc' }} />
               ) : (
                 <input 
+                  id="ant-fecha"
                   type="date" 
                   name="fecha_nacimiento" 
                   value={paciente.fecha_nacimiento || ''} 
@@ -193,15 +196,16 @@ const AntecedentesView = ({
                 />
               )}
               {errorFecha && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
+                <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '0.75rem', marginTop: '5px', fontWeight: '600' }}>
                   <AlertCircle size={14} /> {errorFecha}
                 </div>
               )}
             </div>
 
             <div>
-              <label style={styles.labelStyle}>Género*</label>
+              <label htmlFor="ant-genero" style={styles.labelStyle}>Género*</label>
               <select 
+                id="ant-genero"
                 name="genero" value={paciente.genero || ''} onChange={handlePacienteChange} disabled={esPacienteExistente} 
                 style={{ ...styles.selectStyle, backgroundColor: esPacienteExistente ? '#f8fafc' : '#fff' }}
               >
@@ -220,6 +224,7 @@ const AntecedentesView = ({
             <PreguntaClinicaLocal id="q1" label="¿Tiene alguna alergia confirmada?" />
             {cuestionario.q1 === 'Yes' && (
               <textarea 
+                aria-label="Detalles sobre las alergias confirmadas"
                 style={{ ...styles.detailInput }} 
                 placeholder="Detalles sobre las alergias confirmadas..." 
                 value={cuestionario.q1_details || ''}
@@ -232,6 +237,7 @@ const AntecedentesView = ({
             
             {(cuestionario.q2_foods === 'Yes' || cuestionario.q2_insects === 'Yes' || cuestionario.q2_meds === 'Yes') && (
               <textarea 
+                aria-label="Detalles sobre los alérgenos sospechosos"
                 style={{ ...styles.detailInput }} 
                 placeholder="Detalles sobre los alérgenos sospechosos..." 
                 value={cuestionario.q2_details || ''}
@@ -252,8 +258,7 @@ const AntecedentesView = ({
             <PreguntaClinicaLocal id="q5" label="¿Toma otros suplementos?" />
           </div>
           {(cuestionario.q3_anti === 'Yes' || cuestionario.q3_nasal === 'Yes' || cuestionario.q3_puff === 'Yes' || cuestionario.q5 === 'Yes') && (
-            <textarea 
-              style={{ ...styles.detailInput, marginTop: '15px' }} 
+            <textarea                 aria-label="Especifique medicamentos y dosis"              style={{ ...styles.detailInput, marginTop: '15px' }} 
               placeholder="Especifique medicamentos y dosis..." 
               value={cuestionario.q3_details || cuestionario.q5_details || ''}
               onChange={e => handleCuestionario('q5_details', e.target.value)} 
@@ -273,8 +278,7 @@ const AntecedentesView = ({
             <PreguntaClinicaLocal id="q9" label="¿Hay antecedentes familiares de alergia?" />
           </div>
           {cuestionario.q9 === 'Yes' && (
-            <textarea 
-              style={{ ...styles.detailInput, marginTop: '15px' }} 
+            <textarea                 aria-label="Detalles de los antecedentes familiares"              style={{ ...styles.detailInput, marginTop: '15px' }} 
               placeholder="Detalles de los antecedentes familiares..." 
               value={cuestionario.q9_details || ''}
               onChange={e => handleCuestionario('q9_details', e.target.value)} 
@@ -287,8 +291,7 @@ const AntecedentesView = ({
           <SectionHeader icon={Home} title="Entorno y Otros" />
           <PreguntaClinicaLocal id="q7" label="¿Convive con mascotas en el interior?" />
           {cuestionario.q7 === 'Yes' && (
-            <textarea 
-              style={{ ...styles.detailInput, marginTop: '15px', marginBottom: '15px' }} 
+            <textarea                 aria-label="Tipo de mascotas"              style={{ ...styles.detailInput, marginTop: '15px', marginBottom: '15px' }} 
               placeholder="Tipo de mascotas..." 
               value={cuestionario.q7_details || ''}
               onChange={e => handleCuestionario('q7_details', e.target.value)} 
@@ -296,8 +299,7 @@ const AntecedentesView = ({
           )}
           <PreguntaClinicaLocal id="q10" label="¿Otros problemas médicos o cirugías?" />
           {cuestionario.q10 === 'Yes' && (
-            <textarea 
-              style={{ ...styles.detailInput, marginTop: '15px' }} 
+            <textarea                 aria-label="Describa otros problemas médicos"              style={{ ...styles.detailInput, marginTop: '15px' }} 
               placeholder="Describa otros problemas médicos..." 
               value={cuestionario.q10_details || ''}
               onChange={e => handleCuestionario('q10_details', e.target.value)} 
