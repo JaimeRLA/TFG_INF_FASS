@@ -16,6 +16,7 @@ import ResultadoCard from '../components/ResultadoCard';
 const CalculadoraView = ({ 
   paciente, 
   handleSelectChange, 
+  seleccionados = {},
   enviarEvaluacion, 
   resultado, 
   reiniciarApp, 
@@ -107,6 +108,7 @@ const CalculadoraView = ({
                     </label>
                     <select 
                       id={`sint-${grupo.id_base}`}
+                      value={seleccionados[grupo.id_base] || ""}
                       style={{ ...styles.selectStyle, backgroundColor: '#fff' }} 
                       onChange={(e) => handleSelectChange(grupo.id_base, e.target.value)}
                     >

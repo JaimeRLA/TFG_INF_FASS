@@ -16,6 +16,7 @@ import SeleccionarPacienteView from './views/SeleccionarPacienteView';
 import AntecedentesView from './views/AntecedentesView';
 import EventRecordView from './views/EventRecordView';
 import CalculadoraView from './views/CalculadoraView';
+import { SECCIONES_SINTOMAS } from './data/sintomas';
 import Login from './views/Login';
 
 // Vistas de Información y Soporte
@@ -152,7 +153,11 @@ const App = () => {
     setEvento(p.evento_json || {});
     setCuestionario(p.respuestas_json || {});
     const sintomasPrevios = {};
-    if (p.sintomas) p.sintomas.forEach(idSintoma => { sintomasPrevios[idSintoma] = idSintoma; });
+    if (p.sintomas) {
+      const reverseMap = {};
+      SECCIONES_SINTOMAS.forEach(sec => sec.grupos.forEach(grupo => grupo.options.forEach(opt => { reverseMap[opt.id] = grupo.id_base; })));
+      p.sintomas.forEach(idSintoma => { const grupoId = reverseMap[idSintoma]; if (grupoId) sintomasPrevios[grupoId] = idSintoma; });
+    }
     setSeleccionados(sintomasPrevios);
     setResultado(null);
     setView('registro_paciente'); 
@@ -330,6 +335,7 @@ const App = () => {
               <CalculadoraView 
                 paciente={paciente} 
                 handleSelectChange={handleSelectChange} 
+                seleccionados={seleccionados}
                 enviarEvaluacion={enviarEvaluacion} 
                 resultado={resultado} 
                 reiniciarApp={reiniciarApp} 
