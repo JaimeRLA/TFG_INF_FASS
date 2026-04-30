@@ -214,7 +214,7 @@ const App = () => {
         evento: evento,
         sintomas: listaIds,
         medico: usuarioLogueado
-      });
+      }, { headers: { 'x-tfg-key': TFG_KEY } });
       if (res.data.success) {
         setResultado(res.data);
         if (res.data.id_registro) setEditandoId(res.data.id_registro);

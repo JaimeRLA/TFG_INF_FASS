@@ -369,7 +369,9 @@ async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
         conn.close()
 
 @app.post("/calculate")
-async def calculate(request: EvaluacionRequest):
+async def calculate(request: EvaluacionRequest, x_tfg_key: str = Header(None)):
+    if x_tfg_key != APP_SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Acceso no autorizado")
     resultado = calcular_nfass_ofass(request.sintomas)
     
     # 1. Pseudonimización y Minimización
