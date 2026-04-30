@@ -15,11 +15,11 @@ class RegisterRequest(BaseModel):
     telefono: str
 
 class EvaluacionRequest(BaseModel):
-    id: Optional[int] = None           # ID de la EVALUACIÓN (para el UPDATE)
-    paciente_id: str                   # Aquí el Frontend enviará el NHC (si es nuevo) o el HASH (si ya existe)
-    fecha_nacimiento: Optional[str] = None  # Opcional, porque si el paciente ya existe, no la volvemos a enviar
+    id: Optional[int] = None          
+    paciente_id: str                   
+    fecha_nacimiento: Optional[str] = None  
     genero: str
     medico: str
-    respuestas: Dict                   # Los Antecedentes (q1, q2...)
-    evento: Dict                       # Detalles de la reacción
-    sintomas: List[str]                # Lista de IDs de síntomas seleccionados
+    respuestas: Dict               
+    evento: Dict                    
+    sintomas: List[str]              

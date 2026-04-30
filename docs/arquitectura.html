@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>FASS System — Flujo e Interacciones</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #080f1a;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #e2e8f0;
+  padding: 32px;
+  min-height: 100vh;
+}
+.title { text-align:center; margin-bottom:8px; }
+.title h1 { font-size:20px; font-weight:800; color:#f1f5f9; letter-spacing:.06em; text-transform:uppercase; }
+.title p  { font-size:11.5px; color:#475569; margin-top:4px; letter-spacing:.08em; }
+.legend { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin:14px 0 28px; }
+.leg { display:flex; align-items:center; gap:6px; font-size:11px; color:#94a3b8; }
+.leg-line { width:28px; height:3px; border-radius:2px; }
+.node { border-radius:10px; padding:10px 14px; border:1.5px solid; position:relative; flex-shrink:0; }
+.node-title { font-size:12px; font-weight:700; margin-bottom:2px; white-space:nowrap; }
+.node-sub { font-size:10px; opacity:.72; white-space:nowrap; }
+.n-view  { background:#0f2444; border-color:#2563eb; }
+.n-view .node-title { color:#93c5fd; } .n-view .node-sub { color:#bfdbfe; }
+.n-state { background:#0c1c38; border-color:#1d4ed8; border-style:dashed; }
+.n-state .node-title { color:#60a5fa; } .n-state .node-sub { color:#93c5fd; }
+.n-auth  { background:#0a2112; border-color:#15803d; }
+.n-auth  .node-title { color:#4ade80; } .n-auth .node-sub { color:#86efac; }
+.n-clin  { background:#0f1f3d; border-color:#1d4ed8; }
+.n-clin  .node-title { color:#60a5fa; } .n-clin .node-sub { color:#93c5fd; }
+.n-mod   { background:#130f2a; border-color:#6d28d9; }
+.n-mod   .node-title { color:#c4b5fd; } .n-mod .node-sub { color:#ddd6fe; }
+.n-ext   { background:#150606; border-color:#b91c1c; }
+.n-ext   .node-title { color:#fca5a5; } .n-ext .node-sub { color:#fecaca; }
+.n-util  { background:#111827; border-color:#4b5563; }
+.n-util  .node-title { color:#d1d5db; } .n-util .node-sub { color:#9ca3af; }
+.n-sec   { background:#1c1408; border-color:#b45309; }
+.n-sec   .node-title { color:#fcd34d; } .n-sec .node-sub { color:#fde68a; }
+.section-wrap { border-radius:12px; border:1px solid; padding:12px 14px; position:relative; }
+.section-label { position:absolute; top:-10px; left:14px; font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:1px 8px; border-radius:4px; }
+.sw-fe { border-color:#2563eb44; background:#0f244411; }
+.sw-fe .section-label { background:#0f2444; color:#60a5fa; border:1px solid #2563eb44; }
+.sw-be { border-color:#15803d44; background:#0a211211; }
+.sw-be .section-label { background:#0a2112; color:#4ade80; border:1px solid #15803d44; }
+.sw-ext { border-color:#b91c1c44; background:#15060611; }
+.sw-ext .section-label { background:#150606; color:#f87171; border:1px solid #b91c1c44; }
+.flow-grid { display:grid; grid-template-columns:340px 1fr 300px; gap:20px; align-items:start; position:relative; }
+.fe-col { display:flex; flex-direction:column; gap:9px; }
+.be-col { display:flex; flex-direction:column; gap:14px; }
+.be-group { display:flex; flex-direction:column; gap:7px; }
+.be-row { display:flex; gap:7px; flex-wrap:wrap; }
+.ext-col { display:flex; flex-direction:column; gap:9px; }
+.badge { display:inline-block; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:10px; border:1px solid; margin:2px 2px 0 0; }
+.b-yellow { color:#fde68a; border-color:#92400e; background:#1c120022; }
+.b-blue   { color:#bfdbfe; border-color:#1e40af; background:#030e1e22; }
+.b-green  { color:#bbf7d0; border-color:#166534; background:#01130a22; }
+.b-purple { color:#ddd6fe; border-color:#5b21b6; background:#0e071822; }
+.b-red    { color:#fecaca; border-color:#991b1b; background:#1a020222; }
+.connections { margin-top:20px; padding:16px 20px; background:#0d1117; border:1px solid #1e293b; border-radius:12px; }
+.conn-title { font-size:10px; font-weight:700; color:#475569; letter-spacing:.14em; text-transform:uppercase; margin-bottom:12px; }
+.conn-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.conn-flow { background:#0f172a; border-radius:8px; padding:10px 12px; border-left:3px solid; }
+.cf-auth { border-color:#22c55e; } .cf-clin { border-color:#3b82f6; } .cf-ai { border-color:#a78bfa; }
+.conn-flow-title { font-size:10.5px; font-weight:700; margin-bottom:6px; }
+.cf-auth .conn-flow-title { color:#4ade80; } .cf-clin .conn-flow-title { color:#60a5fa; } .cf-ai .conn-flow-title { color:#c4b5fd; }
+.step { display:flex; align-items:flex-start; gap:8px; margin-bottom:5px; font-size:10px; line-height:1.4; color:#94a3b8; }
+.step-n { min-width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0; margin-top:1px; }
+.sn-auth { background:#166534; color:#bbf7d0; } .sn-clin { background:#1e3a8a; color:#bfdbfe; } .sn-ai { background:#4c1d95; color:#ddd6fe; }
+.step-txt b { color:#e2e8f0; }
+.sec-row { margin-top:14px; padding:12px 18px; background:#111; border:1px solid #27272a; border-radius:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.sec-label { font-size:10px; font-weight:700; color:#78716c; letter-spacing:.12em; text-transform:uppercase; margin-right:4px; }
+</style>
+</head>
+<body>
+<div class="title">
+  <h1>FASS System — Flujo e Interacciones</h1>
+  <p>React 19 · FastAPI · PostgreSQL · Brevo SMTP · Groq LLaMA 3.3-70B · Render Cloud</p>
+</div>
+<div class="legend">
+  <div class="leg"><div class="leg-line" style="background:#22c55e"></div>Flujo autenticación</div>
+  <div class="leg"><div class="leg-line" style="background:#3b82f6"></div>Flujo clínico</div>
+  <div class="leg"><div class="leg-line" style="background:#a78bfa"></div>Flujo IA</div>
+  <div class="leg"><div class="leg-line" style="background:#f87171"></div>Acceso BD</div>
+  <div class="leg"><span style="font-size:10px;color:#475569;">↑ campos cifrados con Fernet</span></div>
+</div>
+<div style="width:1136px;margin:0 auto;">
+<div class="flow-grid">
+  <!-- FRONTEND -->
+  <div class="section-wrap sw-fe" style="padding:16px 12px 12px;">
+    <span class="section-label">Frontend — React 19 · Vite · Render Static</span>
+    <div class="fe-col" style="margin-top:6px;">
+      <div class="node n-state">
+        <div class="node-title">App.jsx — Estado Global</div>
+        <div class="node-sub">sessionStorage · view state machine · toasts</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="node n-view" style="flex:1"><div class="node-title">Login / Registro</div><div class="node-sub">email · contraseña</div></div>
+        <div class="node n-view" style="flex:1"><div class="node-title">MenuView</div><div class="node-sub">nueva eval · paciente</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
+        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,#3b82f6,#1d4ed8)"></div>
+        <span style="font-size:9px;color:#3b82f6;white-space:nowrap;">Flujo evaluación clínica</span>
+        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,#1d4ed8,#3b82f6)"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="node n-view" style="flex:1;border-color:#22d3ee44;"><div class="node-title" style="color:#67e8f9;">① Antecedentes</div><div class="node-sub">NHC · edad · género</div></div>
+        <div style="display:flex;align-items:center;color:#3b82f6;font-size:16px;">→</div>
+        <div class="node n-view" style="flex:1;border-color:#818cf844;"><div class="node-title" style="color:#a5b4fc;">② Evento</div><div class="node-sub">trigger · tratamiento</div></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="padding-left:30%;color:#3b82f6;font-size:16px;">↓</div>
+      </div>
+      <div class="node n-view" style="border-color:#2563ebaa;">
+        <div class="node-title" style="color:#60a5fa;">③ Calculadora nFASS / oFASS</div>
+        <div class="node-sub">síntomas por sistema orgánico · POST /calculate ★</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="node n-view" style="flex:1"><div class="node-title">Historial</div><div class="node-sub">ver · editar · borrar</div></div>
+        <div class="node n-view" style="flex:1"><div class="node-title">Dashboard</div><div class="node-sub">gráficos · stats</div></div>
+        <div class="node n-view" style="flex:1;border-color:#7c3aed;"><div class="node-title" style="color:#c4b5fd;">ChatBot</div><div class="node-sub">LLaMA 3.3-70B</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- BACKEND -->
+  <div class="section-wrap sw-be" style="padding:16px 12px 12px;">
+    <span class="section-label">Backend — FastAPI · Uvicorn · Render Web Service</span>
+    <div class="be-col" style="margin-top:6px;">
+      <div class="node n-sec" style="text-align:center;">
+        <div class="node-title">Middleware CORS + Validación x-tfg-key</div>
+        <div class="node-sub">allow_origins · allow_methods:* · Header validation → HTTP 401</div>
+      </div>
+      <div style="background:#0a211222;border:1px dashed #15803d44;border-radius:8px;padding:8px;">
+        <div style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;">Autenticación</div>
+        <div class="be-row">
+          <div class="node n-auth" style="flex:1"><div class="node-title">POST /register</div><div class="node-sub">Pydantic · token(32) → Brevo</div></div>
+          <div class="node n-auth" style="flex:1"><div class="node-title">GET /approve/{token}</div><div class="node-sub">crea usuario · pw random → Brevo</div></div>
+          <div class="node n-auth" style="flex:1"><div class="node-title">POST /login</div><div class="node-sub">bcrypt verify → nombre</div></div>
+        </div>
+      </div>
+      <div style="background:#0f1f3d22;border:1px dashed #1d4ed844;border-radius:8px;padding:8px;">
+        <div style="font-size:9px;font-weight:700;color:#1e3a8a;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;">Clínica ★ x-tfg-key requerido</div>
+        <div class="be-row">
+          <div class="node n-clin" style="flex:1.4"><div class="node-title">POST /calculate</div><div class="node-sub">SHA-256 NHC · Fernet cifrado · nFASS · INSERT/UPDATE</div></div>
+          <div class="node n-clin" style="flex:1"><div class="node-title">GET /history</div><div class="node-sub">JOIN registros·pacientes · Fernet decrypt</div></div>
+        </div>
+        <div class="be-row" style="margin-top:7px;">
+          <div class="node n-clin" style="flex:1"><div class="node-title">GET /stats</div><div class="node-sub">agregación · top alérgenos</div></div>
+          <div class="node n-clin" style="flex:1"><div class="node-title">DELETE /evaluacion/{id}</div><div class="node-sub">403 comprobación autoría</div></div>
+          <div class="node n-clin" style="flex:1"><div class="node-title">GET /pacientes_unicos</div><div class="node-sub">lista por médico</div></div>
+        </div>
+      </div>
+      <div class="be-row">
+        <div class="node n-util" style="flex:1"><div class="node-title">GET /get_hash/{nhc}</div><div class="node-sub">SHA-256 → buscador frontend</div></div>
+        <div class="node n-util" style="flex:1;border-color:#6d28d9;"><div class="node-title" style="color:#c4b5fd;">GET /chat</div><div class="node-sub" style="color:#ddd6fe;">Groq SDK · SYSTEM_PROMPT</div></div>
+      </div>
+      <div style="background:#13102a22;border:1px dashed #6d28d944;border-radius:8px;padding:8px;">
+        <div style="font-size:9px;font-weight:700;color:#5b21b6;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;">Módulos internos</div>
+        <div class="be-row">
+          <div class="node n-mod" style="flex:1"><div class="node-title">logic.py</div><div class="node-sub">nFASS=log₂(Σλ·ε)+2</div></div>
+          <div class="node n-mod" style="flex:1"><div class="node-title">security.py</div><div class="node-sub">bcrypt · Fernet · SHA-256</div></div>
+          <div class="node n-mod" style="flex:1"><div class="node-title">data_models.py</div><div class="node-sub">Pydantic schemas</div></div>
+          <div class="node n-mod" style="flex:1"><div class="node-title">sintomas.py</div><div class="node-sub">DB_SINTOMAS λ,ε,sys</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- EXTERNOS -->
+  <div class="ext-col">
+    <div class="section-wrap sw-ext" style="padding:16px 12px 12px;">
+      <span class="section-label">Servicios externos</span>
+      <div style="display:flex;flex-direction:column;gap:9px;margin-top:8px;">
+        <div class="node" style="background:#150606;border-color:#dc2626;">
+          <div class="node-title" style="color:#f87171;">PostgreSQL — fass_db3</div>
+          <div class="node-sub" style="color:#fca5a5;">Render Oregon · psycopg2</div>
+          <div style="margin-top:8px;border-top:1px solid #3f1111;padding-top:7px;font-size:10px;line-height:1.9;color:#fecaca;">
+            <span style="color:#f87171;font-weight:700;">pacientes</span><br>
+            <span style="opacity:.7;">nhc_hash · rango_edad · genero↑ · medico</span><br>
+            <span style="color:#f87171;font-weight:700;">registros</span><br>
+            <span style="opacity:.7;">respuestas↑ · evento↑ · sintomas↑ · nfass · ofass</span><br>
+            <span style="color:#f87171;font-weight:700;">usuarios</span><br>
+            <span style="opacity:.7;">username · password (bcrypt)</span><br>
+            <span style="color:#f87171;font-weight:700;">solicitudes_registro</span><br>
+            <span style="opacity:.7;">token · status · datos médico</span>
+          </div>
+          <div style="margin-top:6px;font-size:9px;color:#78716c;">↑ campos cifrados con Fernet AES-128</div>
+        </div>
+        <div class="node n-ext">
+          <div class="node-title">Brevo SMTP</div>
+          <div class="node-sub">smtp-relay.brevo.com · puerto 2525 · STARTTLS</div>
+          <div style="margin-top:6px;font-size:10px;color:#fecaca;opacity:.8;line-height:1.7;">
+            → Admin: solicitud de acceso<br>→ Médico: credenciales aprobadas
+          </div>
+        </div>
+        <div class="node n-ext" style="border-color:#7c3aed;">
+          <div class="node-title" style="color:#c4b5fd;">Groq API</div>
+          <div class="node-sub" style="color:#ddd6fe;">LLaMA 3.3-70B-Versatile · timeout 25 s</div>
+          <div style="margin-top:6px;font-size:10px;color:#ddd6fe;opacity:.8;line-height:1.7;">
+            → ChatBot alergología/FASS<br>→ SYSTEM_PROMPT restringido<br>→ Respuesta texto libre
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /flow-grid -->
+
+<!-- FLUJOS DETALLADOS -->
+<div class="connections">
+  <div class="conn-title">Flujos de interacción detallados</div>
+  <div class="conn-grid">
+    <div class="conn-flow cf-auth">
+      <div class="conn-flow-title">Flujo de autenticación</div>
+      <div class="step"><div class="step-n sn-auth">1</div><div class="step-txt">Médico rellena formulario → <b>POST /register</b> con Pydantic <b>RegisterRequest</b></div></div>
+      <div class="step"><div class="step-n sn-auth">2</div><div class="step-txt">Backend genera <b>token urlsafe(32)</b> → INSERT en <b>solicitudes_registro</b></div></div>
+      <div class="step"><div class="step-n sn-auth">3</div><div class="step-txt">Email al <b>admin</b> vía Brevo SMTP (puerto 2525) con enlace <b>/approve/{token}</b></div></div>
+      <div class="step"><div class="step-n sn-auth">4</div><div class="step-txt">Admin clica → <b>GET /approve</b> → crea usuario con <b>pw = token_urlsafe(10)</b> hasheada con bcrypt</div></div>
+      <div class="step"><div class="step-n sn-auth">5</div><div class="step-txt">Email al médico con credenciales → <b>POST /login</b> → <b>verify_password</b> bcrypt → <b>sessionStorage</b></div></div>
+    </div>
+    <div class="conn-flow cf-clin">
+      <div class="conn-flow-title">Flujo de evaluación clínica</div>
+      <div class="step"><div class="step-n sn-clin">1</div><div class="step-txt"><b>AntecedentesView</b>: NHC, fecha nacimiento, género → guardado en estado App.jsx</div></div>
+      <div class="step"><div class="step-n sn-clin">2</div><div class="step-txt"><b>EventRecordView</b>: desencadenante, lugar, actividad, tratamiento → estado App.jsx</div></div>
+      <div class="step"><div class="step-n sn-clin">3</div><div class="step-txt"><b>CalculadoraView</b>: selección síntomas por sistema orgánico → <b>POST /calculate</b> con <b>x-tfg-key</b></div></div>
+      <div class="step"><div class="step-n sn-clin">4</div><div class="step-txt">Backend: <b>SHA-256(NHC)</b> → pseudónimo · <b>get_age_range()</b> · cifrado <b>Fernet</b> de campos clínicos</div></div>
+      <div class="step"><div class="step-n sn-clin">5</div><div class="step-txt"><b>logic.py</b>: nFASS = log₂(Σλ·ε)+2 → oFASS grade 0-4 · <b>INSERT/UPDATE registros</b> → devuelve id_registro</div></div>
+    </div>
+    <div class="conn-flow cf-ai">
+      <div class="conn-flow-title">Flujo ChatBot IA</div>
+      <div class="step"><div class="step-n sn-ai">1</div><div class="step-txt">Médico escribe pregunta en <b>ChatBot.jsx</b> → GET /chat?user_message=...</div></div>
+      <div class="step"><div class="step-n sn-ai">2</div><div class="step-txt">Backend carga <b>SYSTEM_PROMPT</b> de <b>agent_logic.py</b> (restricción dominio alergología/FASS)</div></div>
+      <div class="step"><div class="step-n sn-ai">3</div><div class="step-txt"><b>Groq SDK</b> → modelo <b>llama-3.3-70b-versatile</b> con timeout 25 s</div></div>
+      <div class="step"><div class="step-n sn-ai">4</div><div class="step-txt">Respuesta texto → frontend renderiza en burbuja de chat</div></div>
+      <div class="step" style="margin-bottom:0"><div class="step-n sn-ai">★</div><div class="step-txt">Endpoint <b>GET /chat</b> no requiere x-tfg-key (datos no clínicos)</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEGURIDAD -->
+<div class="sec-row">
+  <span class="sec-label">🔒 Seguridad</span>
+  <span class="badge b-yellow">CORS: 3 orígenes</span>
+  <span class="badge b-blue">x-tfg-key → HTTP 401</span>
+  <span class="badge b-green">bcrypt passwords</span>
+  <span class="badge b-purple">Fernet AES-128-CBC</span>
+  <span class="badge b-red">SHA-256 NHC</span>
+  <span class="badge b-yellow">403 autoría</span>
+  <span class="badge b-blue">Pydantic validation</span>
+  <span class="badge b-green">sessionStorage</span>
+  <span class="badge b-purple">token urlsafe(32)</span>
+</div>
+
+</div><!-- /wrapper -->
+</body>
+</html>

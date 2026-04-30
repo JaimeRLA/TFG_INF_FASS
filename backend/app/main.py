@@ -81,8 +81,15 @@ def init_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
-            password TEXT
+            password TEXT,
+            nombre TEXT
         )''')
+        # Migración: añadir nombre si la tabla ya existía sin esa columna
+        try:
+            cursor.execute("ALTER TABLE usuarios ADD COLUMN nombre TEXT")
+            conn.commit()
+        except Exception:
+            conn.rollback()
         # Tabla de Solicitudes de Registro (pendientes de aprobación)
         cursor.execute('''CREATE TABLE IF NOT EXISTS solicitudes_registro (
             id SERIAL PRIMARY KEY,
@@ -198,7 +205,15 @@ def register(request: RegisterRequest):
         token = secrets.token_urlsafe(32)
         cursor.execute(
             f"INSERT INTO solicitudes_registro (email, nombre, especialidad, colegiado, hospital, telefono, token) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})",
-            (request.email, request.nombre, request.especialidad, request.colegiado, request.hospital, request.telefono, token)
+            (
+                request.email,
+                encrypt_data(request.nombre),
+                encrypt_data(request.especialidad),
+                encrypt_data(request.colegiado),
+                encrypt_data(request.hospital),
+                encrypt_data(request.telefono),
+                token
+            )
         )
         conn.commit()
 
@@ -254,7 +269,14 @@ def approve_registration(token: str):
                 status_code=404
             )
 
-        email, nombre, especialidad, colegiado, hospital, telefono, status = solicitud
+        email, nombre_enc, especialidad_enc, colegiado_enc, hospital_enc, telefono_enc, status = solicitud
+
+        # Descifrar campos PII
+        nombre = decrypt_data(nombre_enc)
+        especialidad = decrypt_data(especialidad_enc)
+        colegiado = decrypt_data(colegiado_enc)
+        hospital = decrypt_data(hospital_enc)
+        telefono = decrypt_data(telefono_enc)
 
         if status == 'approved':
             return HTMLResponse(
@@ -265,15 +287,15 @@ def approve_registration(token: str):
         password = secrets.token_urlsafe(10)
         hashed_pw = hash_password(password)
 
-        # Crear usuario
+        # Crear usuario con nombre
         cursor.execute(
-            f"INSERT INTO usuarios (username, password) VALUES ({placeholder}, {placeholder})",
-            (email, hashed_pw)
+            f"INSERT INTO usuarios (username, password, nombre) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (email, hashed_pw, nombre)
         )
 
-        # Marcar solicitud como aprobada
+        # Borrar solicitud (datos PII ya no son necesarios)
         cursor.execute(
-            f"UPDATE solicitudes_registro SET status = 'approved' WHERE token = {placeholder}",
+            f"DELETE FROM solicitudes_registro WHERE token = {placeholder}",
             (token,)
         )
         conn.commit()
@@ -321,13 +343,10 @@ async def login(request: LoginRequest):
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        cursor.execute(f"SELECT username, password FROM usuarios WHERE username = {placeholder}", (request.username,))
+        cursor.execute(f"SELECT username, password, nombre FROM usuarios WHERE username = {placeholder}", (request.username,))
         user = cursor.fetchone()
         if user and verify_password(request.password, user[1]):
-            # Buscar el nombre en solicitudes_registro
-            cursor.execute(f"SELECT nombre FROM solicitudes_registro WHERE email = {placeholder}", (request.username,))
-            sol = cursor.fetchone()
-            nombre = sol[0] if sol else request.username
+            nombre = user[2] if user[2] else request.username
             return {"success": True, "username": user[0], "nombre": nombre}
         return {"success": False, "message": "Credenciales inválidas"}
     finally:
