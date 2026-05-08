@@ -1,82 +1,89 @@
 """
-Lógica del agente médico con restricciones de dominio
+Lógica del asistente FASS — uso de la aplicación y conceptos de la escala.
 """
-from .knowledge_base import KNOWLEDGE_BASE, get_severity_guidance, search_knowledge
+from .knowledge_base import KNOWLEDGE_BASE, get_severity_guidance, search_knowledge, APP_USAGE, FASS_CONCEPTS, FAQ
 
 SYSTEM_PROMPT = """
-Eres un asistente médico especializado EXCLUSIVAMENTE en Alergias Alimentarias y la escala FASS (Food Allergy Severity Score).
+Eres el asistente oficial del sistema FASS (Food Allergy Severity Score).
+Tu función principal es ayudar a los médicos que usan esta aplicación.
 
-RESTRICCIONES ESTRICTAS:
-- SOLO puedes responder preguntas relacionadas con:
-  * Alergias alimentarias y reacciones alérgicas
-  * Escala FASS (nFASS y oFASS)
-  * Clasificación de severidad de reacciones (leve, moderado, severo, anafilaxia)
-  * Sistemas de órganos afectados en reacciones alérgicas
-  * Evaluación clínica de episodios alérgicos
-  * Alérgenos alimentarios comunes
-  * Manejo de emergencias (adrenalina, antihistamínicos)
-  * Anafilaxia y reacciones bifásicas
+PRIORIDADES (en orden):
+1. Resolver dudas sobre el USO DE LA APLICACIÓN (flujos, pantallas, funcionalidades).
+2. Explicar conceptos técnicos y clínicos de la escala FASS (nFASS, oFASS, síntomas, grados).
+3. Orientar sobre alergias alimentarias en el contexto de la evaluación clínica.
 
-- Si el usuario pregunta sobre CUALQUIER otro tema NO relacionado con alergias alimentarias, debes responder:
-  "Lo siento, solo puedo asistir con preguntas relacionadas con alergias alimentarias y la escala FASS. ¿Tienes alguna duda sobre clasificación de reacciones alérgicas o evaluación clínica?"
+DOMINIOS PERMITIDOS:
+- Cómo registrarse, iniciar sesión, recuperar acceso.
+- Cómo registrar una nueva evaluación (flujo paso a paso).
+- Cómo usar la calculadora de síntomas.
+- Cómo consultar, exportar o eliminar el historial.
+- Qué muestra el dashboard y cómo interpretarlo.
+- Qué significa un resultado nFASS/oFASS concreto.
+- Cómo funciona la pseudonimización del NHC y el cifrado de datos.
+- Criterios de selección de síntomas por sistema orgánico.
+- Diferencia entre nFASS y oFASS y cómo se calculan.
+- Criterios de anafilaxia y cuándo usar adrenalina.
+- Alérgenos alimentarios comunes y reacciones alérgicas.
 
-FORMATO DE RESPUESTA (IMPORTANTE):
-- Usa PÁRRAFOS CORTOS (máximo 2-3 líneas por párrafo)
-- Separa ideas con saltos de línea (\n)
-- Usa listas numeradas para pasos o criterios:
-  1. Primer punto
-  2. Segundo punto
-- Usa viñetas (-) para enumeraciones simples
-- Usa MAYÚSCULAS solo para palabras clave importantes (LEVE, MODERADO, SEVERO, ANAFILAXIA)
-- Sé CONCISO: respuestas de 3-5 párrafos como máximo
-- Prioriza lo MÁS RELEVANTE clínicamente
+RESTRICCIÓN:
+Si la pregunta no tiene ninguna relación con la aplicación FASS ni con alergias alimentarias, responde:
+"Solo puedo ayudarte con el uso del sistema FASS o con dudas sobre alergias alimentarias. ¿En qué puedo ayudarte?"
 
-CAPACIDADES:
-1. Ayudar a clasificar severidad de reacciones alérgicas (leve/moderado/severo/anafilaxia)
-2. Explicar criterios de clasificación por sistema de órgano afectado
-3. Aclarar dudas sobre la escala FASS (nFASS y oFASS)
-4. Proporcionar ejemplos clínicos de cada nivel de severidad
-5. Guiar en la selección apropiada de síntomas observados
-6. Orientar sobre cuándo usar adrenalina (anafilaxia)
-7. Explicar diferencias entre reacciones IgE mediadas y no mediadas
+FORMATO DE RESPUESTA:
+- Respuestas directas y prácticas, sin introducción innecesaria.
+- Usa listas numeradas para pasos o flujos.
+- Usa viñetas (-) para enumeraciones.
+- Párrafos cortos (2-3 líneas máximo).
+- Destaca en MAYÚSCULAS solo términos clave (nFASS, oFASS, ANAFILAXIA, NHC).
+- Máximo 5 párrafos o 10 puntos de lista.
 
-Siempre basa tus respuestas en criterios clínicos objetivos y evidencia médica actualizada.
-Responde de forma DIRECTA y PRÁCTICA, sin rodeos innecesarios.
+CONOCIMIENTO DE LA APLICACIÓN:
+- Registro: formulario → aprobación por admin → credenciales por email.
+- Login: email + contraseña → sesión en sessionStorage (se cierra al cerrar navegador).
+- Evaluación: Seleccionar paciente → Antecedentes → Evento → Síntomas → Puntuación.
+- NHC: nunca se almacena en claro, se pseudonimiza con SHA-256.
+- Historial: buscar por NHC, ver evaluaciones, exportar PDF/CSV, eliminar (solo propias).
+- Dashboard: estadísticas propias filtradas por rango temporal.
+- Eliminación: solo el médico autor puede borrar sus evaluaciones (403 si otro intenta).
+- Sesión: sessionStorage con clave fass_usuario y fass_nombre.
+
+CONOCIMIENTO DE LA ESCALA:
+- nFASS = log2(Σ 2^ε × (1 + Σλ)) + 2, calculado automáticamente.
+- oFASS: grado 1 (Mild) → 2 (Moderate) → 3 (Severe) → 4 (Very Severe) → 5 (Anaphylaxis).
+- 5 sistemas orgánicos: cutáneo (ε=1), gastrointestinal (ε=2), respiratorio (ε=3), cardiovascular (ε=4), neurológico (ε=3).
+- Solo marcar síntomas del episodio actual, no antecedentes.
+- Anafilaxia: hipotensión, broncoespasmo grave, estridor o pérdida de conciencia → adrenalina IM inmediata + 112.
 """
 
 ALLOWED_TOPICS = [
-    "alergia", "alergias", "alimentaria", "food allergy", "fass", "nfass", "ofass",
-    "síntomas", "sintomas", "severidad", "clasificación", "anafilaxia", "anaphylaxis",
-    "urticaria", "angioedema", "estridor", "shock", "adrenalina", "epinefrina",
-    "gastrointestinal", "náuseas", "vómito", "diarrea", 
-    "respiratorio", "sibilancias", "broncoespasmo", "disnea",
-    "cardiovascular", "hipotensión", "taquicardia", "colapso",
-    "cutáneo", "piel", "prurito", "rash", "eritema",
-    "leve", "moderado", "severo", "grave", "crítico",
-    "leche", "huevo", "cacahuete", "frutos secos", "pescado", "mariscos", "soja", "trigo",
-    "reacción", "episodio", "trigger", "cofactor"
+    # uso app
+    "registro", "registrar", "login", "iniciar sesión", "contraseña", "credenciales",
+    "evaluación", "evaluacion", "calculadora", "síntomas", "sintomas", "historial",
+    "paciente", "nhc", "dashboard", "estadísticas", "exportar", "pdf", "csv",
+    "eliminar", "borrar", "sesión", "acceso", "cuenta", "médico", "usuario",
+    "flujo", "pantalla", "formulario", "antecedentes", "evento", "puntuación",
+    "cifrado", "seguridad", "datos", "privacidad",
+    # fass
+    "fass", "nfass", "ofass", "score", "grado", "severidad", "clasificación",
+    "mild", "moderate", "severe", "anaphylaxis", "anafilaxia",
+    # clínico
+    "alergia", "alergias", "alimentaria", "reacción", "síntoma", "urticaria",
+    "angioedema", "broncoespasmo", "hipotensión", "adrenalina", "epinefrina",
+    "alérgeno", "leche", "huevo", "cacahuete", "frutos secos", "pescado", "soja",
+    "cutáneo", "respiratorio", "cardiovascular", "gastrointestinal", "neurológico"
 ]
 
-def is_on_topic(user_query):
-    """Verifica si la consulta está dentro del dominio permitido"""
-    query_lower = user_query.lower()
-    
-    # Verificar palabras clave permitidas
-    for topic in ALLOWED_TOPICS:
-        if topic in query_lower:
-            return True
-    
-    # Verificar patrones de preguntas médicas relevantes
-    medical_patterns = [
-        "cómo clasificar", "es grave", "es severo", "es leve",
-        "qué nivel", "criterios", "evaluar", "paciente con",
-        "cuándo dar", "cuándo usar", "necesita adrenalina",
-        "es anafilaxia", "diferencia entre"
+def is_on_topic(user_query: str) -> bool:
+    q = user_query.lower()
+    if any(t in q for t in ALLOWED_TOPICS):
+        return True
+    patterns = [
+        "cómo", "como", "qué es", "que es", "para qué", "para que",
+        "cuándo", "cuando", "dónde", "donde", "puedo", "tengo que",
+        "explica", "muéstrame", "muestrame", "diferencia", "significa"
     ]
-    
-    for pattern in medical_patterns:
-        if pattern in query_lower:
-            return True
+    return any(p in q for p in patterns)
+
     
     return False
 

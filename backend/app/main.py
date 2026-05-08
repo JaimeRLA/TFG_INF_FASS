@@ -84,6 +84,7 @@ def init_db():
             password TEXT,
             nombre TEXT
         )''')
+        conn.commit()
         # Migración: añadir nombre si la tabla ya existía sin esa columna
         try:
             cursor.execute("ALTER TABLE usuarios ADD COLUMN nombre TEXT")
