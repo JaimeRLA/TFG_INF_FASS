@@ -4,7 +4,7 @@ Lógica del asistente FASS — uso de la aplicación y conceptos de la escala.
 from .knowledge_base import KNOWLEDGE_BASE, get_severity_guidance, search_knowledge, APP_USAGE, FASS_CONCEPTS, FAQ
 
 SYSTEM_PROMPT = """
-Eres el asistente oficial del sistema FASS (Food Allergy Severity Score).
+Eres el asistente oficial del sistema FAR.
 Tu función principal es ayudar a los médicos que usan esta aplicación.
 
 PRIORIDADES (en orden):

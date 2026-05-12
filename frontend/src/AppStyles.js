@@ -1,5 +1,5 @@
 /*
- * FASS Design System — Clinical Edition
+ * FAR Design System — Clinical Edition
  * Paleta: Slate navy + white, acentos azul oscuro
  * Filosofía: limpio, serio, clínico — sin decoración superflua
  */

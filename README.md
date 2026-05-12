@@ -1,4 +1,4 @@
-# FASS — Food Allergy Severity Score
+# FAR(FOOD ALLERGY RECORD) 
 
 > Sistema web clínico para la evaluación automatizada de reacciones alérgicas alimentarias basado en la escala FASS. Desarrollado como Trabajo de Fin de Grado en Ingeniería Informática.
 

@@ -146,7 +146,7 @@ def send_email(to: str, subject: str, html_body: str):
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"FASS Sistema <{FROM_EMAIL}>"
+        msg["From"] = f"FAR Sistema <{FROM_EMAIL}>"
         msg["To"] = to
         msg.attach(MIMEText(html_body, "html"))
         with smtplib.SMTP("smtp-relay.brevo.com", 2525, timeout=15) as server:
@@ -222,10 +222,10 @@ def register(request: RegisterRequest):
         approve_link = f"{BACKEND_URL}/approve/{token}"
         send_email(
             ADMIN_EMAIL,
-            f"[FASS] Nueva solicitud de acceso: {request.nombre}",
+            f"[FAR] Nueva solicitud de acceso: {request.nombre}",
             f"""
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px">
-                <h2 style="color:#1e293b">Nueva solicitud de registro en FASS</h2>
+                <h2 style="color:#1e293b">Nueva solicitud de registro en FAR</h2>
                 <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0">
                     <tr style="background:#f8fafc"><td style="padding:10px;font-weight:bold">Nombre:</td><td style="padding:10px">{request.nombre}</td></tr>
                     <tr><td style="padding:10px;font-weight:bold">Email:</td><td style="padding:10px">{request.email}</td></tr>
@@ -304,10 +304,10 @@ def approve_registration(token: str):
         # Enviar credenciales al usuario
         send_email(
             email,
-            "[FASS] Tu acceso ha sido aprobado",
+            "[FAR] Tu acceso ha sido aprobado",
             f"""
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px">
-                <h2 style="color:#1e293b">Bienvenido/a al Sistema FASS, {nombre}</h2>
+                <h2 style="color:#1e293b">Bienvenido/a al Sistema FAR, {nombre}</h2>
                 <p>Tu solicitud de acceso ha sido aprobada. Aquí están tus credenciales de acceso:</p>
                 <div style="background:#f1f5f9;border-radius:8px;padding:20px;margin:20px 0">
                     <p style="margin:6px 0"><b>Usuario (email):</b> {email}</p>

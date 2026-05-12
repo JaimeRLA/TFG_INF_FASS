@@ -5,7 +5,7 @@ import { Send, MessageSquare } from 'lucide-react';
 const ChatBot = () => {
   const [chatInput, setChatInput] = useState("");
   const [mensajes, setMensajes] = useState([
-    { rol: 'bot', texto: 'Hola, soy tu asistente clínico FASS. ¿En qué puedo ayudarte con la evaluación del paciente?' }
+    { rol: 'bot', texto: 'Hola, soy tu asistente clínico FAR. ¿En qué puedo ayudarte con la evaluación del paciente?' }
   ]);
   const [cargandoChat, setCargandoChat] = useState(false);
   const [minimizado, setMinimizado] = useState(true);
@@ -132,7 +132,7 @@ const ChatBot = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MessageSquare size={15} color="#93c5fd" />
-          <span>Asistente Clínico FASS</span>
+          <span>Asistente Clínico FAR</span>
           <div style={{ 
             width: '6px', height: '6px', borderRadius: '50%', 
             backgroundColor: '#4ade80',

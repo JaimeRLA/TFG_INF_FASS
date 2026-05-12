@@ -15,7 +15,7 @@ const Navbar = ({ tabActiva, setTabActiva, setUsuarioLogueado }) => {
           letterSpacing: '0.04em',
           fontFamily: '"Inter", system-ui, sans-serif',
         }}>
-          FASS <span style={{ color: '#93c5fd' }}>System</span>
+          FAR <span style={{ color: '#93c5fd' }}>System</span>
         </span>
       </div>
 
