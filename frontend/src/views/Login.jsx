@@ -87,11 +87,11 @@ const Login = ({ onLoginSuccess }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
           <HeartPulse size={28} color="#93c5fd" />
           <span style={{ fontSize: '1.2rem', color: '#f1f5f9', fontWeight: '700', letterSpacing: '0.04em' }}>
-            FASS <span style={{ color: '#93c5fd' }}>System</span>
+            FAR<span style={{ color: '#93c5fd' }}>System</span>
           </span>
         </div>
         <h1 style={{ color: '#f1f5f9', fontSize: '2rem', fontWeight: '700', lineHeight: 1.3, margin: '0 0 16px 0' }}>
-          Escala de Severidad<br />de Alergia Alimentaria FASS
+          Food Allergy Record <br /> System FAR
         </h1>
         <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.7, maxWidth: '380px', margin: '0 0 40px 0' }}>
           Plataforma clínica para la evaluación y almacenamiento de datos de pacientes con alergias alimentarias.
