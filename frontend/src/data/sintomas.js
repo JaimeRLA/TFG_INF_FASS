@@ -28,9 +28,9 @@ export const SECCIONES_SINTOMAS = [
         },
         {
           label: "Rash / Eritema", id_base: "skin_rash", options: [
-            { id: "rash_few", text: "Faint (λ: 0.05)" },
-            { id: "rash_less_50", text: "≤ 50% (λ: 0.07)" },
-            { id: "rash_3_10", text: "> 50% (λ: 0.08)" }
+            { id: "rash_few", text: "Faint (λ: 0.01)" },
+            { id: "rash_less_50", text: "≤ 50% (λ: 0.05)" },
+            { id: "rash_more_50", text: "> 50% (λ: 0.08)" }
           ]
         },
         {

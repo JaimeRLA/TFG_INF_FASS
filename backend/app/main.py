@@ -61,7 +61,7 @@ def init_db():
             nhc_hash TEXT UNIQUE,
             rango_edad TEXT,
             genero TEXT,
-            medico TEXT
+            medico_id INTEGER REFERENCES usuarios(id)
         )''')
         # TABLA 2: REGISTROS (Clínica vinculada por ID interno)
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
@@ -88,6 +88,20 @@ def init_db():
         # Migración: añadir nombre si la tabla ya existía sin esa columna
         try:
             cursor.execute("ALTER TABLE usuarios ADD COLUMN nombre TEXT")
+            conn.commit()
+        except Exception:
+            conn.rollback()
+        # Migración: añadir medico_id FK a pacientes (para tablas ya existentes con medico TEXT)
+        try:
+            cursor.execute("ALTER TABLE pacientes ADD COLUMN medico_id INTEGER REFERENCES usuarios(id)")
+            conn.commit()
+            cursor.execute("UPDATE pacientes SET medico_id = (SELECT id FROM usuarios WHERE username = medico) WHERE medico_id IS NULL")
+            conn.commit()
+        except Exception:
+            conn.rollback()
+        # Migración: eliminar columna medico TEXT de pacientes (ya reemplazada por medico_id)
+        try:
+            cursor.execute("ALTER TABLE pacientes DROP COLUMN medico")
             conn.commit()
         except Exception:
             conn.rollback()
@@ -168,8 +182,12 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        # Obtenemos los datos únicos de los pacientes registrados por el médico
-        query = f"SELECT nhc_hash, rango_edad, genero FROM pacientes WHERE medico = {placeholder}"
+        query = f"""
+            SELECT p.nhc_hash, p.rango_edad, p.genero
+            FROM pacientes p
+            JOIN usuarios u ON p.medico_id = u.id
+            WHERE u.username = {placeholder}
+        """
         cursor.execute(query, (medico,))
         
         pacientes = []
@@ -409,18 +427,25 @@ async def calculate(request: EvaluacionRequest, x_tfg_key: str = Header(None)):
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         
+        # Resolver FK: obtener id del médico desde su username
+        cursor.execute(f"SELECT id FROM usuarios WHERE username = {placeholder}", (request.medico,))
+        medico_row = cursor.fetchone()
+        if not medico_row:
+            return {"success": False, "message": "Usuario médico no encontrado en el sistema"}
+        medico_user_id = medico_row[0]
+
         cursor.execute(f"SELECT id FROM pacientes WHERE nhc_hash = {placeholder}", (nhc_pseudo,))
         res_paciente = cursor.fetchone()
-        
+
         if res_paciente:
             int_paciente_id = res_paciente[0]
-            cursor.execute(f"UPDATE pacientes SET rango_edad = {placeholder} WHERE id = {placeholder}", (rango_edad, int_paciente_id))
+            cursor.execute(f"UPDATE pacientes SET rango_edad = {placeholder}, medico_id = {placeholder} WHERE id = {placeholder}", (rango_edad, medico_user_id, int_paciente_id))
         else:
             cursor.execute(f"""
-                INSERT INTO pacientes (nhc_hash, rango_edad, genero, medico)
+                INSERT INTO pacientes (nhc_hash, rango_edad, genero, medico_id)
                 VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
                 RETURNING id
-            """, (nhc_pseudo, rango_edad, genero_c, request.medico))
+            """, (nhc_pseudo, rango_edad, genero_c, medico_user_id))
             int_paciente_id = cursor.fetchone()[0]
 
         id_final = None
