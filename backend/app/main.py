@@ -3,12 +3,16 @@ import os
 import json
 import secrets
 import smtplib
+import hmac
+import time
+import base64
+from typing import Optional
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import psycopg2 
-import hashlib # Para la pseudonimización
+import psycopg2
+import hashlib
 from datetime import datetime
-from fastapi import FastAPI, Query, Header, HTTPException
+from fastapi import FastAPI, Query, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from groq import Groq
@@ -17,8 +21,10 @@ from .agent_logic import SYSTEM_PROMPT
 from .data_models import LoginRequest, RegisterRequest, EvaluacionRequest
 from .security import hash_password, verify_password, encrypt_data, decrypt_data
 from .sintomas import DB_SINTOMAS
+from .routes.agent_routes import agent_router
 
 app = FastAPI()
+app.include_router(agent_router)
 
 # --- CONFIGURACIÓN DE CORS ---
 app.add_middleware(
@@ -35,7 +41,43 @@ app.add_middleware(
 
 # --- BASE DE DATOS ---
 DATABASE_URL = os.getenv("DATABASE_URL")
-APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY", "dev_jwt_secret_cambiar_en_produccion")
+if APP_SECRET_KEY == "dev_jwt_secret_cambiar_en_produccion":
+    print("⚠️  ADVERTENCIA: APP_SECRET_KEY no configurada. Usando clave por defecto (INSEGURO EN PRODUCCIÓN)")
+
+# --- AUTENTICACIÓN JWT (HMAC-SHA256 sin dependencias externas) ---
+_JWT_EXPIRY_SECONDS = 86400  # 24 horas
+
+def create_access_token(username: str) -> str:
+    payload = json.dumps({"sub": username, "exp": time.time() + _JWT_EXPIRY_SECONDS}).encode()
+    payload_b64 = base64.urlsafe_b64encode(payload).rstrip(b"=").decode()
+    sig = hmac.new(APP_SECRET_KEY.encode(), payload_b64.encode(), hashlib.sha256).digest()
+    sig_b64 = base64.urlsafe_b64encode(sig).rstrip(b"=").decode()
+    return f"{payload_b64}.{sig_b64}"
+
+def verify_access_token(token: str) -> Optional[str]:
+    try:
+        payload_b64, sig_b64 = token.split(".", 1)
+        expected = base64.urlsafe_b64encode(
+            hmac.new(APP_SECRET_KEY.encode(), payload_b64.encode(), hashlib.sha256).digest()
+        ).rstrip(b"=").decode()
+        if not hmac.compare_digest(sig_b64, expected):
+            return None
+        padding = (4 - len(payload_b64) % 4) % 4
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64 + "=" * padding))
+        if payload.get("exp", 0) < time.time():
+            return None
+        return payload.get("sub")
+    except Exception:
+        return None
+
+async def get_current_user(authorization: Optional[str] = Header(None)) -> str:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token de autenticación requerido")
+    username = verify_access_token(authorization.split(" ", 1)[1])
+    if not username:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+    return username
 
 # --- CONFIGURACIÓN EMAIL (Brevo SMTP) ---
 SMTP_USER = os.getenv("SMTP_USER", "")        # login de Brevo (a99405001@smtp-brevo.com)
@@ -174,10 +216,7 @@ def send_email(to: str, subject: str, html_body: str):
 
 # --- ENDPOINTS DE PACIENTES ---
 @app.get("/pacientes_unicos")
-async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header(None)):
-    if x_tfg_key != APP_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="Acceso no autorizado")
-
+async def get_pacientes_unicos(current_user: str = Depends(get_current_user)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
@@ -188,7 +227,7 @@ async def get_pacientes_unicos(medico: str = Query(...), x_tfg_key: str = Header
             JOIN usuarios u ON p.medico_id = u.id
             WHERE u.username = {placeholder}
         """
-        cursor.execute(query, (medico,))
+        cursor.execute(query, (current_user,))
         
         pacientes = []
         for row in cursor.fetchall():
@@ -366,30 +405,32 @@ async def login(request: LoginRequest):
         user = cursor.fetchone()
         if user and verify_password(request.password, user[1]):
             nombre = user[2] if user[2] else request.username
-            return {"success": True, "username": user[0], "nombre": nombre}
+            return {
+                "success": True,
+                "username": user[0],
+                "nombre": nombre,
+                "access_token": create_access_token(user[0])
+            }
         return {"success": False, "message": "Credenciales inválidas"}
     finally:
         conn.close()
 
 # --- ENDPOINTS CLÍNICOS ---
 @app.get("/history")
-async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
-    if x_tfg_key != APP_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="Acceso no autorizado")
-
+async def get_history(current_user: str = Depends(get_current_user)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
-        
+
         query = f"""
-            SELECT r.*, p.nhc_hash, p.rango_edad, p.genero 
+            SELECT r.*, p.nhc_hash, p.rango_edad, p.genero
             FROM registros r
             JOIN pacientes p ON r.paciente_id = p.id
-            WHERE r.medico = {placeholder} 
+            WHERE r.medico = {placeholder}
             ORDER BY r.fecha DESC
         """
-        cursor.execute(query, (medico,))
+        cursor.execute(query, (current_user,))
         
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
@@ -407,9 +448,7 @@ async def get_history(medico: str = Query(...), x_tfg_key: str = Header(None)):
         conn.close()
 
 @app.post("/calculate")
-async def calculate(request: EvaluacionRequest, x_tfg_key: str = Header(None)):
-    if x_tfg_key != APP_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="Acceso no autorizado")
+async def calculate(request: EvaluacionRequest, current_user: str = Depends(get_current_user)):
     resultado = calcular_nfass_ofass(request.sintomas)
     
     # 1. Pseudonimización y Minimización
@@ -441,34 +480,44 @@ async def calculate(request: EvaluacionRequest, x_tfg_key: str = Header(None)):
             int_paciente_id = res_paciente[0]
             cursor.execute(f"UPDATE pacientes SET rango_edad = {placeholder}, medico_id = {placeholder} WHERE id = {placeholder}", (rango_edad, medico_user_id, int_paciente_id))
         else:
-            cursor.execute(f"""
-                INSERT INTO pacientes (nhc_hash, rango_edad, genero, medico_id)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
-                RETURNING id
-            """, (nhc_pseudo, rango_edad, genero_c, medico_user_id))
-            int_paciente_id = cursor.fetchone()[0]
+            try:
+                cursor.execute(f"""
+                    INSERT INTO pacientes (nhc_hash, rango_edad, genero, medico_id)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+                    RETURNING id
+                """, (nhc_pseudo, rango_edad, genero_c, medico_user_id))
+                int_paciente_id = cursor.fetchone()[0]
+            except Exception:
+                # Race condition: otro request insertó el mismo paciente en paralelo
+                conn.rollback()
+                cursor.execute(f"SELECT id FROM pacientes WHERE nhc_hash = {placeholder}", (nhc_pseudo,))
+                int_paciente_id = cursor.fetchone()[0]
 
         id_final = None
-        # Si recibimos un ID válido, actualizamos (UPDATE), si no, creamos (INSERT)
         if request.id and str(request.id).isdigit() and int(request.id) > 0:
             id_final = int(request.id)
-            query = f"""UPDATE registros SET 
-                        paciente_id={placeholder}, medico={placeholder}, respuestas_json={placeholder}, 
-                        evento_json={placeholder}, sintomas={placeholder}, nfass={placeholder}, 
+            # Verificar que el registro pertenece al médico autenticado
+            cursor.execute(f"SELECT medico FROM registros WHERE id = {placeholder}", (id_final,))
+            owner = cursor.fetchone()
+            if not owner or owner[0] != current_user:
+                return {"success": False, "message": "No tienes permiso para modificar este registro"}
+            query = f"""UPDATE registros SET
+                        paciente_id={placeholder}, medico={placeholder}, respuestas_json={placeholder},
+                        evento_json={placeholder}, sintomas={placeholder}, nfass={placeholder},
                         ofass_grade={placeholder}, ofass_category={placeholder}, risk_level={placeholder}
                         WHERE id={placeholder}"""
             cursor.execute(query, (
-                int_paciente_id, request.medico, respuestas_c, evento_c, 
-                sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
+                int_paciente_id, current_user, respuestas_c, evento_c,
+                sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]),
                 resultado["ofass_category"], resultado["risk_level"], id_final
             ))
         else:
-            query = f"""INSERT INTO registros (paciente_id, medico, respuestas_json, evento_json, 
-                        sintomas, nfass, ofass_grade, ofass_category, risk_level) 
+            query = f"""INSERT INTO registros (paciente_id, medico, respuestas_json, evento_json,
+                        sintomas, nfass, ofass_grade, ofass_category, risk_level)
                         VALUES ({','.join([placeholder]*9)}) RETURNING id"""
             cursor.execute(query, (
-                int_paciente_id, request.medico, respuestas_c, evento_c, 
-                sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]), 
+                int_paciente_id, current_user, respuestas_c, evento_c,
+                sintomas_c, float(resultado["nfass"]), int(resultado["ofass_grade"]),
                 resultado["ofass_category"], resultado["risk_level"]
             ))
             id_final = cursor.fetchone()[0]
@@ -483,16 +532,14 @@ async def calculate(request: EvaluacionRequest, x_tfg_key: str = Header(None)):
         conn.close()
 
 @app.delete("/evaluacion/{id_evaluacion}")
-async def eliminar_registro(id_evaluacion: int, medico: str = Query(...), x_tfg_key: str = Header(None)):
-    if x_tfg_key != APP_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="No autorizado")
+async def eliminar_registro(id_evaluacion: int, current_user: str = Depends(get_current_user)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
         placeholder = "%s" if DATABASE_URL else "?"
         cursor.execute(f"SELECT medico FROM registros WHERE id = {placeholder}", (id_evaluacion,))
         res = cursor.fetchone()
-        if not res or res[0] != medico:
+        if not res or res[0] != current_user:
             raise HTTPException(status_code=403, detail="No tienes permiso")
         cursor.execute(f"DELETE FROM registros WHERE id = {placeholder}", (id_evaluacion,))
         conn.commit()
@@ -508,10 +555,7 @@ async def get_hash(nhc: str):
     return {"hash": hash_obj.hexdigest()}
 
 @app.get("/stats")
-async def get_stats(medico: str = Query(...), timeRange: str = Query("all"), x_tfg_key: str = Header(None)):
-    """Obtiene estadísticas agregadas de pacientes y evaluaciones por médico"""
-    if x_tfg_key != APP_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="Acceso no autorizado")
+async def get_stats(timeRange: str = Query("all"), current_user: str = Depends(get_current_user)):
 
     conn = get_connection()
     try:
@@ -538,7 +582,7 @@ async def get_stats(medico: str = Query(...), timeRange: str = Query("all"), x_t
             FROM registros r
             WHERE r.medico = {placeholder} {time_filter}
         """
-        cursor.execute(query, (medico,))
+        cursor.execute(query, (current_user,))
         rows = cursor.fetchall()
         
         if not rows:

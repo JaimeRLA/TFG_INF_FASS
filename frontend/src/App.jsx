@@ -61,7 +61,9 @@ const App = () => {
   });
 
   const BASE_URL = "https://tfg-inf-fass.onrender.com";
-  const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${sessionStorage.getItem('fass_token') || ''}`
+  });
 
   // --- HANDLERS DE FORMULARIO ---
   const handleEvento = (campo, valor) => setEvento(prev => ({ ...prev, [campo]: valor }));
@@ -105,8 +107,7 @@ const App = () => {
     setIsLoadingHistorial(true);
     try {
       const res = await axios.get(`${BASE_URL}/history`, {
-        params: { medico: usuarioLogueado }, 
-        headers: { 'x-tfg-key': TFG_KEY }
+        headers: getAuthHeaders()
       });
       setListaPacientes(res.data);
       setView('historial_global');
@@ -123,8 +124,7 @@ const App = () => {
     setIsLoadingPacientes(true);
     try {
       const res = await axios.get(`${BASE_URL}/pacientes_unicos`, {
-        params: { medico: usuarioLogueado },
-        headers: { 'x-tfg-key': TFG_KEY }
+        headers: getAuthHeaders()
       });
       setListaPacientes(res.data);
       setView('seleccionar_pac_existente');
@@ -171,8 +171,7 @@ const App = () => {
     setIsDeleting(true);
     try {
       await axios.delete(`${BASE_URL}/evaluacion/${id_db}`, {
-        params: { medico: usuarioLogueado },
-        headers: { 'x-tfg-key': TFG_KEY }
+        headers: getAuthHeaders()
       });
       success("Evaluación eliminada correctamente");
       cargarHistorial();
@@ -206,15 +205,14 @@ const App = () => {
     
     try {
       const res = await axios.post(`${BASE_URL}/calculate`, {
-        id: idParaEnviar, 
+        id: idParaEnviar,
         paciente_id: paciente.id,
-        fecha_nacimiento: paciente.fecha_nacimiento || paciente.rango_edad, 
+        fecha_nacimiento: paciente.fecha_nacimiento || paciente.rango_edad,
         genero: paciente.genero,
         respuestas: cuestionario,
         evento: evento,
         sintomas: listaIds,
-        medico: usuarioLogueado
-      }, { headers: { 'x-tfg-key': TFG_KEY } });
+      }, { headers: getAuthHeaders() });
       if (res.data.success) {
         setResultado(res.data);
         if (res.data.id_registro) setEditandoId(res.data.id_registro);
@@ -250,9 +248,10 @@ const App = () => {
     }
   };
 
-  const handleLoginSuccess = (username, nombre) => {
+  const handleLoginSuccess = (username, nombre, token) => {
     sessionStorage.setItem('fass_usuario', username);
     sessionStorage.setItem('fass_nombre', nombre);
+    sessionStorage.setItem('fass_token', token);
     setUsuarioLogueado(username);
     setNombreMedico(nombre);
   };
@@ -260,6 +259,7 @@ const App = () => {
   const handleLogout = () => {
     sessionStorage.removeItem('fass_usuario');
     sessionStorage.removeItem('fass_nombre');
+    sessionStorage.removeItem('fass_token');
     setUsuarioLogueado(null);
     setNombreMedico('');
   };

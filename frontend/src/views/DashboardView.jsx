@@ -20,7 +20,9 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
   const [timeRange, setTimeRange] = useState('all'); // all, 30d, 90d, 365d
 
   const BASE_URL = "https://tfg-inf-fass.onrender.com";
-  const TFG_KEY = import.meta.env.VITE_APP_TFG_KEY;
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${sessionStorage.getItem('fass_token') || ''}`
+  });
 
   useEffect(() => {
     cargarEstadisticas();
@@ -31,11 +33,8 @@ const DashboardView = ({ usuarioLogueado, setTabActiva }) => {
     setError(null);
     try {
       const res = await axios.get(`${BASE_URL}/stats`, {
-        params: { 
-          medico: usuarioLogueado,
-          timeRange: timeRange 
-        },
-        headers: { 'x-tfg-key': TFG_KEY }
+        params: { timeRange },
+        headers: getAuthHeaders()
       });
       setStats(res.data);
     } catch (err) {

@@ -48,7 +48,7 @@ const Login = ({ onLoginSuccess }) => {
           password: form.password,
         });
         if (res.data.success) {
-          onLoginSuccess(res.data.username, res.data.nombre || res.data.username);
+          onLoginSuccess(res.data.username, res.data.nombre || res.data.username, res.data.access_token);
         } else {
           setError(res.data.message || "Credenciales incorrectas");
         }

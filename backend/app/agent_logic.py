@@ -84,9 +84,6 @@ def is_on_topic(user_query: str) -> bool:
     ]
     return any(p in q for p in patterns)
 
-    
-    return False
-
 def get_off_topic_response():
     """Respuesta para temas fuera del dominio"""
     return {

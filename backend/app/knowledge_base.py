@@ -115,7 +115,7 @@ APP_USAGE = {
             "Los campos clínicos (síntomas, antecedentes, evento) se cifran con AES-128-CBC (Fernet) antes de guardarse en la base de datos.",
             "Las contraseñas se almacenan como hashes bcrypt irreversibles.",
             "Toda la comunicación se realiza por HTTPS.",
-            "Los endpoints clínicos requieren una clave de autenticación adicional (x-tfg-key)."
+            "Los endpoints clínicos requieren autenticación mediante token JWT (Bearer token)."
         ]
     }
 }

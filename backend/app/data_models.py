@@ -15,11 +15,11 @@ class RegisterRequest(BaseModel):
     telefono: str
 
 class EvaluacionRequest(BaseModel):
-    id: Optional[int] = None          
-    paciente_id: str                   
-    fecha_nacimiento: Optional[str] = None  
+    id: Optional[int] = None
+    paciente_id: str
+    fecha_nacimiento: Optional[str] = None
     genero: str
-    medico: str
-    respuestas: Dict               
-    evento: Dict                    
+    medico: Optional[str] = None  # ignorado server-side; el médico se obtiene del JWT
+    respuestas: Dict
+    evento: Dict
     sintomas: List[str]              
