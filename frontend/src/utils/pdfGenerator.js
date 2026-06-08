@@ -41,7 +41,7 @@ export const generarReportePDF = (p, usuarioLogueado) => {
         <body>
           <div class="header">
             <div>
-              <h1 class="title">FASS System - Reporte Clínico Detallado</h1>
+              <h1 class="title">FAR System - Reporte Clínico Detallado</h1>
               <p style="margin:2px 0;">ID Evaluación: ${p.id} | Generado: ${new Date().toLocaleString()}</p>
             </div>
             <div class="badge">PROPIEDAD DEL FACULTATIVO</div>

@@ -97,7 +97,16 @@ def init_db():
     try:
         cursor = conn.cursor()
         
-        # TABLA 1: PACIENTES (Identidad Pseudonimizada)
+        # TABLA 1: USUARIOS (sin dependencias, debe ir primero)
+        cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE,
+            password TEXT,
+            nombre TEXT
+        )''')
+        conn.commit()
+
+        # TABLA 2: PACIENTES (depende de usuarios)
         cursor.execute('''CREATE TABLE IF NOT EXISTS pacientes (
             id SERIAL PRIMARY KEY,
             nhc_hash TEXT UNIQUE,
@@ -105,7 +114,9 @@ def init_db():
             genero TEXT,
             medico_id INTEGER REFERENCES usuarios(id)
         )''')
-        # TABLA 2: REGISTROS (Clínica vinculada por ID interno)
+        conn.commit()
+
+        # TABLA 3: REGISTROS (depende de pacientes)
         cursor.execute('''CREATE TABLE IF NOT EXISTS registros (
             id SERIAL PRIMARY KEY,
             paciente_id INTEGER REFERENCES pacientes(id),
@@ -119,35 +130,9 @@ def init_db():
             risk_level TEXT,
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
-        # Tabla de Usuarios
-        cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE,
-            password TEXT,
-            nombre TEXT
-        )''')
         conn.commit()
-        # Migración: añadir nombre si la tabla ya existía sin esa columna
-        try:
-            cursor.execute("ALTER TABLE usuarios ADD COLUMN nombre TEXT")
-            conn.commit()
-        except Exception:
-            conn.rollback()
-        # Migración: añadir medico_id FK a pacientes (para tablas ya existentes con medico TEXT)
-        try:
-            cursor.execute("ALTER TABLE pacientes ADD COLUMN medico_id INTEGER REFERENCES usuarios(id)")
-            conn.commit()
-            cursor.execute("UPDATE pacientes SET medico_id = (SELECT id FROM usuarios WHERE username = medico) WHERE medico_id IS NULL")
-            conn.commit()
-        except Exception:
-            conn.rollback()
-        # Migración: eliminar columna medico TEXT de pacientes (ya reemplazada por medico_id)
-        try:
-            cursor.execute("ALTER TABLE pacientes DROP COLUMN medico")
-            conn.commit()
-        except Exception:
-            conn.rollback()
-        # Tabla de Solicitudes de Registro (pendientes de aprobación)
+
+        # TABLA 4: SOLICITUDES DE REGISTRO (sin dependencias)
         cursor.execute('''CREATE TABLE IF NOT EXISTS solicitudes_registro (
             id SERIAL PRIMARY KEY,
             email TEXT UNIQUE,
@@ -161,6 +146,30 @@ def init_db():
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
         conn.commit()
+
+        # Migración: añadir nombre si la tabla ya existía sin esa columna
+        try:
+            cursor.execute("ALTER TABLE usuarios ADD COLUMN nombre TEXT")
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
+        # Migración: añadir medico_id FK a pacientes (para tablas ya existentes con medico TEXT)
+        try:
+            cursor.execute("ALTER TABLE pacientes ADD COLUMN medico_id INTEGER REFERENCES usuarios(id)")
+            conn.commit()
+            cursor.execute("UPDATE pacientes SET medico_id = (SELECT id FROM usuarios WHERE username = medico) WHERE medico_id IS NULL")
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
+        # Migración: eliminar columna medico TEXT de pacientes (ya reemplazada por medico_id)
+        try:
+            cursor.execute("ALTER TABLE pacientes DROP COLUMN medico")
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
     except Exception as e:
         print(f"Error en init_db: {e}")
     finally:
