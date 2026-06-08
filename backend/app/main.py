@@ -476,7 +476,7 @@ async def calculate(request: EvaluacionRequest, current_user: str = Depends(get_
         placeholder = "%s" if DATABASE_URL else "?"
         
         # Resolver FK: obtener id del médico desde su username
-        cursor.execute(f"SELECT id FROM usuarios WHERE username = {placeholder}", (request.medico,))
+        cursor.execute(f"SELECT id FROM usuarios WHERE username = {placeholder}", (current_user,))
         medico_row = cursor.fetchone()
         if not medico_row:
             return {"success": False, "message": "Usuario médico no encontrado en el sistema"}
